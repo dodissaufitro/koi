@@ -1,0 +1,15 @@
+import AppLogoIcon from './app-logo-icon';
+
+export default function AppLogo() {
+    return (
+        <>
+            <div className="bg-red-600 text-white flex aspect-square size-8 items-center justify-center rounded-lg shadow-sm">
+                <AppLogoIcon className="size-6" />
+            </div>
+            <div className="ml-1 grid flex-1 text-left text-sm">
+                <span className="mb-0.5 truncate leading-none font-bold text-slate-900 dark:text-white">KoiMart</span>
+                <span className="text-[10px] text-slate-400 font-normal">Nishikigoi Auction</span>
+            </div>
+        </>
+    );
+}
