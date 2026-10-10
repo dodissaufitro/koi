@@ -2043,6 +2043,32 @@ export default function AndroidKoiApp({
     const [shareModalItem, setShareModalItem] = useState<any>(null);
     const [isCopiedLink, setIsCopiedLink] = useState(false);
 
+    // =========================================================================
+    // PENGATUR UKURAN TULISAN (RAMAH LANSIA / AKI-AKI)
+    // =========================================================================
+    const [fontSizeScale, setFontSizeScale] = useState<'normal' | 'large' | 'xlarge'>(() => {
+        if (typeof window !== 'undefined') {
+            const saved = localStorage.getItem('koki_font_scale');
+            if (saved === 'normal' || saved === 'large' || saved === 'xlarge') return saved;
+        }
+        return 'large'; // Default langsung BESAR & JELAS untuk ramah lansia
+    });
+    const [isFontSizeModalOpen, setIsFontSizeModalOpen] = useState(false);
+
+    const changeFontSizeScale = (scale: 'normal' | 'large' | 'xlarge') => {
+        setFontSizeScale(scale);
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('koki_font_scale', scale);
+        }
+        triggerToast(
+            scale === 'xlarge'
+                ? '🔍 Ukuran Tulisan: Sangat Besar (Super Jelas)'
+                : scale === 'large'
+                    ? '👓 Ukuran Tulisan: Besar (Ramah Lansia)'
+                    : '📝 Ukuran Tulisan: Standar'
+        );
+    };
+
     const [orderInvoiceCountdown, setOrderInvoiceCountdown] = useState(7180);
     const [selectedPaymentGateway, setSelectedPaymentGateway] = useState<'bca_va' | 'qris' | 'mandiri' | 'bni'>('bca_va');
 
@@ -2619,10 +2645,63 @@ export default function AndroidKoiApp({
         else if (tab === 'profile') navigateTo('profile');
     };
 
-    // Google Login Handler - Langsung buka autentikasi resmi Google OAuth
+    // Listener untuk Native Android Google Sign-In Dialog (Google Play Services)
+    useEffect(() => {
+        (window as any).__onNativeGoogleSignInSuccess = async (accountData: any) => {
+            try {
+                setGoogleLoginLoading(true);
+                const res = await fetch('/auth/google/native', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify(accountData),
+                });
+                const data = await res.json();
+                if (data.success) {
+                    triggerToast(`✅ Berhasil masuk sebagai ${data.user?.name || accountData?.name || 'Pengguna'}`);
+                    setIsGoogleLoginModalOpen(false);
+                    if (data.redirect) {
+                        window.location.href = data.redirect;
+                    } else {
+                        window.location.reload();
+                    }
+                } else {
+                    setGoogleLoginLoading(false);
+                    triggerToast(`⚠️ ${data.message || 'Gagal memproses akun Google'}`);
+                }
+            } catch (err: any) {
+                setGoogleLoginLoading(false);
+                triggerToast(`⚠️ Terjadi kesalahan koneksi login: ${err?.message || 'Error'}`);
+            }
+        };
+
+        (window as any).__onNativeGoogleSignInError = (errData: any) => {
+            setGoogleLoginLoading(false);
+            triggerToast(`⚠️ ${errData?.message || 'Login Google dibatalkan atau bermasalah'}`);
+        };
+
+        (window as any).__onNativeGoogleSignInCancel = () => {
+            setGoogleLoginLoading(false);
+        };
+
+        return () => {
+            delete (window as any).__onNativeGoogleSignInSuccess;
+            delete (window as any).__onNativeGoogleSignInError;
+            delete (window as any).__onNativeGoogleSignInCancel;
+        };
+    }, []);
+
+    // Google Login Handler - Langsung buka dialog Akun Google Native Android di HP tanpa redirect web
     const handleGoogleLogin = () => {
-        setGoogleLoginLoading(true);
-        window.location.href = '/auth/google';
+        if ((window as any).AndroidGoogleBridge?.signIn) {
+            setGoogleLoginLoading(true);
+            (window as any).AndroidGoogleBridge.signIn();
+        } else {
+            setGoogleLoginLoading(true);
+            window.location.href = '/auth/google';
+        }
     };
 
     // Logout Handler - Keluar akun melalui Laravel Auth & bersihkan sesi lokal
@@ -3049,8 +3128,38 @@ export default function AndroidKoiApp({
 
     return (
         <div className="relative min-h-screen bg-slate-950 flex justify-center items-center py-0 sm:py-6 select-none font-sans">
-            {/* ANDROID DEVICE WRAPPER (Mobile width container with Android aesthetics) */}
-            <div className="w-full sm:max-w-[412px] h-[100dvh] sm:h-[892px] sm:max-h-[92vh] bg-white sm:rounded-[40px] shadow-2xl overflow-hidden flex flex-col relative border-0 sm:border-[8px] sm:border-slate-800">
+            {/* Scoped CSS Rule: Memperbesar Ukuran Tulisan & Kontras Tajam untuk Pengguna Lansia (Aki-Aki) */}
+            <style>{`
+                /* MODE BESAR (RAMAH LANSIA - DEFAULT AKTIF) */
+                .font-scale-large .text-\\[8px\\], .font-scale-large .text-\\[9px\\] { font-size: 11.5px !important; line-height: 1.35 !important; }
+                .font-scale-large .text-\\[10px\\] { font-size: 13px !important; line-height: 1.35 !important; }
+                .font-scale-large .text-\\[11px\\] { font-size: 14px !important; line-height: 1.4 !important; }
+                .font-scale-large .text-xs { font-size: 15px !important; line-height: 1.45 !important; }
+                .font-scale-large .text-sm { font-size: 16.5px !important; line-height: 1.45 !important; }
+                .font-scale-large .text-base { font-size: 18.5px !important; line-height: 1.5 !important; }
+                .font-scale-large .text-lg { font-size: 21px !important; }
+                .font-scale-large .text-xl { font-size: 24px !important; }
+                .font-scale-large .text-2xl { font-size: 27px !important; }
+
+                /* MODE SANGAT BESAR (SUPER JELAS / RABUN DEKAT) */
+                .font-scale-xlarge .text-\\[8px\\], .font-scale-xlarge .text-\\[9px\\] { font-size: 13px !important; line-height: 1.35 !important; }
+                .font-scale-xlarge .text-\\[10px\\] { font-size: 14.5px !important; line-height: 1.4 !important; }
+                .font-scale-xlarge .text-\\[11px\\] { font-size: 15.5px !important; line-height: 1.4 !important; }
+                .font-scale-xlarge .text-xs { font-size: 17px !important; line-height: 1.45 !important; }
+                .font-scale-xlarge .text-sm { font-size: 18.5px !important; line-height: 1.5 !important; }
+                .font-scale-xlarge .text-base { font-size: 20.5px !important; line-height: 1.5 !important; }
+                .font-scale-xlarge .text-lg { font-size: 23px !important; }
+                .font-scale-xlarge .text-xl { font-size: 26px !important; }
+                .font-scale-xlarge .text-2xl { font-size: 30px !important; }
+
+                /* KONTRAST TEKS TAJAM UNTUK MATA LANSIA */
+                .font-scale-large .text-slate-400, .font-scale-xlarge .text-slate-400 { color: #475569 !important; }
+                .font-scale-large .text-slate-500, .font-scale-xlarge .text-slate-500 { color: #334155 !important; font-weight: 500 !important; }
+                .font-scale-large .text-slate-600, .font-scale-xlarge .text-slate-600 { color: #1e293b !important; font-weight: 600 !important; }
+            `}</style>
+
+            {/* ANDROID DEVICE WRAPPER (Mobile width container with Android aesthetics & Senior-Friendly Typography) */}
+            <div className={`w-full sm:max-w-[420px] h-[100dvh] sm:h-[892px] sm:max-h-[92vh] bg-white sm:rounded-[40px] shadow-2xl overflow-hidden flex flex-col relative border-0 sm:border-[8px] sm:border-slate-800 font-scale-${fontSizeScale}`}>
 
                 {/* TOAST NOTIFICATION POPUP */}
                 {toastMessage && (
@@ -3175,7 +3284,17 @@ export default function AndroidKoiApp({
                                         <span className="text-red-600">Mart</span>
                                     </span>
                                 </div>
-                                <div className="flex items-center gap-1">
+                                <div className="flex items-center gap-1.5">
+                                    {/* Tombol Ukuran Huruf Cepat (Mode Ramah Lansia / Aki-Aki) */}
+                                    <button
+                                        onClick={() => setIsFontSizeModalOpen(true)}
+                                        className="px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-900 rounded-full border border-amber-300 flex items-center gap-1 transition-all active:scale-95 shadow-2xs"
+                                        title="Ubah Ukuran Tulisan (Mode Ramah Lansia)"
+                                    >
+                                        <span className="text-xs font-black bg-amber-600 text-white rounded-md px-1 py-0.2">A⁺</span>
+                                        <span className="text-[11px] font-extrabold text-amber-900">Huruf</span>
+                                    </button>
+
                                     <button
                                         onClick={() => navigateTo('cart')}
                                         className="relative p-2 text-slate-700 hover:bg-slate-100 rounded-full transition-colors"
@@ -3199,19 +3318,19 @@ export default function AndroidKoiApp({
                                 </div>
                             </div>
 
-                            {/* Search Bar */}
+                            {/* Search Bar - Lebih Jelas & Tulisan Mudah Dibaca */}
                             <div className="px-5 py-3 bg-white">
                                 <div className="relative">
-                                    <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                                    <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
                                     <input
                                         type="text"
                                         placeholder="Cari ikan koi, jenis, atau penjual..."
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
-                                        className="w-full pl-10 pr-4 py-2.5 bg-slate-100/90 text-xs rounded-full border-none focus:outline-none focus:ring-2 focus:ring-red-500 text-slate-800 placeholder-slate-400"
+                                        className="w-full pl-10 pr-4 py-2.5 bg-slate-100 text-sm font-semibold rounded-full border border-slate-200/60 focus:outline-none focus:ring-2 focus:ring-red-500 text-slate-900 placeholder:text-slate-500 placeholder:font-normal"
                                     />
                                     {searchQuery && (
-                                        <button onClick={() => setSearchQuery('')} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400">
+                                        <button onClick={() => setSearchQuery('')} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500">
                                             <X className="w-3.5 h-3.5" />
                                         </button>
                                     )}
@@ -3628,8 +3747,8 @@ export default function AndroidKoiApp({
                                                     {/* Info */}
                                                     <div className="p-3 flex-1 flex flex-col justify-between">
                                                         <div>
-                                                            <h4 className="font-bold text-sm text-slate-900 line-clamp-1 leading-snug">{prod.name}</h4>
-                                                            <p className="text-xs font-semibold text-slate-600 mt-0.5">{prod.size}</p>
+                                                            <h4 className="font-normal text-sm text-slate-900 line-clamp-1 leading-snug">{prod.name}</h4>
+                                                            <p className="text-xs font-normal text-slate-500 mt-0.5">{prod.size}</p>
                                                         </div>
 
                                                         <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between gap-1.5">
@@ -5184,6 +5303,13 @@ export default function AndroidKoiApp({
                                             badge: `${userBids.length} Lelang`, 
                                             badgeColor: 'bg-emerald-50 text-emerald-700 border border-emerald-200', 
                                             action: () => navigateTo('my_bids') 
+                                        },
+                                        { 
+                                            label: 'Ukuran Tulisan (Mode Ramah Lansia)', 
+                                            icon: ZoomIn, 
+                                            badge: fontSizeScale === 'xlarge' ? 'Sangat Besar' : fontSizeScale === 'large' ? 'Besar (Lansia)' : 'Standar',
+                                            badgeColor: 'bg-amber-100 text-amber-900 border border-amber-300 font-black',
+                                            action: () => setIsFontSizeModalOpen(true) 
                                         },
                                         { label: 'Pesanan Saya', icon: ReceiptText, action: () => navigateTo('orders') },
                                         { label: 'Favorit Saya', icon: Heart, action: () => isLoggedIn ? navigateTo('favorite') : (setGoogleLoginReason('favorit'), setIsGoogleLoginModalOpen(true)) },
@@ -7100,8 +7226,8 @@ export default function AndroidKoiApp({
 
                                                         <div className="p-3 flex-1 flex flex-col justify-between">
                                                             <div>
-                                                                <h4 className="font-bold text-sm text-slate-900 line-clamp-1 leading-snug">{prod.name}</h4>
-                                                                <p className="text-xs font-semibold text-slate-600 mt-0.5">{prod.size}</p>
+                                                                <h4 className="font-normal text-sm text-slate-900 line-clamp-1 leading-snug">{prod.name}</h4>
+                                                                <p className="text-xs font-normal text-slate-500 mt-0.5">{prod.size}</p>
                                                             </div>
 
                                                             <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between gap-1.5">
@@ -7546,7 +7672,7 @@ export default function AndroidKoiApp({
 
                 {/* 3. ANDROID BOTTOM NAVIGATION BAR (Hanya untuk Layar Menu Utama: Home, Favorit, Chat, Orders, Akun, Kategori) */}
                 {['home', 'favorite', 'chat_list', 'orders', 'profile', 'categories'].includes(currentScreen) && (
-                    <div className="absolute bottom-0 left-0 right-0 h-16 bg-white border-t border-slate-200/80 px-2 flex items-center justify-around z-40">
+                    <div className="absolute bottom-0 left-0 right-0 h-[70px] bg-white border-t border-slate-200/90 px-2 flex items-center justify-around z-40 shadow-lg">
                         {[
                             { id: 'home', label: 'Beranda', icon: Home, screen: 'home' as ScreenType },
                             { id: 'favorite', label: 'Favorit', icon: Heart, screen: 'favorite' as ScreenType, badge: favoritesList.length > 0 ? favoritesList.length : undefined },
@@ -7560,17 +7686,17 @@ export default function AndroidKoiApp({
                                 <button
                                     key={tab.id}
                                     onClick={() => handleTabClick(tab.id as any)}
-                                    className="flex flex-col items-center justify-center flex-1 py-1 transition-transform active:scale-90 relative"
+                                    className="flex flex-col items-center justify-center flex-1 py-1.5 transition-transform active:scale-90 relative"
                                 >
                                     <div className="relative">
-                                        <IconComponent className={`w-5 h-5 transition-colors ${isActive ? 'text-red-600 stroke-[2.5]' : 'text-slate-400'}`} />
+                                        <IconComponent className={`w-6 h-6 transition-colors ${isActive ? 'text-red-600 stroke-[2.5]' : 'text-slate-600 stroke-[1.8]'}`} />
                                         {tab.badge && (
-                                            <span className="absolute -top-1.5 -right-2 bg-red-600 text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full min-w-4 text-center ring-2 ring-white">
+                                            <span className="absolute -top-1.5 -right-2.5 bg-red-600 text-white text-[10px] font-black px-1.5 py-0.2 rounded-full min-w-4 text-center ring-2 ring-white">
                                                 {tab.badge}
                                             </span>
                                         )}
                                     </div>
-                                    <span className={`text-[10px] mt-1 transition-colors ${isActive ? 'text-red-600 font-bold' : 'text-slate-400 font-medium'}`}>
+                                    <span className={`text-xs mt-1 transition-colors ${isActive ? 'text-red-600 font-black' : 'text-slate-600 font-bold'}`}>
                                         {tab.label}
                                     </span>
                                 </button>
@@ -8003,6 +8129,119 @@ export default function AndroidKoiApp({
                                     <span>Buka Menu Berbagi Bawaan Android</span>
                                 </button>
                             )}
+                        </div>
+                    </div>
+                )}
+
+                {/* 9. MODAL: PENGATUR UKURAN TULISAN (RAMAH LANSIA / AKI-AKI) */}
+                {isFontSizeModalOpen && (
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end animate-in fade-in duration-200">
+                        <div className="w-full bg-white rounded-t-3xl p-5 space-y-4 animate-in slide-in-from-bottom duration-300 shadow-2xl">
+                            {/* Drag handle */}
+                            <div className="w-10 h-1 bg-slate-200 rounded-full mx-auto" />
+
+                            {/* Header Modal */}
+                            <div className="flex justify-between items-start">
+                                <div className="flex items-center gap-2.5">
+                                    <div className="w-11 h-11 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center font-black text-lg border border-amber-300">
+                                        👓
+                                    </div>
+                                    <div>
+                                        <h4 className="font-extrabold text-base text-slate-900">Ukuran Tulisan Aplikasi</h4>
+                                        <p className="text-xs text-slate-600 font-medium">Atur kenyamanan membaca agar tulisan jelas terbaca</p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => setIsFontSizeModalOpen(false)}
+                                    className="p-1.5 hover:bg-slate-100 rounded-full text-slate-500"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+
+                            {/* Pilihan 3 Skala Ukuran */}
+                            <div className="space-y-2.5 pt-1">
+                                {[
+                                    {
+                                        id: 'large' as const,
+                                        title: 'Besar (Ramah Lansia)',
+                                        badge: 'Rekomendasi',
+                                        badgeColor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+                                        desc: 'Tulisan diperbesar & kontras lebih tajam. Sangat nyaman dibaca tanpa kacamata.',
+                                        iconText: 'A⁺',
+                                    },
+                                    {
+                                        id: 'xlarge' as const,
+                                        title: 'Sangat Besar (Super Jelas)',
+                                        badge: 'Ekstra Besar',
+                                        badgeColor: 'bg-amber-100 text-amber-900 border-amber-300',
+                                        desc: 'Ukuran tulisan maksimal dan tebal untuk mata yang rabun dekat.',
+                                        iconText: 'A⁺⁺',
+                                    },
+                                    {
+                                        id: 'normal' as const,
+                                        title: 'Standar (Normal)',
+                                        badge: 'Bawaan',
+                                        badgeColor: 'bg-slate-100 text-slate-700 border-slate-200',
+                                        desc: 'Ukuran font standar tampilan ponsel.',
+                                        iconText: 'A',
+                                    },
+                                ].map((opt) => {
+                                    const isSelected = fontSizeScale === opt.id;
+                                    return (
+                                        <button
+                                            key={opt.id}
+                                            onClick={() => changeFontSizeScale(opt.id)}
+                                            className={`w-full text-left p-3.5 rounded-2xl border-2 transition-all flex items-start gap-3 active:scale-98 ${
+                                                isSelected
+                                                    ? 'border-amber-500 bg-amber-50/80 shadow-md ring-2 ring-amber-400/30'
+                                                    : 'border-slate-200 hover:border-slate-300 bg-white'
+                                            }`}
+                                        >
+                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm shrink-0 border ${
+                                                isSelected 
+                                                    ? 'bg-amber-600 text-white border-amber-600 shadow-xs' 
+                                                    : 'bg-slate-100 text-slate-700 border-slate-200'
+                                            }`}>
+                                                {opt.iconText}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center justify-between gap-1">
+                                                    <span className={`text-sm font-extrabold ${isSelected ? 'text-amber-950' : 'text-slate-900'}`}>
+                                                        {opt.title}
+                                                    </span>
+                                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold border ${opt.badgeColor}`}>
+                                                        {opt.badge}
+                                                    </span>
+                                                </div>
+                                                <p className="text-xs text-slate-600 font-medium mt-1 leading-snug">
+                                                    {opt.desc}
+                                                </p>
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+
+                            {/* Contoh Live Preview */}
+                            <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 space-y-1">
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Contoh Tampilan Tulisan:</span>
+                                <h5 className="font-extrabold text-sm sm:text-base text-slate-900 leading-snug">
+                                    Kohaku Maruten Grand Champion 75 cm
+                                </h5>
+                                <p className="text-base font-black text-red-600">
+                                    Rp 45.000.000 <span className="text-xs font-semibold text-slate-600 ml-1">• Blitar, Jawa Timur</span>
+                                </p>
+                            </div>
+
+                            {/* Tombol Selesai */}
+                            <button
+                                onClick={() => setIsFontSizeModalOpen(false)}
+                                className="w-full py-3.5 bg-red-600 hover:bg-red-700 active:scale-98 text-white font-extrabold text-sm rounded-2xl shadow-lg shadow-red-600/30 transition flex items-center justify-center gap-2"
+                            >
+                                <Check className="w-5 h-5 stroke-[2.5]" />
+                                <span>Simpan & Terapkan Ukuran</span>
+                            </button>
                         </div>
                     </div>
                 )}

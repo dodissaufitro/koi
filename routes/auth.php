@@ -18,6 +18,9 @@ Route::get('auth/google', [GoogleAuthController::class, 'redirect'])
 Route::get('auth/google/callback', [GoogleAuthController::class, 'callback'])
     ->name('auth.google.callback');
 
+Route::post('auth/google/native', [GoogleAuthController::class, 'nativeLogin'])
+    ->name('auth.google.native');
+
 Route::get('auth/google/otp', [GoogleAuthController::class, 'showOtpForm'])
     ->name('auth.google.otp');
 

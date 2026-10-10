@@ -31,62 +31,176 @@ class GoogleAuthController extends Controller
     /**
      * Tangani callback dari Google OAuth.
      */
-    public function callback(): RedirectResponse
+    public function callback(Request $request): RedirectResponse
     {
         try {
-            $redirectUrl = (request()->getHost() !== 'localhost' && request()->getHost() !== '127.0.0.1')
+            $redirectUrl = ($request->getHost() !== 'localhost' && $request->getHost() !== '127.0.0.1')
                 ? secure_url('/auth/google/callback')
                 : url('/auth/google/callback');
+
             try {
                 $googleUser = Socialite::driver('google')->redirectUrl($redirectUrl)->user();
             } catch (\Throwable $stateException) {
                 $googleUser = Socialite::driver('google')->redirectUrl($redirectUrl)->stateless()->user();
             }
 
+            if (!$googleUser || !$googleUser->getEmail()) {
+                throw new \Exception('Email akun Google tidak terdeteksi.');
+            }
+
             $user = User::where('google_id', $googleUser->getId())
                 ->orWhere('email', $googleUser->getEmail())
                 ->first();
 
-            // Jika user LAMA (sudah pernah terdaftar), langsung login tanpa perlu OTP lagi
             if ($user) {
+                // Update akun yang sudah ada dengan data Google terbaru
                 $user->update([
                     'google_id' => $googleUser->getId(),
                     'avatar' => $googleUser->getAvatar() ?? $user->avatar,
+                    'email_verified_at' => $user->email_verified_at ?? now(),
+                    'role' => $user->role ?: 'buyer',
                 ]);
-
-                Auth::login($user, true);
-
-                return redirect()->intended('/')->with('success', 'Selamat datang kembali, ' . $user->name . '!');
-            }
-
-            // Jika user BARU, generate OTP dan kirimkan ke email terlebih dahulu
-            $otp = (string) random_int(100000, 999999);
-            $userName = $googleUser->getName() ?? $googleUser->getNickname() ?? 'Pengguna Google';
-            $userEmail = $googleUser->getEmail();
-
-            session([
-                'google_registration' => [
+            } else {
+                // Buat akun baru secara otomatis (karena akun Google sudah terverifikasi)
+                $userName = $googleUser->getName() ?? $googleUser->getNickname() ?? 'Pengguna Google';
+                $user = User::create([
                     'name' => $userName,
-                    'email' => $userEmail,
+                    'email' => $googleUser->getEmail(),
                     'google_id' => $googleUser->getId(),
                     'avatar' => $googleUser->getAvatar(),
-                    'otp' => $otp,
-                    'expires_at' => now()->addMinutes(10)->timestamp,
-                ]
-            ]);
-
-            // Kirim email OTP
-            try {
-                Mail::to($userEmail)->send(new GoogleRegistrationOtpMail($userName, $otp));
-            } catch (\Throwable $mailError) {
-                Log::error('Gagal mengirimkan email OTP Google: ' . $mailError->getMessage());
+                    'role' => 'buyer',
+                    'email_verified_at' => now(),
+                    'password' => bcrypt(Str::random(32)),
+                ]);
             }
 
-            return redirect()->route('auth.google.otp')
-                ->with('status', 'Kode verifikasi OTP 6-digit telah dikirimkan ke email ' . $userEmail);
+            // Autentikasi user & regenerasi session
+            Auth::login($user, true);
+            $request->session()->regenerate();
+
+            // Bersihkan sesi pendaftaran jika ada sebelumnya
+            $request->session()->forget('google_registration');
+
+            // Redirect langsung ke Dashboard sesuai role pengguna
+            return $this->redirectBasedOnRole($user);
+
         } catch (\Throwable $e) {
+            Log::error('Google callback error: ' . $e->getMessage(), [
+                'exception' => $e,
+            ]);
+
             return redirect()->route('login')->with('error', 'Gagal masuk dengan Google: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Tangani login langsung dari aplikasi Android (Native Google Sign-In dialog).
+     */
+    public function nativeLogin(Request $request): \Illuminate\Http\JsonResponse
+    {
+        try {
+            $validated = $request->validate([
+                'email' => ['required', 'email'],
+                'name' => ['nullable', 'string', 'max:255'],
+                'id' => ['nullable', 'string'],
+                'avatar' => ['nullable', 'string'],
+                'idToken' => ['nullable', 'string'],
+            ]);
+
+            $googleId = $validated['id'] ?? null;
+            $email = $validated['email'];
+            $name = !empty($validated['name']) ? $validated['name'] : 'Pengguna Google';
+            $avatar = $validated['avatar'] ?? null;
+
+            $user = User::where(function ($query) use ($googleId, $email) {
+                if (!empty($googleId)) {
+                    $query->where('google_id', $googleId);
+                }
+                $query->orWhere('email', $email);
+            })->first();
+
+            if ($user) {
+                $user->update([
+                    'google_id' => $googleId ?: $user->google_id,
+                    'avatar' => $avatar ?: $user->avatar,
+                    'email_verified_at' => $user->email_verified_at ?? now(),
+                    'role' => $user->role ?: 'buyer',
+                ]);
+            } else {
+                $user = User::create([
+                    'name' => $name,
+                    'email' => $email,
+                    'google_id' => $googleId,
+                    'avatar' => $avatar,
+                    'role' => 'buyer',
+                    'email_verified_at' => now(),
+                    'password' => bcrypt(Str::random(32)),
+                ]);
+            }
+
+            Auth::login($user, true);
+            $request->session()->regenerate();
+            $request->session()->forget(['google_registration', 'url.intended']);
+
+            $dashboardRoute = match (true) {
+                $user->isAdmin() => route('admin.dashboard', absolute: false),
+                $user->isSeller() || (bool) $user->store => route('seller.dashboard', absolute: false),
+                default => route('dashboard', absolute: false),
+            };
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Login berhasil! Selamat datang, ' . $user->name,
+                'redirect' => $dashboardRoute,
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'avatar' => $user->avatar,
+                    'role' => $user->role,
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Native Google login error: ' . $e->getMessage(), [
+                'exception' => $e,
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memproses login Google: ' . $e->getMessage(),
+            ], 422);
+        }
+    }
+
+    /**
+     * Arahkan pengguna ke Dashboard sesuai dengan perannya.
+     */
+    protected function redirectBasedOnRole(User $user): RedirectResponse
+    {
+        $dashboardRoute = match (true) {
+            $user->isAdmin() => route('admin.dashboard', absolute: false),
+            $user->isSeller() || (bool) $user->store => route('seller.dashboard', absolute: false),
+            default => route('dashboard', absolute: false),
+        };
+
+        // Cek jika ada intended URL yang valid (bukan halaman auth/login/register atau '/')
+        $intended = session()->get('url.intended');
+        if ($intended) {
+            $path = parse_url($intended, PHP_URL_PATH) ?? '';
+            if (
+                !str_contains($path, '/login') &&
+                !str_contains($path, '/register') &&
+                !str_contains($path, '/auth/google') &&
+                $path !== '/'
+            ) {
+                return redirect()->intended($dashboardRoute)->with('success', 'Selamat datang, ' . $user->name . '!');
+            }
+        }
+
+        // Hapus url.intended agar tidak kembali ke login
+        session()->forget('url.intended');
+
+        return redirect($dashboardRoute)->with('success', 'Selamat datang, ' . $user->name . '!');
     }
 
     /**
@@ -154,11 +268,12 @@ class GoogleAuthController extends Controller
         ]);
 
         Auth::login($user, true);
+        $request->session()->regenerate();
 
         // Hapus sesi pendaftaran
         session()->forget('google_registration');
 
-        return redirect()->intended('/')->with('success', 'Akun berhasil diverifikasi! Selamat datang di KoiMart.');
+        return $this->redirectBasedOnRole($user);
     }
 
     /**

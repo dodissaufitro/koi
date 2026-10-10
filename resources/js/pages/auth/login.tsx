@@ -56,6 +56,58 @@ export default function Login({ status, canResetPassword }: LoginProps) {
     };
 
     const isDark = theme === 'dark';
+    const [nativeGoogleLoading, setNativeGoogleLoading] = useState(false);
+    const [nativeGoogleError, setNativeGoogleError] = useState<string | null>(null);
+
+    useEffect(() => {
+        (window as any).__onNativeGoogleSignInSuccess = async (accountData: any) => {
+            try {
+                setNativeGoogleLoading(true);
+                const res = await fetch('/auth/google/native', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify(accountData),
+                });
+                const result = await res.json();
+                if (result.success) {
+                    window.location.href = result.redirect || '/dashboard';
+                } else {
+                    setNativeGoogleLoading(false);
+                    setNativeGoogleError(result.message || 'Gagal masuk dengan akun Google.');
+                }
+            } catch (err: any) {
+                setNativeGoogleLoading(false);
+                setNativeGoogleError('Terjadi kesalahan koneksi login.');
+            }
+        };
+
+        (window as any).__onNativeGoogleSignInError = (errData: any) => {
+            setNativeGoogleLoading(false);
+            if (errData?.message) setNativeGoogleError(errData.message);
+        };
+
+        (window as any).__onNativeGoogleSignInCancel = () => {
+            setNativeGoogleLoading(false);
+        };
+
+        return () => {
+            delete (window as any).__onNativeGoogleSignInSuccess;
+            delete (window as any).__onNativeGoogleSignInError;
+            delete (window as any).__onNativeGoogleSignInCancel;
+        };
+    }, []);
+
+    const handleGoogleAuthClick = (e: React.MouseEvent) => {
+        if ((window as any).AndroidGoogleBridge?.signIn) {
+            e.preventDefault();
+            setNativeGoogleLoading(true);
+            setNativeGoogleError(null);
+            (window as any).AndroidGoogleBridge.signIn();
+        }
+    };
 
     const { data, setData, post, processing, errors, reset } = useForm<LoginForm>({
         email: 'daisukekoi@pasasikan.test', // Default to Toko Koi demo
@@ -463,7 +515,10 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                             {/* Google Sign In Button */}
                             <a
                                 href="/auth/google"
+                                onClick={handleGoogleAuthClick}
                                 className={`w-full h-11 rounded-xl text-xs font-semibold tracking-wide transition border shadow-sm flex items-center justify-center gap-2.5 ${
+                                    nativeGoogleLoading ? 'opacity-70 pointer-events-none' : ''
+                                } ${
                                     isDark
                                         ? 'bg-white/5 border-white/10 text-white hover:bg-white/10'
                                         : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
@@ -475,8 +530,13 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                     <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
                                     <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
                                 </svg>
-                                <span>Masuk dengan Google</span>
+                                <span>{nativeGoogleLoading ? 'Menghubungkan Akun Google...' : 'Masuk dengan Google'}</span>
                             </a>
+                            {nativeGoogleError && (
+                                <p className="mt-2 text-xs text-rose-500 text-center font-medium">
+                                    {nativeGoogleError}
+                                </p>
+                            )}
                         </form>
 
                         {/* Security Notice */}

@@ -4,5 +4,6 @@
     <string name="title_activity_main">Tentengan</string>
     <string name="package_name">com.tentengan.app</string>
     <string name="custom_url_scheme">com.tentengan.app</string>
-    <string name="server_client_id">799984616839-fhibfgtrmglu3icdund7geau0uur7221.apps.googleusercontent.com</string>
+    <string name="server_client_id">799984616839-185sfi42idcj44s0u9bsj95km4cu9tm9.apps.googleusercontent.com</string>
+    <string name="android_client_id">799984616839-fhibfgtrmglu3icdund7geau0uur7221.apps.googleusercontent.com</string>
 </resources>
