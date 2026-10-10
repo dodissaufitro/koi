@@ -2038,6 +2038,11 @@ export default function AndroidKoiApp({
     const [isBidConfirmModalOpen, setIsBidConfirmModalOpen] = useState(false);
     const [pendingBidAmount, setPendingBidAmount] = useState<number>(0);
 
+    // Modal Share Sosial Media
+    const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+    const [shareModalItem, setShareModalItem] = useState<any>(null);
+    const [isCopiedLink, setIsCopiedLink] = useState(false);
+
     const [orderInvoiceCountdown, setOrderInvoiceCountdown] = useState(7180);
     const [selectedPaymentGateway, setSelectedPaymentGateway] = useState<'bca_va' | 'qris' | 'mandiri' | 'bni'>('bca_va');
 
@@ -2960,6 +2965,76 @@ export default function AndroidKoiApp({
         setUserWallet(prev => prev + amount);
         setIsTopUpOpen(false);
         triggerToast(`✨ Top Up Saldo Rp ${amount.toLocaleString('id-ID')} Berhasil!`);
+    };
+
+    // Handler Share Sosial Media
+    const handleOpenShare = (item: any, type: 'product' | 'auction' | 'store' = 'product') => {
+        if (!item) return;
+        const title = item.name || 'Ikan Koi Pilihan';
+        const price = item.price || item.currentBid;
+        const image = item.images?.[0] || item.image || item.bannerImage || '';
+        const store = item.store || item.city || '';
+        const description = item.description || `Ikan Koi kualitas terbaik dari ${store}`;
+        const shareUrl = `${window.location.origin}${type === 'product' ? `/products/${item.slug || item.id}` : type === 'auction' ? `/auctions/${item.id}` : `/stores/${item.slug || item.id}`}`;
+
+        setShareModalItem({
+            type,
+            title,
+            price,
+            image,
+            store,
+            size: item.size,
+            description,
+            url: shareUrl,
+        });
+        setIsCopiedLink(false);
+        setIsShareModalOpen(true);
+    };
+
+    const handleShareTo = (platform: 'whatsapp' | 'facebook' | 'instagram' | 'twitter' | 'native' | 'copy') => {
+        if (!shareModalItem) return;
+
+        const shareTitle = `🐟 *${shareModalItem.title}*`;
+        const sharePrice = shareModalItem.price ? `\n💰 Harga: Rp ${Number(shareModalItem.price).toLocaleString('id-ID')}` : '';
+        const shareSize = shareModalItem.size ? `\n📏 Ukuran: ${shareModalItem.size}` : '';
+        const shareStore = shareModalItem.store ? `\n🏪 Farm/Toko: ${shareModalItem.store}` : '';
+        const shareText = `${shareTitle}${sharePrice}${shareSize}${shareStore}\n\n👉 Cek selengkapnya di aplikasi KOI Market:\n${shareModalItem.url}`;
+
+        if (platform === 'whatsapp') {
+            const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
+            window.open(waUrl, '_blank');
+        } else if (platform === 'facebook') {
+            const fbUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareModalItem.url)}`;
+            window.open(fbUrl, '_blank');
+        } else if (platform === 'instagram') {
+            if (typeof navigator !== 'undefined' && navigator?.clipboard?.writeText) {
+                navigator.clipboard.writeText(shareModalItem.url);
+            }
+            triggerToast('📸 Tautan disalin! Membuka Instagram...');
+            setTimeout(() => {
+                window.open('https://www.instagram.com/', '_blank');
+            }, 500);
+        } else if (platform === 'twitter') {
+            const xUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareModalItem.url)}`;
+            window.open(xUrl, '_blank');
+        } else if (platform === 'copy') {
+            if (typeof navigator !== 'undefined' && navigator?.clipboard?.writeText) {
+                navigator.clipboard.writeText(shareModalItem.url);
+            }
+            setIsCopiedLink(true);
+            triggerToast('✓ Tautan berhasil disalin ke clipboard!');
+            setTimeout(() => setIsCopiedLink(false), 2500);
+        } else if (platform === 'native') {
+            if (typeof navigator !== 'undefined' && navigator.share) {
+                navigator.share({
+                    title: shareModalItem.title,
+                    text: shareText,
+                    url: shareModalItem.url,
+                }).catch(() => {});
+            } else {
+                handleShareTo('copy');
+            }
+        }
     };
 
     // Filter products
@@ -4344,9 +4419,9 @@ export default function AndroidKoiApp({
                                         <Heart className={`w-5 h-5 ${favoritesList.includes(selectedProduct.id) ? 'fill-red-500 text-red-500' : 'text-slate-600'}`} />
                                     </button>
                                     <button
-                                        onClick={() => triggerToast('Link produk disalin ke clipboard')}
+                                        onClick={() => handleOpenShare(selectedProduct, 'product')}
                                         className="p-2 hover:bg-slate-100 rounded-full text-slate-700 transition active:scale-90"
-                                        title="Bagikan"
+                                        title="Bagikan ke Sosial Media"
                                     >
                                         <Share2 className="w-5 h-5 text-slate-600" />
                                     </button>
@@ -4445,6 +4520,87 @@ export default function AndroidKoiApp({
                                         <p className="text-xs text-slate-600 leading-relaxed">
                                             {selectedProduct.description}
                                         </p>
+                                    </div>
+
+                                    {/* Tombol & Aksi Share Media Sosial */}
+                                    <div className="bg-gradient-to-r from-red-50/80 via-rose-50/60 to-orange-50/80 p-3.5 rounded-2xl border border-red-100/90 space-y-2.5 shadow-xs">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-7 h-7 rounded-lg bg-red-600 text-white flex items-center justify-center shadow-xs">
+                                                    <Share2 className="w-4 h-4" />
+                                                </div>
+                                                <h4 className="text-xs font-bold text-slate-900">Bagikan Ikan Ini ke Teman</h4>
+                                            </div>
+                                            <button
+                                                onClick={() => handleOpenShare(selectedProduct, 'product')}
+                                                className="text-[11px] font-bold text-red-600 hover:text-red-700 transition"
+                                            >
+                                                Opsi Lainnya &gt;
+                                            </button>
+                                        </div>
+
+                                        {/* Tombol Cepat Sosial Media */}
+                                        <div className="grid grid-cols-4 gap-2 pt-0.5">
+                                            <button
+                                                onClick={() => {
+                                                    handleOpenShare(selectedProduct, 'product');
+                                                    setTimeout(() => handleShareTo('whatsapp'), 100);
+                                                }}
+                                                className="flex flex-col items-center gap-1 p-2 rounded-xl bg-white border border-slate-100 shadow-xs hover:border-emerald-300 active:scale-95 transition"
+                                                title="Bagikan ke WhatsApp"
+                                            >
+                                                <div className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-xs">
+                                                    <MessageCircle className="w-4 h-4" />
+                                                </div>
+                                                <span className="text-[10px] font-bold text-slate-700">WhatsApp</span>
+                                            </button>
+
+                                            <button
+                                                onClick={() => {
+                                                    handleOpenShare(selectedProduct, 'product');
+                                                    setTimeout(() => handleShareTo('facebook'), 100);
+                                                }}
+                                                className="flex flex-col items-center gap-1 p-2 rounded-xl bg-white border border-slate-100 shadow-xs hover:border-blue-300 active:scale-95 transition"
+                                                title="Bagikan ke Facebook"
+                                            >
+                                                <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-xs">
+                                                    <Share2 className="w-4 h-4" />
+                                                </div>
+                                                <span className="text-[10px] font-bold text-slate-700">Facebook</span>
+                                            </button>
+
+                                            <button
+                                                onClick={() => {
+                                                    handleOpenShare(selectedProduct, 'product');
+                                                    setTimeout(() => handleShareTo('instagram'), 100);
+                                                }}
+                                                className="flex flex-col items-center gap-1 p-2 rounded-xl bg-white border border-slate-100 shadow-xs hover:border-pink-300 active:scale-95 transition"
+                                                title="Bagikan ke Instagram"
+                                            >
+                                                <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 text-white flex items-center justify-center shadow-xs">
+                                                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                        <rect width="20" height="20" x="2" y="2" rx="5" ry="5"/>
+                                                        <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+                                                        <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/>
+                                                    </svg>
+                                                </div>
+                                                <span className="text-[10px] font-bold text-slate-700">Instagram</span>
+                                            </button>
+
+                                            <button
+                                                onClick={() => {
+                                                    handleOpenShare(selectedProduct, 'product');
+                                                    setTimeout(() => handleShareTo('copy'), 100);
+                                                }}
+                                                className="flex flex-col items-center gap-1 p-2 rounded-xl bg-white border border-slate-100 shadow-xs hover:border-red-300 active:scale-95 transition"
+                                                title="Salin Tautan"
+                                            >
+                                                <div className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center shadow-xs">
+                                                    <Copy className="w-4 h-4" />
+                                                </div>
+                                                <span className="text-[10px] font-bold text-slate-700">Salin Link</span>
+                                            </button>
+                                        </div>
                                     </div>
 
                                     {/* Toko Card & Produk Toko Terkait */}
@@ -4690,14 +4846,23 @@ export default function AndroidKoiApp({
                                     </button>
                                     <h3 className="font-bold text-sm text-slate-900">Lelang Ikan Koi</h3>
                                 </div>
-                                <button
-                                    onClick={() => navigateTo('my_bids')}
-                                    className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 text-[11px] font-bold rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer"
-                                    title="Cek Status Tawaran Saya"
-                                >
-                                    <Gavel className="w-3.5 h-3.5" />
-                                    <span>Hasil Tawaran ({userBids.length})</span>
-                                </button>
+                                <div className="flex items-center gap-1.5">
+                                    <button
+                                        onClick={() => handleOpenShare(liveAuction, 'auction')}
+                                        className="p-1.5 hover:bg-slate-100 rounded-full text-slate-700 transition active:scale-90"
+                                        title="Bagikan Lelang"
+                                    >
+                                        <Share2 className="w-4 h-4 text-slate-600" />
+                                    </button>
+                                    <button
+                                        onClick={() => navigateTo('my_bids')}
+                                        className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 text-[11px] font-bold rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer"
+                                        title="Cek Status Tawaran Saya"
+                                    >
+                                        <Gavel className="w-3.5 h-3.5" />
+                                        <span>Hasil Tawaran ({userBids.length})</span>
+                                    </button>
+                                </div>
                             </div>
 
                             {/* Content */}
@@ -6698,9 +6863,9 @@ export default function AndroidKoiApp({
                                         <Heart className={`w-5 h-5 ${followedStores.includes(selectedStore.id) ? 'fill-red-600' : ''}`} />
                                     </button>
                                     <button
-                                        onClick={() => triggerToast(`Tautan galeri ${selectedStore.name} disalin ke clipboard`)}
+                                        onClick={() => handleOpenShare(selectedStore, 'store')}
                                         className="p-2 hover:bg-slate-100 rounded-full text-slate-700 transition active:scale-95"
-                                        title="Bagikan"
+                                        title="Bagikan Toko"
                                     >
                                         <Share2 className="w-5 h-5 text-slate-600" />
                                     </button>
@@ -7698,6 +7863,146 @@ export default function AndroidKoiApp({
                                     <span>Ya, Pasang Tawaran</span>
                                 </button>
                             </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* 8. MODAL: BAGIKAN KE SOSIAL MEDIA */}
+                {isShareModalOpen && shareModalItem && (
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end animate-in fade-in duration-200">
+                        <div className="w-full bg-white rounded-t-3xl p-5 space-y-4 animate-in slide-in-from-bottom duration-300 shadow-2xl">
+                            {/* Drag handle */}
+                            <div className="w-10 h-1 bg-slate-200 rounded-full mx-auto" />
+
+                            {/* Modal Header */}
+                            <div className="flex justify-between items-start">
+                                <div className="flex items-center gap-2.5">
+                                    <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-red-600">
+                                        <Share2 className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                        <h4 className="font-bold text-sm text-slate-900">Bagikan ke Sosial Media</h4>
+                                        <p className="text-[11px] text-slate-500">Kirim ikan koi pilihan ini ke teman atau komunitas</p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => setIsShareModalOpen(false)}
+                                    className="p-1.5 hover:bg-slate-100 rounded-full text-slate-400"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+
+                            {/* Preview Card */}
+                            <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100 flex items-center gap-3">
+                                {shareModalItem.image && (
+                                    <img
+                                        src={shareModalItem.image}
+                                        alt={shareModalItem.title}
+                                        className="w-14 h-14 rounded-xl object-cover shrink-0 border border-slate-200"
+                                    />
+                                )}
+                                <div className="min-w-0 flex-1">
+                                    <h5 className="font-bold text-xs text-slate-900 truncate">{shareModalItem.title}</h5>
+                                    {shareModalItem.price && (
+                                        <p className="text-sm font-black text-red-600 mt-0.5">
+                                            Rp {Number(shareModalItem.price).toLocaleString('id-ID')}
+                                        </p>
+                                    )}
+                                    {shareModalItem.store && (
+                                        <p className="text-[10px] text-slate-500 mt-0.5 truncate">{shareModalItem.store}</p>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Grid Tombol Sosial Media */}
+                            <div className="grid grid-cols-4 gap-3 py-1">
+                                {/* WhatsApp */}
+                                <button
+                                    onClick={() => handleShareTo('whatsapp')}
+                                    className="flex flex-col items-center gap-1.5 p-2 rounded-2xl hover:bg-slate-50 active:scale-95 transition"
+                                >
+                                    <div className="w-12 h-12 rounded-2xl bg-emerald-500 text-white flex items-center justify-center shadow-md shadow-emerald-500/25">
+                                        <MessageCircle className="w-6 h-6" />
+                                    </div>
+                                    <span className="text-[11px] font-bold text-slate-800">WhatsApp</span>
+                                </button>
+
+                                {/* Facebook */}
+                                <button
+                                    onClick={() => handleShareTo('facebook')}
+                                    className="flex flex-col items-center gap-1.5 p-2 rounded-2xl hover:bg-slate-50 active:scale-95 transition"
+                                >
+                                    <div className="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-md shadow-blue-600/25">
+                                        <Share2 className="w-6 h-6" />
+                                    </div>
+                                    <span className="text-[11px] font-bold text-slate-800">Facebook</span>
+                                </button>
+
+                                {/* Instagram */}
+                                <button
+                                    onClick={() => handleShareTo('instagram')}
+                                    className="flex flex-col items-center gap-1.5 p-2 rounded-2xl hover:bg-slate-50 active:scale-95 transition"
+                                >
+                                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 text-white flex items-center justify-center shadow-md shadow-rose-500/25">
+                                        <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <rect width="20" height="20" x="2" y="2" rx="5" ry="5"/>
+                                            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+                                            <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/>
+                                        </svg>
+                                    </div>
+                                    <span className="text-[11px] font-bold text-slate-800">Instagram</span>
+                                </button>
+
+                                {/* X (Twitter) */}
+                                <button
+                                    onClick={() => handleShareTo('twitter')}
+                                    className="flex flex-col items-center gap-1.5 p-2 rounded-2xl hover:bg-slate-50 active:scale-95 transition"
+                                >
+                                    <div className="w-12 h-12 rounded-2xl bg-black text-white flex items-center justify-center shadow-md shadow-black/25">
+                                        <span className="font-black text-lg">𝕏</span>
+                                    </div>
+                                    <span className="text-[11px] font-bold text-slate-800">Twitter (X)</span>
+                                </button>
+                            </div>
+
+                            {/* Salin Tautan Box */}
+                            <div className="p-2.5 bg-slate-100 rounded-xl flex items-center gap-2">
+                                <div className="flex-1 truncate text-xs text-slate-600 font-mono select-all px-1">
+                                    {shareModalItem.url}
+                                </div>
+                                <button
+                                    onClick={() => handleShareTo('copy')}
+                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-xs transition ${
+                                        isCopiedLink
+                                            ? 'bg-emerald-600 text-white'
+                                            : 'bg-white hover:bg-slate-200 text-slate-800 border border-slate-200'
+                                    }`}
+                                >
+                                    {isCopiedLink ? (
+                                        <>
+                                            <Check className="w-3.5 h-3.5" />
+                                            <span>Tersalin</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Copy className="w-3.5 h-3.5" />
+                                            <span>Salin Link</span>
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+
+                            {/* Tombol Native Share jika didukung */}
+                            {typeof navigator !== 'undefined' && 'share' in navigator && (
+                                <button
+                                    onClick={() => handleShareTo('native')}
+                                    className="w-full py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs flex items-center justify-center gap-2 transition active:scale-98"
+                                >
+                                    <ExternalLink className="w-4 h-4" />
+                                    <span>Buka Menu Berbagi Bawaan Android</span>
+                                </button>
+                            )}
                         </div>
                     </div>
                 )}

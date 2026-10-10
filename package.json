@@ -4,6 +4,7 @@
     "scripts": {
         "build": "vite build",
         "build:ssr": "vite build && vite build --ssr",
+        "build:apk": "cd android && .\\gradlew.bat assembleDebug",
         "dev": "vite",
         "format": "prettier --write resources/",
         "format:check": "prettier --check resources/",
@@ -21,6 +22,9 @@
         "typescript-eslint": "^8.23.0"
     },
     "dependencies": {
+        "@capacitor/android": "^8.5.3",
+        "@capacitor/cli": "^8.5.3",
+        "@capacitor/core": "^8.5.3",
         "@headlessui/react": "^2.2.0",
         "@inertiajs/react": "^2.0.0",
         "@radix-ui/react-avatar": "^1.1.3",

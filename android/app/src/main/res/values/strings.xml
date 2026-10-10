@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Tentengan</string>
+    <string name="title_activity_main">Tentengan</string>
+    <string name="package_name">com.tentengan.app</string>
+    <string name="custom_url_scheme">com.tentengan.app</string>
+    <string name="server_client_id">799984616839-fhibfgtrmglu3icdund7geau0uur7221.apps.googleusercontent.com</string>
+</resources>
