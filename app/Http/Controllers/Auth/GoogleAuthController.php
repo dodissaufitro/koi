@@ -142,11 +142,8 @@ class GoogleAuthController extends Controller
             $request->session()->regenerate();
             $request->session()->forget(['google_registration', 'url.intended']);
 
-            $dashboardRoute = match (true) {
-                $user->isAdmin() => route('admin.dashboard', absolute: false),
-                $user->isSeller() || (bool) $user->store => route('seller.dashboard', absolute: false),
-                default => route('dashboard', absolute: false),
-            };
+            // Pengguna di Android selalu diarahkan langsung ke Beranda ('/')
+            $dashboardRoute = route('home', absolute: false);
 
             return response()->json([
                 'success' => true,
@@ -173,14 +170,14 @@ class GoogleAuthController extends Controller
     }
 
     /**
-     * Arahkan pengguna ke Dashboard sesuai dengan perannya.
+     * Arahkan pengguna ke halaman tujuan atau Beranda sesuai dengan perannya.
      */
     protected function redirectBasedOnRole(User $user): RedirectResponse
     {
         $dashboardRoute = match (true) {
             $user->isAdmin() => route('admin.dashboard', absolute: false),
             $user->isSeller() || (bool) $user->store => route('seller.dashboard', absolute: false),
-            default => route('dashboard', absolute: false),
+            default => route('home', absolute: false),
         };
 
         // Cek jika ada intended URL yang valid (bukan halaman auth/login/register atau '/')

@@ -37,7 +37,7 @@ Route::middleware(['auth'])->group(function () {
     // Aksi Lelang Favorit
     Route::post('/auctions/{auction}/favorite', [AuctionController::class, 'toggleFavorite'])->name('auctions.favorite');
     Route::get('/dashboard', function () {
-        return Inertia::render('dashboard');
+        return redirect()->route('home');
     })->name('dashboard');
 
     // Keranjang Belanja

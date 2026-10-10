@@ -46,8 +46,8 @@ class AuthenticatedSessionController extends Controller
             return redirect()->intended(route('seller.dashboard', absolute: false));
         }
 
-        // 3. Pembeli / Umum -> Buyer Dashboard
-        return redirect()->intended(route('dashboard', absolute: false));
+        // 3. Pembeli / Umum -> Beranda
+        return redirect()->intended(route('home', absolute: false));
     }
 
     /**
