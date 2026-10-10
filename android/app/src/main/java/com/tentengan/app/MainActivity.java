@@ -3,7 +3,10 @@ package com.tentengan.app;
 import android.os.Bundle;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
+import androidx.webkit.WebSettingsCompat;
+import androidx.webkit.WebViewFeature;
 import com.getcapacitor.BridgeActivity;
+import java.util.Collections;
 
 public class MainActivity extends BridgeActivity {
     @Override
@@ -20,10 +23,12 @@ public class MainActivity extends BridgeActivity {
                 settings.setJavaScriptCanOpenWindowsAutomatically(true);
                 settings.setSupportMultipleWindows(true);
 
-                // Modifikasi user-agent agar Google OAuth tidak memblokir WebView (menghindari error 403 disallowed_useragent)
-                String userAgent = settings.getUserAgentString();
-                if (userAgent != null && userAgent.contains("; wv")) {
-                    settings.setUserAgentString(userAgent.replace("; wv", ""));
+                // 1. Set clean Chrome Mobile User-Agent
+                settings.setUserAgentString("Mozilla/5.0 (Linux; Android 14; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Mobile Safari/537.36");
+
+                // 2. Disable X-Requested-With header to prevent Google from detecting WebView
+                if (WebViewFeature.isFeatureSupported(WebViewFeature.REQUESTED_WITH_HEADER_ALLOW_LIST)) {
+                    WebSettingsCompat.setRequestedWithHeaderOriginAllowList(settings, Collections.emptySet());
                 }
 
                 webView.setLayerType(WebView.LAYER_TYPE_HARDWARE, null);

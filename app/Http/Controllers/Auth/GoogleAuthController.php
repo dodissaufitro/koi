@@ -22,7 +22,9 @@ class GoogleAuthController extends Controller
      */
     public function redirect(): RedirectResponse
     {
-        $redirectUrl = url('/auth/google/callback');
+        $redirectUrl = (request()->getHost() !== 'localhost' && request()->getHost() !== '127.0.0.1')
+            ? secure_url('/auth/google/callback')
+            : url('/auth/google/callback');
         return Socialite::driver('google')->redirectUrl($redirectUrl)->redirect();
     }
 
@@ -32,7 +34,9 @@ class GoogleAuthController extends Controller
     public function callback(): RedirectResponse
     {
         try {
-            $redirectUrl = url('/auth/google/callback');
+            $redirectUrl = (request()->getHost() !== 'localhost' && request()->getHost() !== '127.0.0.1')
+                ? secure_url('/auth/google/callback')
+                : url('/auth/google/callback');
             try {
                 $googleUser = Socialite::driver('google')->redirectUrl($redirectUrl)->user();
             } catch (\Throwable $stateException) {
