@@ -94,11 +94,9 @@ class GoogleAuthController extends Controller
      */
     protected function ensureGoogleConfig(): void
     {
-        $clientId = config('services.google.client_id');
         $clientSecret = config('services.google.client_secret');
-
         if (empty($clientSecret)) {
-            throw new \Exception('GOOGLE_CLIENT_SECRET belum diatur di file .env server production.');
+            Log::error('GOOGLE_CLIENT_SECRET tidak ditemukan di konfigurasi Laravel. Pastikan sudah diisi di .env dan jalankan php artisan config:clear di server.');
         }
     }
 
