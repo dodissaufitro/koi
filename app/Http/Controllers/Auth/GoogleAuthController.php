@@ -47,10 +47,18 @@ class GoogleAuthController extends Controller
             'nonce' => Str::random(16),
         ]));
 
+        Log::info('Google OAuth redirect initiated', [
+            'redirectUrl' => $redirectUrl,
+            'targetRedirect' => $targetRedirect,
+        ]);
+
         return Socialite::driver('google')
             ->stateless()
             ->redirectUrl($redirectUrl)
-            ->with(['state' => $statePayload])
+            ->with([
+                'prompt' => 'select_account',
+                'state' => $statePayload,
+            ])
             ->redirect();
     }
 
@@ -61,14 +69,22 @@ class GoogleAuthController extends Controller
     {
         $configured = config('services.google.redirect');
         if (!empty($configured) && !str_contains($configured, 'localhost:8000')) {
-            return $configured;
+            $cleaned = preg_replace('#(?<!:)//+#', '/', trim($configured));
+            if (str_starts_with(config('app.url'), 'https://') && str_starts_with($cleaned, 'http://')) {
+                $cleaned = 'https://' . substr($cleaned, 7);
+            }
+            return $cleaned;
         }
 
-        if ($request->isSecure() || $request->header('X-Forwarded-Proto') === 'https' || str_starts_with(config('app.url'), 'https://')) {
-            return secure_url('/auth/google/callback');
-        }
+        $isHttps = $request->isSecure()
+            || $request->header('X-Forwarded-Proto') === 'https'
+            || str_starts_with(config('app.url'), 'https://');
 
-        return url('/auth/google/callback');
+        $baseUrl = $isHttps
+            ? secure_url('/auth/google/callback')
+            : url('/auth/google/callback');
+
+        return preg_replace('#(?<!:)//+#', '/', trim($baseUrl));
     }
 
     /**
@@ -92,6 +108,11 @@ class GoogleAuthController extends Controller
 
         try {
             $redirectUrl = $this->getRedirectUrl($request);
+
+            Log::info('Google callback processing', [
+                'redirectUrl' => $redirectUrl,
+                'targetRedirect' => $targetRedirect,
+            ]);
 
             $googleUser = Socialite::driver('google')
                 ->stateless()
