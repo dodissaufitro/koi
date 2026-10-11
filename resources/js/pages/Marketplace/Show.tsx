@@ -26,12 +26,16 @@ export default function MarketplaceShow({ product, relatedProducts }: Props) {
         post('/cart');
     };
 
-    const conditionText = {
+    const conditionMap: Record<string, { label: string; desc: string }> = {
         live: { label: 'Ikan Koi Hidup Beroksigen', desc: 'Dikirim dengan tabung oksigen medis khusus, garansi hidup (DOA) 100% sampai kolam Anda.' },
+        fresh: { label: 'Ikan Koi Sehat & Segar', desc: 'Kondisi prima dengan karantina mandiri sebelum pengiriman.' },
+        frozen: { label: 'Ikan Koi Siap Kirim', desc: 'Penanganan khusus live aquatic packaging.' },
+        processed: { label: 'Ikan Koi Terkurasi', desc: 'Pilihan seleksi grade kontes.' },
         show: { label: 'Show Quality Kontes', desc: 'Memenuhi standar proporsi tubuh, kiwa, dan sashi kompetisi Koi Nasional APKI/ZNA.' },
         import: { label: 'Import Jepang Bersertifikat', desc: 'Asli importir Jepang dengan sertifikat breeder resmi (Sakai/Dainichi/Isa/Momotaro).' },
         lokal: { label: 'Breeder Lokal Juara', desc: 'Hasil seleksi ketat breeder unggulan Blitar/Sukabumi dengan bloodline teruji.' },
-    }[product.condition] || { label: 'Koi Kualitas Kolektor', desc: 'Kondisi sehat prima lolos karantina ketat.' };
+    };
+    const conditionText = conditionMap[product.condition] || { label: 'Koi Kualitas Kolektor', desc: 'Kondisi sehat prima lolos karantina ketat.' };
 
     return (
         <div className="min-h-screen bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100">

@@ -1216,6 +1216,7 @@ export interface LiveAuctionState {
     dealerName?: string;
     dealerPhone?: string;
     dealerType?: 'import' | 'lokal';
+    dealerBadge?: string;
     currentBid: number;
     highestBidder: string;
     image: string;
