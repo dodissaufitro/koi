@@ -8,6 +8,7 @@ import {
     Heart,
     ReceiptText,
     User,
+    UserCheck,
     Search,
     Bell,
     ArrowLeft,
