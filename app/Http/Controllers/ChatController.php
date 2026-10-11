@@ -77,7 +77,7 @@ class ChatController extends Controller
                     'name' => $p->name,
                     'size' => $extractedSize,
                     'price' => (float) $p->price,
-                    'image' => $p->primaryImage->image_path ?? ($p->images->first()->image_path ?? 'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=500&auto=format&fit=crop'),
+                    'image' => $p->primaryImage->image_path ?? ($p->images->first()->image_path ?? '/images/koi/kohaku.jpg'),
                     'store' => $p->store->name ?? 'Mitra Peternak Koi',
                 ];
             }
@@ -182,7 +182,7 @@ class ChatController extends Controller
                 'name' => $p->name,
                 'size' => $extractedSize,
                 'price' => (float) $p->price,
-                'image' => $p->primaryImage->image_path ?? ($p->images->first()->image_path ?? 'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=500&auto=format&fit=crop'),
+                'image' => $p->primaryImage->image_path ?? ($p->images->first()->image_path ?? '/images/koi/kohaku.jpg'),
                 'store' => $p->store->name ?? 'Mitra Peternak Koi',
             ];
         }

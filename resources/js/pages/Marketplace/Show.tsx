@@ -12,7 +12,7 @@ export default function MarketplaceShow({ product, relatedProducts }: Props) {
     const [selectedImage, setSelectedImage] = useState(
         product.primary_image?.image_path ||
         product.images?.[0]?.image_path ||
-        'https://images.unsplash.com/photo-1534043464124-3be32fe00099?w=800&auto=format&fit=crop'
+        '/images/koi/kohaku.jpg'
     );
 
     const { data, setData, post, processing, errors } = useForm({
@@ -27,22 +27,22 @@ export default function MarketplaceShow({ product, relatedProducts }: Props) {
     };
 
     const conditionText = {
-        live: { label: 'Ikan Hidup Beroksigen', desc: 'Dikirim dengan kantong oksigen medis khusus, garansi hidup sampai tujuan.' },
-        fresh: { label: 'Ikan Segar Baru Tangkap', desc: 'Langsung dari kapal nelayan hari ini, disimpan dingin dengan pecahan es higienis.' },
-        frozen: { label: 'Beku Higienis / Fillet', desc: 'Dibekukan cepat (IQF) langsung setelah dibersihkan untuk menjaga nutrisi dan tekstur.' },
-        processed: { label: 'Olahan Siap Masak', desc: 'Produk olahan laut berkualitas tanpa bahan pengawet kimia berbahaya.' },
-    }[product.condition] || { label: 'Kualitas Prima', desc: 'Produk terjamin higienis dan berkualitas.' };
+        live: { label: 'Ikan Koi Hidup Beroksigen', desc: 'Dikirim dengan tabung oksigen medis khusus, garansi hidup (DOA) 100% sampai kolam Anda.' },
+        show: { label: 'Show Quality Kontes', desc: 'Memenuhi standar proporsi tubuh, kiwa, dan sashi kompetisi Koi Nasional APKI/ZNA.' },
+        import: { label: 'Import Jepang Bersertifikat', desc: 'Asli importir Jepang dengan sertifikat breeder resmi (Sakai/Dainichi/Isa/Momotaro).' },
+        lokal: { label: 'Breeder Lokal Juara', desc: 'Hasil seleksi ketat breeder unggulan Blitar/Sukabumi dengan bloodline teruji.' },
+    }[product.condition] || { label: 'Koi Kualitas Kolektor', desc: 'Kondisi sehat prima lolos karantina ketat.' };
 
     return (
         <div className="min-h-screen bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100">
-            <Head title={`${product.name} - Pasar Ikan Bahari`} />
+            <Head title={`${product.name} - KOI PREMIUM Gallery`} />
 
             {/* Top Navigation */}
             <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur dark:border-slate-800 dark:bg-slate-900/95">
                 <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
-                    <Link href="/products" className="flex items-center gap-2 text-xs font-semibold text-slate-600 hover:text-sky-600 dark:text-slate-300 dark:hover:text-sky-400">
+                    <Link href="/products" className="flex items-center gap-2 text-xs font-semibold text-slate-600 hover:text-red-600 dark:text-slate-300 dark:hover:text-red-400">
                         <ArrowLeft className="h-4 w-4" />
-                        <span>Kembali ke Katalog Ikan</span>
+                        <span>Kembali ke Galeri Koi</span>
                     </Link>
 
                     <Link href="/cart" className="relative flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 text-slate-700 hover:bg-slate-100 dark:border-slate-800 dark:text-slate-300">
@@ -132,7 +132,7 @@ export default function MarketplaceShow({ product, relatedProducts }: Props) {
                                         href={`/stores/${product.store.slug}`}
                                         className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 dark:border-slate-800 dark:text-slate-300"
                                     >
-                                        Kunjungi Lapak
+                                        Profil Diler
                                     </Link>
                                 </div>
                                 {product.store.description && (
@@ -154,9 +154,9 @@ export default function MarketplaceShow({ product, relatedProducts }: Props) {
                                         {product.category.name}
                                     </span>
                                 )}
-                                {product.catch_type && (
-                                    <span className="rounded-md bg-teal-50 px-2.5 py-1 text-xs font-semibold text-teal-700 dark:bg-teal-950 dark:text-teal-300">
-                                        {product.catch_type === 'laut' ? 'Tangkapan Laut Bebas' : 'Budidaya Tambak'}
+                                {product.origin && (
+                                    <span className="rounded-md bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700 dark:bg-red-950 dark:text-red-300 border border-red-200 dark:border-red-900">
+                                        {product.origin.toLowerCase().includes('jepang') || product.origin.toLowerCase().includes('niigata') ? '🇯🇵 Import Jepang' : '🇮🇩 Breeder Lokal Juara'}
                                     </span>
                                 )}
                             </div>
@@ -171,7 +171,7 @@ export default function MarketplaceShow({ product, relatedProducts }: Props) {
                                 {product.origin && (
                                     <div className="flex items-center gap-1">
                                         <MapPin className="h-3.5 w-3.5 text-slate-400" />
-                                        <span>Asal Tangkapan: <strong>{product.origin}</strong></span>
+                                        <span>Asal / Farm: <strong>{product.origin}</strong></span>
                                     </div>
                                 )}
                                 <div className="flex items-center gap-1 text-amber-500">
@@ -255,20 +255,20 @@ export default function MarketplaceShow({ product, relatedProducts }: Props) {
                                         </div>
                                     </div>
 
-                                    {/* Request Pembersihan / Potong Ikan */}
+                                    {/* Request Catatan Pengiriman */}
                                     <div>
                                         <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                                            Catatan Request Khusus (Gratis Pembersihan):
+                                            Catatan Karantina / Packing Khusus:
                                         </label>
                                         <input
                                             type="text"
                                             value={data.notes}
                                             onChange={(e) => setData('notes', e.target.value)}
-                                            placeholder="Contoh: Tolong bersihkan sisik & insang, potong badan jadi 3 bagian"
-                                            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs transition focus:border-sky-500 focus:bg-white focus:outline-none dark:border-slate-800 dark:bg-slate-800 dark:focus:bg-slate-900"
+                                            placeholder="Contoh: Tambah packing box styrofoam ganda, kirim via ekspedisi khusus ikan hidup"
+                                            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs transition focus:border-red-500 focus:bg-white focus:outline-none dark:border-slate-800 dark:bg-slate-800 dark:focus:bg-slate-900"
                                         />
                                         <span className="text-[11px] text-slate-400 mt-1 block">
-                                            *Nelayan/penjual siap membersihkan sisik, insang, atau memotong ikan sesuai permintaan Anda.
+                                            *Diler/Breeder memastikan ikan dipuasakan & dikarantina ketat sebelum dikirim dalam kantong oksigen medis.
                                         </span>
                                     </div>
 
@@ -277,10 +277,10 @@ export default function MarketplaceShow({ product, relatedProducts }: Props) {
                                         <button
                                             type="submit"
                                             disabled={processing || Number(product.stock) <= 0}
-                                            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-sky-600 to-teal-600 py-3.5 text-sm font-bold text-white shadow-lg shadow-sky-500/25 transition hover:from-sky-500 hover:to-teal-500 disabled:opacity-50"
+                                            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-red-600 to-amber-600 py-3.5 text-sm font-bold text-white shadow-lg shadow-red-500/25 transition hover:from-red-500 hover:to-amber-500 disabled:opacity-50"
                                         >
                                             <ShoppingCart className="h-4 w-4" />
-                                            <span>{processing ? 'Menambahkan...' : 'Masukkan ke Keranjang Belanja'}</span>
+                                            <span>{processing ? 'Menambahkan...' : 'Pesan Koi Sekarang'}</span>
                                         </button>
                                     </div>
                                 </div>
@@ -292,7 +292,7 @@ export default function MarketplaceShow({ product, relatedProducts }: Props) {
                 {/* Reviews Section */}
                 <div className="mt-12 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
                     <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-6">
-                        Ulasan Kesegaran Ikan dari Pembeli
+                        Ulasan Kualitas Koi dari Kolektor
                     </h3>
                     {product.reviews && product.reviews.length > 0 ? (
                         <div className="space-y-4">
@@ -341,7 +341,7 @@ export default function MarketplaceShow({ product, relatedProducts }: Props) {
                                 >
                                     <div className="aspect-[4/3] w-full overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-800 mb-3">
                                         <img
-                                            src={rel.primary_image?.image_path || 'https://images.unsplash.com/photo-1534043464124-3be32fe00099?w=400&auto=format&fit=crop'}
+                                            src={rel.primary_image?.image_path || '/images/koi/kohaku.jpg'}
                                             alt={rel.name}
                                             className="h-full w-full object-cover transition group-hover:scale-105"
                                         />

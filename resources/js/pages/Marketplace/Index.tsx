@@ -1,6 +1,6 @@
 import { Category, PaginatedData, Product } from '@/types/fish';
 import { Head, Link, router } from '@inertiajs/react';
-import { Anchor, CheckCircle2, Droplets, Fish, Heart, MapPin, Search, ShieldCheck, ShoppingCart, Sparkles } from 'lucide-react';
+import { Anchor, Award, CheckCircle2, Droplets, Fish, Heart, MapPin, Search, ShieldCheck, ShoppingCart, Sparkles } from 'lucide-react';
 import React, { useState } from 'react';
 
 interface Props {
@@ -61,45 +61,51 @@ export default function MarketplaceIndex({ products, categories, filters }: Prop
         switch (condition) {
             case 'live':
                 return {
-                    label: 'Hidup Beroksigen',
+                    label: 'Show Grade Hidup',
                     bg: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800',
                     dot: 'bg-emerald-500',
                 };
-            case 'fresh':
+            case 'show':
                 return {
-                    label: 'Segar Baru Tangkap',
-                    bg: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800',
-                    dot: 'bg-blue-500',
+                    label: 'Show Quality Kontes',
+                    bg: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800',
+                    dot: 'bg-amber-500',
                 };
-            case 'frozen':
+            case 'import':
                 return {
-                    label: 'Beku Higienis',
-                    bg: 'bg-cyan-50 text-cyan-700 border-cyan-200 dark:bg-cyan-950 dark:text-cyan-300 dark:border-cyan-800',
-                    dot: 'bg-cyan-400',
+                    label: 'Original Import Jepang',
+                    bg: 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950 dark:text-rose-300 dark:border-rose-800',
+                    dot: 'bg-rose-500',
+                };
+            case 'lokal':
+                return {
+                    label: 'Breeder Lokal Terverifikasi',
+                    bg: 'bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950 dark:text-sky-300 dark:border-sky-800',
+                    dot: 'bg-sky-500',
                 };
             default:
                 return {
-                    label: 'Olahan Siap Masak',
-                    bg: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800',
-                    dot: 'bg-amber-500',
+                    label: 'Koleksi Premium',
+                    bg: 'bg-red-50 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-300 dark:border-red-800',
+                    dot: 'bg-red-500',
                 };
         }
     };
 
     return (
         <div className="min-h-screen bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100">
-            <Head title="Pasar Ikan Bahari - Marketplace Ikan Segar & Hasil Laut" />
+            <Head title="KOI PREMIUM Gallery - Katalog Ikan Koi Kelas Kontes & Kolektor" />
 
             {/* Top Navigation Bar */}
             <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur dark:border-slate-800 dark:bg-slate-900/95">
                 <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
                     <Link href="/" className="flex items-center gap-2.5">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-sky-600 to-teal-500 text-white shadow-md shadow-sky-500/20">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-red-600 to-amber-500 text-white shadow-md shadow-red-500/20">
                             <Fish className="h-6 w-6" />
                         </div>
                         <div>
-                            <span className="text-xl font-bold tracking-tight text-sky-950 dark:text-sky-100">Koki<span className="text-teal-600 dark:text-teal-400">Bahari</span></span>
-                            <span className="block text-[10px] font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">Pasar Ikan & Nelayan</span>
+                            <span className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100">Koki<span className="text-red-600 dark:text-red-400">Koi</span></span>
+                            <span className="block text-[10px] font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">Exclusive Koi Auction & Gallery</span>
                         </div>
                     </Link>
 
@@ -111,8 +117,8 @@ export default function MarketplaceIndex({ products, categories, filters }: Prop
                                 type="text"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                placeholder="Cari ikan kakap, gurame hidup, cumi segar, udang..."
-                                className="w-full rounded-full border border-slate-200 bg-slate-100/70 py-2 pl-10 pr-4 text-sm transition focus:border-sky-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:border-slate-800 dark:bg-slate-800/80 dark:focus:bg-slate-800"
+                                placeholder="Cari Kohaku, Showa, Dainichi, Sakai, bloodline juara..."
+                                className="w-full rounded-full border border-slate-200 bg-slate-100/70 py-2 pl-10 pr-4 text-sm transition focus:border-red-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 dark:border-slate-800 dark:bg-slate-800/80 dark:focus:bg-slate-800"
                             />
                         </div>
                     </form>
@@ -137,34 +143,34 @@ export default function MarketplaceIndex({ products, categories, filters }: Prop
                 </div>
             </header>
 
-            {/* Hero Section */}
-            <section className="relative overflow-hidden bg-gradient-to-b from-sky-900 via-sky-800 to-slate-900 py-12 text-white">
-                <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#38bdf8_1px,transparent_1px)] [background-size:16px_16px]"></div>
+            {/* Hero Section - Koleksi KOI PREMIUM */}
+            <section className="relative overflow-hidden bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 py-12 text-white">
+                <div className="absolute inset-0 opacity-15 bg-[radial-gradient(#ef4444_1px,transparent_1px)] [background-size:16px_16px]"></div>
                 <div className="relative mx-auto max-w-7xl px-4 sm:px-6">
                     <div className="max-w-2xl">
-                        <div className="inline-flex items-center gap-2 rounded-full bg-sky-500/20 px-3 py-1 text-xs font-medium text-sky-200 backdrop-blur border border-sky-400/30 mb-4">
-                            <Anchor className="h-3.5 w-3.5 text-sky-300" />
-                            <span>Segar Langsung dari Dermaga & Tambak Nusantara</span>
+                        <div className="inline-flex items-center gap-2 rounded-full bg-red-500/20 px-3 py-1 text-xs font-medium text-red-300 backdrop-blur border border-red-500/30 mb-4">
+                            <Sparkles className="h-3.5 w-3.5 text-amber-300" />
+                            <span>Koleksi Eksklusif KOI PREMIUM Indonesia & Jepang</span>
                         </div>
                         <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-5xl text-white">
-                            Ikan Segar Berkualitas, Langsung dari Nelayan.
+                            Koleksi KOI PREMIUM Kelas Kontes & Kolektor.
                         </h1>
-                        <p className="mt-3 text-base text-sky-100/90 sm:text-lg">
-                            Pesan ikan laut segar harian, ikan air tawar hidup beroksigen, bibit unggul, hingga seafood fillet beku higienis dengan jaminan kesegaran rantai dingin.
+                        <p className="mt-3 text-base text-slate-300 sm:text-lg">
+                            Katalog kurasi Ikan Koi Show Quality, varietas Gosanke unggulan, dan bloodline resmi dari Diler Import Jepang & Breeder Lokal Terverifikasi.
                         </p>
 
-                        <div className="mt-6 flex flex-wrap gap-4 text-xs font-medium text-sky-200">
+                        <div className="mt-6 flex flex-wrap gap-4 text-xs font-medium text-slate-300">
                             <div className="flex items-center gap-1.5">
-                                <ShieldCheck className="h-4 w-4 text-teal-400" />
-                                <span>Bebas Formalin 100%</span>
+                                <ShieldCheck className="h-4 w-4 text-emerald-400" />
+                                <span>Sertifikat Karantina Resmi</span>
                             </div>
                             <div className="flex items-center gap-1.5">
-                                <Droplets className="h-4 w-4 text-sky-300" />
-                                <span>Kemasan Es & Oksigen</span>
+                                <Award className="h-4 w-4 text-amber-400" />
+                                <span>Bloodline APKI & ZNA</span>
                             </div>
                             <div className="flex items-center gap-1.5">
-                                <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-                                <span>Bisa Request Bersihkan Sisik</span>
+                                <CheckCircle2 className="h-4 w-4 text-teal-400" />
+                                <span>Garansi Hidup 100% (DOA) Beroksigen</span>
                             </div>
                         </div>
                     </div>
@@ -214,14 +220,14 @@ export default function MarketplaceIndex({ products, categories, filters }: Prop
 
                 {/* Filter and Sorting Controls */}
                 <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 pb-4 dark:border-slate-800">
-                    {/* Condition Tabs */}
+                    {/* Grade & Origin Tabs */}
                     <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-xs font-medium text-slate-500 mr-1">Kondisi:</span>
+                        <span className="text-xs font-medium text-slate-500 mr-1">Kelas:</span>
                         {[
-                            { id: '', label: 'Semua' },
-                            { id: 'fresh', label: 'Segar Baru' },
-                            { id: 'live', label: 'Ikan Hidup' },
-                            { id: 'frozen', label: 'Beku / Fillet' },
+                            { id: '', label: 'Semua Kelas' },
+                            { id: 'show', label: 'Show Quality' },
+                            { id: 'import', label: 'Import Jepang' },
+                            { id: 'lokal', label: 'Breeder Lokal' },
                         ].map((c) => (
                             <button
                                 key={c.id}
@@ -286,7 +292,7 @@ export default function MarketplaceIndex({ products, categories, filters }: Prop
                                             <img
                                                 src={
                                                     product.primary_image?.image_path ||
-                                                    'https://images.unsplash.com/photo-1534043464124-3be32fe00099?w=500&auto=format&fit=crop'
+                                                    '/images/koi/kohaku.jpg'
                                                 }
                                                 alt={product.name}
                                                 className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
@@ -299,11 +305,11 @@ export default function MarketplaceIndex({ products, categories, filters }: Prop
                                                 </span>
                                             </div>
 
-                                            {/* Catch Type */}
-                                            {product.catch_type && (
+                                            {/* Lineage / Origin Badge */}
+                                            {product.origin && (
                                                 <div className="absolute bottom-2.5 left-2.5">
-                                                    <span className="rounded-md bg-black/60 px-2 py-0.5 text-[10px] font-medium text-white backdrop-blur">
-                                                        {product.catch_type === 'laut' ? 'Tangkapan Laut' : product.catch_type === 'tambak' ? 'Budidaya Tambak' : 'Air Tawar'}
+                                                    <span className="rounded-md bg-black/70 px-2 py-0.5 text-[10px] font-medium text-white backdrop-blur border border-white/20">
+                                                        {product.origin.toLowerCase().includes('jepang') || product.origin.toLowerCase().includes('niigata') ? '🇯🇵 Import Jepang' : '🇮🇩 Breeder Lokal'}
                                                     </span>
                                                 </div>
                                             )}

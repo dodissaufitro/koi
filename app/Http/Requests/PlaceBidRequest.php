@@ -14,20 +14,32 @@ class PlaceBidRequest extends FormRequest
     public function rules(): array
     {
         $auction = $this->route('auction');
-        $minBid = $auction ? ((float) $auction->current_bid + 1) : 0;
+        $minBid = $auction ? ((float) $auction->current_bid + 500000) : 500000;
 
         return [
-            'amount' => ['required', 'numeric', 'min:' . $minBid],
+            'amount' => [
+                'required',
+                'numeric',
+                'min:' . $minBid,
+                function ($attribute, $value, $fail) use ($auction) {
+                    if ($auction) {
+                        $diff = (float) $value - (float) $auction->current_bid;
+                        if ($diff < 500000 || fmod($diff, 500000) != 0) {
+                            $fail('Kelipatan Bid (KB) resmi yang ditentukan platform adalah kelipatan Rp 500.000 atau Rp 1.000.000.');
+                        }
+                    }
+                },
+            ],
         ];
     }
 
     public function messages(): array
     {
         $auction = $this->route('auction');
-        $minBid = $auction ? number_format($auction->current_bid, 0, ',', '.') : 0;
+        $current = $auction ? number_format($auction->current_bid, 0, ',', '.') : 0;
 
         return [
-            'amount.min' => "Tawaran Anda harus lebih tinggi dari penawaran saat ini (Rp {$minBid}).",
+            'amount.min' => "Tawaran Anda harus lebih tinggi minimal Rp 500.000 dari penawaran saat ini (Rp {$current}).",
         ];
     }
 }

@@ -71,260 +71,60 @@ class KoiSeeder extends Seeder
             ]
         );
 
-        // 3. Akun Penjual / 10 Toko Mitra Resmi Terverifikasi
-        $seller1 = User::firstOrCreate(
-            ['email' => 'sejahtera@koimart.test'],
+        // 3. Akun Pemilik Tunggal & Galeri Resmi KOI PREMIUM (Single Owner - Bukan Marketplace)
+        $owner = User::firstOrCreate(
+            ['email' => 'owner@kokikoi.com'],
             [
-                'name' => 'Hendra Setiawan',
+                'name' => 'Koki Nishikigoi Owner',
                 'password' => Hash::make('password'),
                 'role' => 'seller',
-                'phone' => '081122334455',
-                'address' => 'Sentra Pasar Ikan Hias Sumenep',
-                'city' => 'Jakarta Pusat',
+                'phone' => '081288881001',
+                'address' => 'Jl. Nishikigoi Sanctuary No. 88, Blitar & Gallery Showroom Jakarta',
+                'city' => 'Blitar & Jakarta',
             ]
         );
-        $storeSejahtera = Store::firstOrCreate(
-            ['slug' => 'toko-koi-sejahtera'],
+
+        $officialStore = Store::firstOrCreate(
+            ['slug' => 'koki-nishikigoi-gallery'],
             [
-                'user_id' => $seller1->id,
-                'name' => 'Toko Koi Sejahtera',
-                'description' => 'Spesialis penyedia indukan dan show koi berkualitas kontes ZNA bersertifikasi karantina resmi.',
-                'phone' => '081122334455',
-                'address' => 'Jl. Sumenep No. 18, Menteng',
-                'city' => 'Jakarta Pusat',
+                'user_id' => $owner->id,
+                'name' => 'Koki Nishikigoi Official Gallery',
+                'description' => 'Galeri eksklusif & farm resmi spesialis Nishikigoi Show Quality terpilih dari Niigata, Sakai, Dainichi, dan seleksi mudpond terbaik.',
+                'phone' => '081288881001',
+                'address' => 'Jl. Nishikigoi Sanctuary No. 88, Blitar & Gallery Showroom Jakarta',
+                'city' => 'Blitar & Jakarta',
                 'is_verified' => true,
             ]
         );
 
-        $seller2 = User::firstOrCreate(
-            ['email' => 'daisuke@koimart.test'],
-            [
-                'name' => 'Takeshi Yamamoto',
-                'password' => Hash::make('password'),
-                'role' => 'seller',
-                'phone' => '081188990011',
-                'address' => 'Blitar Koi Heritage Park & Quarantine',
-                'city' => 'Blitar',
-            ]
-        );
-        $storeDaisuke = Store::firstOrCreate(
-            ['slug' => 'daisuke-nishikigoi-farm'],
-            [
-                'user_id' => $seller2->id,
-                'name' => 'Daisuke Nishikigoi Farm',
-                'description' => 'Importir resmi bloodline Dainichi, Sakai Fish Farm, Momotaro, dan Isa Koi Farm Niigata.',
-                'phone' => '081188990011',
-                'address' => 'Jl. Agro Koi Megah No. 7, Sentra Koi',
-                'city' => 'Blitar',
-                'is_verified' => true,
-            ]
-        );
+        // Alias store tunggal untuk seluruh koleksi produk & lelang
+        $storeSejahtera = $officialStore;
+        $storeDaisuke = $officialStore;
+        $storeNusantara = $officialStore;
+        $storeBlitarChampion = $officialStore;
+        $storeSamurai = $officialStore;
+        $storeJogjaHeritage = $officialStore;
+        $storeSakura = $officialStore;
+        $storeBorneo = $officialStore;
+        $storeBaliParadise = $officialStore;
+        $storeSumatra = $officialStore;
 
-        $seller3 = User::firstOrCreate(
-            ['email' => 'nusantara@koimart.test'],
-            [
-                'name' => 'Reza Pahlevi',
-                'password' => Hash::make('password'),
-                'role' => 'seller',
-                'phone' => '081288776655',
-                'address' => 'Kawasan Agro Lembang',
-                'city' => 'Bandung',
-            ]
-        );
-        $storeNusantara = Store::firstOrCreate(
-            ['slug' => 'nusantara-koi-center'],
-            [
-                'user_id' => $seller3->id,
-                'name' => 'Nusantara Koi Center',
-                'description' => 'Pusat pembesaran dan salon ikan koi juara. Melayani konsultasi air kolam dan pakan bernutrisi.',
-                'phone' => '081288776655',
-                'address' => 'Jl. Kolonel Masturi No. 88, Lembang',
-                'city' => 'Bandung',
-                'is_verified' => true,
-            ]
-        );
-
-        $seller4 = User::firstOrCreate(
-            ['email' => 'blitar.champion@koimart.test'],
-            [
-                'name' => 'Mochammad Arifin',
-                'password' => Hash::make('password'),
-                'role' => 'seller',
-                'phone' => '081233445566',
-                'address' => 'Sentra Budidaya Koi Sanankulon',
-                'city' => 'Blitar',
-            ]
-        );
-        $storeBlitarChampion = Store::firstOrCreate(
-            ['slug' => 'blitar-champion-koi'],
-            [
-                'user_id' => $seller4->id,
-                'name' => 'Blitar Champion Koi Farm',
-                'description' => 'Farm pembibitan Kohaku & Showa lokal super bersertifikasi Asosiasi Pencinta Koi Indonesia (APKI).',
-                'phone' => '081233445566',
-                'address' => 'Jl. Raya Sanankulon No. 42',
-                'city' => 'Blitar',
-                'is_verified' => true,
-            ]
-        );
-
-        $seller5 = User::firstOrCreate(
-            ['email' => 'samurai.koi@koimart.test'],
-            [
-                'name' => 'Hendra Wijaya',
-                'password' => Hash::make('password'),
-                'role' => 'seller',
-                'phone' => '081399887766',
-                'address' => 'Sentra Niaga Citraland',
-                'city' => 'Surabaya',
-            ]
-        );
-        $storeSamurai = Store::firstOrCreate(
-            ['slug' => 'samurai-nishikigoi'],
-            [
-                'user_id' => $seller5->id,
-                'name' => 'Samurai Nishikigoi Surabaya',
-                'description' => 'Agen lelang resmi dan showroom koi import Gosanke (Kohaku, Sanke, Showa) sertifikat ZNA.',
-                'phone' => '081399887766',
-                'address' => 'Boulevard Citraland No. 15, Sambikerep',
-                'city' => 'Surabaya',
-                'is_verified' => true,
-            ]
-        );
-
-        $seller6 = User::firstOrCreate(
-            ['email' => 'jogja.koi@koimart.test'],
-            [
-                'name' => 'Raden Mas Danang',
-                'password' => Hash::make('password'),
-                'role' => 'seller',
-                'phone' => '081266554433',
-                'address' => 'Kawasan Agro Sleman',
-                'city' => 'Yogyakarta',
-            ]
-        );
-        $storeJogjaHeritage = Store::firstOrCreate(
-            ['slug' => 'jogja-heritage-koi'],
-            [
-                'user_id' => $seller6->id,
-                'name' => 'Jogja Heritage Koi Gallery',
-                'description' => 'Galeri koi varietas eksotis langka: Tancho, Goshiki, Kujaku, Asagi, Shusui kelas kolektor.',
-                'phone' => '081266554433',
-                'address' => 'Jl. Kaliurang Km 9.5, Sleman',
-                'city' => 'Yogyakarta',
-                'is_verified' => true,
-            ]
-        );
-
-        $seller7 = User::firstOrCreate(
-            ['email' => 'sakura.sukabumi@koimart.test'],
-            [
-                'name' => 'Deni Kurniawan',
-                'password' => Hash::make('password'),
-                'role' => 'seller',
-                'phone' => '081322110099',
-                'address' => 'Kaki Gunung Gede, Selabintana',
-                'city' => 'Sukabumi',
-            ]
-        );
-        $storeSakura = Store::firstOrCreate(
-            ['slug' => 'sakura-koi-sukabumi'],
-            [
-                'user_id' => $seller7->id,
-                'name' => 'Sakura Koi Farm Sukabumi',
-                'description' => 'Farm pembesaran air pegunungan alami Gunung Gede dengan warna beni dan sumi sangat pekat.',
-                'phone' => '081322110099',
-                'address' => 'Jl. Selabintana No. 45, Cisaat',
-                'city' => 'Sukabumi',
-                'is_verified' => true,
-            ]
-        );
-
-        $seller8 = User::firstOrCreate(
-            ['email' => 'borneo.koi@koimart.test'],
-            [
-                'name' => 'Ferry Salim',
-                'password' => Hash::make('password'),
-                'role' => 'seller',
-                'phone' => '081155443322',
-                'address' => 'Kawasan Niaga Balikpapan Selatan',
-                'city' => 'Balikpapan',
-            ]
-        );
-        $storeBorneo = Store::firstOrCreate(
-            ['slug' => 'borneo-nishikigoi'],
-            [
-                'user_id' => $seller8->id,
-                'name' => 'Borneo Nishikigoi Center',
-                'description' => 'Pusat karantina dan distribusi koi berkualitas untuk wilayah IKN dan seluruh Kalimantan.',
-                'phone' => '081155443322',
-                'address' => 'Jl. Jenderal Sudirman No. 120',
-                'city' => 'Balikpapan',
-                'is_verified' => true,
-            ]
-        );
-
-        $seller9 = User::firstOrCreate(
-            ['email' => 'bali.paradise@koimart.test'],
-            [
-                'name' => 'I Made Suardika',
-                'password' => Hash::make('password'),
-                'role' => 'seller',
-                'phone' => '081244332211',
-                'address' => 'Kawasan Wisata Sanur',
-                'city' => 'Denpasar',
-            ]
-        );
-        $storeBaliParadise = Store::firstOrCreate(
-            ['slug' => 'bali-paradise-koi'],
-            [
-                'user_id' => $seller9->id,
-                'name' => 'Bali Paradise Koi & Garden',
-                'description' => 'Showroom koi resort premium & landscape kolam koi Jepang-Bali bergaransi karantina resmi.',
-                'phone' => '081244332211',
-                'address' => 'Jl. Bypass Ngurah Rai No. 88, Sanur',
-                'city' => 'Denpasar',
-                'is_verified' => true,
-            ]
-        );
-
-        $seller10 = User::firstOrCreate(
-            ['email' => 'sumatra.koi@koimart.test'],
-            [
-                'name' => 'Kevin Tanoto',
-                'password' => Hash::make('password'),
-                'role' => 'seller',
-                'phone' => '081177889900',
-                'address' => 'Sentra Industri Medan Sunggal',
-                'city' => 'Medan',
-            ]
-        );
-        $storeSumatra = Store::firstOrCreate(
-            ['slug' => 'sumatra-nishikigoi'],
-            [
-                'user_id' => $seller10->id,
-                'name' => 'Sumatra Nishikigoi Farm',
-                'description' => 'Distributor resmi drum filter modern dan koi impor Niigata pilihan di pulau Sumatera.',
-                'phone' => '081177889900',
-                'address' => 'Jl. Ringroad No. 56, Medan Sunggal',
-                'city' => 'Medan',
-                'is_verified' => true,
-            ]
-        );
-
-        // 4. Kategori Varietas Koi
+        // 4. Kategori Varietas Koi Premium Resmi
         $categoriesData = [
-            ['name' => 'Kohaku', 'slug' => 'kohaku', 'description' => 'Koi dua warna: tubuh putih porselen (shiroji) dengan corak merah (beni/hi) tajam.', 'image' => 'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=500&auto=format&fit=crop'],
-            ['name' => 'Showa', 'slug' => 'showa', 'description' => 'Showa Sanshoku: tiga warna berdasar hitam legam (sumi) dengan kombinasi merah dan putih.', 'image' => 'https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?w=500&auto=format&fit=crop'],
-            ['name' => 'Sanke', 'slug' => 'sanke', 'description' => 'Taisho Sanke: tiga warna dengan dasar putih salju, corak merah elegan, dan totol hitam.', 'image' => 'https://images.unsplash.com/photo-1582234372722-50d7ccc30ebd?w=500&auto=format&fit=crop'],
-            ['name' => 'Goshiki', 'slug' => 'goshiki', 'description' => 'Koi lima warna dramatis dengan jaring sisik biru abu-abu dan pola merah menyala.', 'image' => 'https://images.unsplash.com/photo-1508873696983-2df5293cb395?w=500&auto=format&fit=crop'],
-            ['name' => 'Utsuri', 'slug' => 'utsuri', 'description' => 'Pola warna monokrom kontras (Shiro Utsuri, Hi Utsuri, Ki Utsuri).', 'image' => 'https://images.unsplash.com/photo-1516683037151-9a17603a8dc7?w=500&auto=format&fit=crop'],
-            ['name' => 'Kujaku', 'slug' => 'kujaku', 'description' => 'Koi metalik berkilau keperakan (Hikarimoyo) dengan corak jingga kemerahan.', 'image' => 'https://images.unsplash.com/photo-1576856497337-4f2be24683d2?w=500&auto=format&fit=crop'],
+            ['name' => 'Kohaku Premium', 'slug' => 'kohaku', 'description' => 'Koi dua warna: tubuh putih porselen (shiroji) dengan corak merah (beni/hi) tajam.', 'image' => '/images/koi/kohaku.jpg'],
+            ['name' => 'Showa Jumbo', 'slug' => 'showa', 'description' => 'Showa Sanshoku: tiga warna berdasar hitam legam (sumi) dengan kombinasi merah dan putih.', 'image' => '/images/koi/showa.jpg'],
+            ['name' => 'Taisho Sanke', 'slug' => 'sanke', 'description' => 'Taisho Sanke: tiga warna dengan dasar putih salju, corak merah elegan, dan totol hitam.', 'image' => '/images/koi/sanke.jpg'],
+            ['name' => 'Tancho Kohaku', 'slug' => 'tancho', 'description' => 'Simbol keberuntungan Jepang: bulatan merah crimson presisi di dahi tanpa cacat.', 'image' => '/images/koi/kohaku_pond.jpg'],
+            ['name' => 'Shiro Utsuri', 'slug' => 'utsuri', 'description' => 'Pola warna monokrom kontras (Shiro Utsuri, Hi Utsuri, Ki Utsuri) karya maestro Omosako.', 'image' => '/images/koi/ritsurin_koi_7.jpg'],
+            ['name' => 'Goshiki Collector', 'slug' => 'goshiki', 'description' => 'Koi lima warna dramatis dengan jaring sisik biru abu-abu dan pola merah menyala.', 'image' => '/images/koi/ritsurin_koi_6.jpg'],
+            ['name' => 'Kujaku Metallic', 'slug' => 'kujaku', 'description' => 'Koi metalik berkilau keperakan (Hikarimoyo) dengan corak jingga kemerahan.', 'image' => '/images/koi/kujaku_gold.jpg'],
+            ['name' => 'Chagoi & Karashi', 'slug' => 'chagoi', 'description' => 'Koi berkarakter ramah penjinak kolam dengan pertumbuhan jumbo maksimal 80cm+.', 'image' => '/images/koi/aka_muji.jpg'],
+            ['name' => 'Ginrin & Doitsu', 'slug' => 'ginrin-doitsu', 'description' => 'Sisik berkilau berlian Ginrin dan keanggunan sisik cermin Doitsu kelas kontes.', 'image' => '/images/koi/platina_white.jpg'],
         ];
 
         $categories = [];
         foreach ($categoriesData as $c) {
-            $categories[$c['slug']] = Category::updateOrCreate(
+            $cat = Category::updateOrCreate(
                 ['slug' => $c['slug']],
                 [
                     'name' => $c['name'],
@@ -334,7 +134,9 @@ class KoiSeeder extends Seeder
                     'is_active' => true,
                 ]
             );
+            $categories[$c['slug']] = $cat;
         }
+        $categories['shiro-utsuri'] = $categories['utsuri'];
 
         // 5. Daftar 20 Ikan Koi Hias Lengkap dengan Foto & Spesifikasi Realistis
         $koiItems = [
@@ -353,11 +155,8 @@ class KoiSeeder extends Seeder
                 'year' => 2023,
                 'weight_gram' => 4200,
                 'images' => [
-                    'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=800&auto=format&fit=crop',
-                    'https://images.unsplash.com/photo-1582234372722-50d7ccc30ebd?w=800&auto=format&fit=crop',
-                    'https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?w=800&auto=format&fit=crop',
-                    'https://images.unsplash.com/photo-1576856497337-4f2be24683d2?w=800&auto=format&fit=crop',
-                    'https://images.unsplash.com/photo-1508873696983-2df5293cb395?w=800&auto=format&fit=crop'
+                    '/images/koi/kohaku.jpg',
+                    '/images/koi/koi_pond_group.jpg'
                 ],
                 'auction' => [
                     'start_price' => 20000000,
@@ -384,9 +183,9 @@ class KoiSeeder extends Seeder
                 'year' => 2023,
                 'weight_gram' => 7500,
                 'images' => [
-                    'https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?w=800&auto=format&fit=crop',
-                    'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=800&auto=format&fit=crop',
-                    'https://images.unsplash.com/photo-1582234372722-50d7ccc30ebd?w=800&auto=format&fit=crop'
+                    '/images/koi/showa.jpg',
+                    '/images/koi/ritsurin_koi_1.jpg',
+                    '/images/koi/ritsurin_koi_8.jpg'
                 ],
                 'auction' => [
                     'start_price' => 35000000,
@@ -413,8 +212,9 @@ class KoiSeeder extends Seeder
                 'year' => 2022,
                 'weight_gram' => 8200,
                 'images' => [
-                    'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=800&auto=format&fit=crop',
-                    'https://images.unsplash.com/photo-1516683037151-9a17603a8dc7?w=800&auto=format&fit=crop'
+                    '/images/koi/kohaku.jpg',
+                    '/images/koi/kohaku_pond.jpg',
+                    '/images/koi/kohaku_classic.jpg'
                 ],
                 'auction' => [
                     'start_price' => 30000000,
@@ -440,7 +240,9 @@ class KoiSeeder extends Seeder
                 'year' => 2023,
                 'weight_gram' => 6900,
                 'images' => [
-                    'https://images.unsplash.com/photo-1582234372722-50d7ccc30ebd?w=800&auto=format&fit=crop'
+                    '/images/koi/sanke.jpg',
+                    '/images/koi/ritsurin_koi_2.jpg',
+                    '/images/koi/ritsurin_koi_9.jpg'
                 ],
                 'auction' => [
                     'start_price' => 25000000,
@@ -466,7 +268,9 @@ class KoiSeeder extends Seeder
                 'year' => 2023,
                 'weight_gram' => 5800,
                 'images' => [
-                    'https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?w=800&auto=format&fit=crop'
+                    '/images/koi/showa.jpg',
+                    '/images/koi/ritsurin_koi_1.jpg',
+                    '/images/koi/ritsurin_koi_8.jpg'
                 ],
                 'auction' => [
                     'start_price' => 22000000,
@@ -492,7 +296,9 @@ class KoiSeeder extends Seeder
                 'year' => 2023,
                 'weight_gram' => 4900,
                 'images' => [
-                    'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=800&auto=format&fit=crop'
+                    '/images/koi/kohaku.jpg',
+                    '/images/koi/kohaku_pond.jpg',
+                    '/images/koi/kohaku_classic.jpg'
                 ],
                 'auction' => [
                     'start_price' => 18000000,
@@ -518,7 +324,9 @@ class KoiSeeder extends Seeder
                 'year' => 2023,
                 'weight_gram' => 5400,
                 'images' => [
-                    'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=800&auto=format&fit=crop'
+                    '/images/koi/kohaku.jpg',
+                    '/images/koi/kohaku_pond.jpg',
+                    '/images/koi/kohaku_classic.jpg'
                 ],
                 'auction' => [
                     'start_price' => 16000000,
@@ -538,17 +346,19 @@ class KoiSeeder extends Seeder
                 'size' => '70 cm',
                 'age' => 'Nisai',
                 'gender' => 'Male',
-                'price' => 22300000,
+                'price' => 22000000,
                 'description' => 'Lelang Favorit #2: Warna merah menyala dengan jaring sumi yang mulai tebal berkilau.',
                 'origin' => 'Isa Koi Farm',
                 'year' => 2023,
                 'weight_gram' => 4600,
                 'images' => [
-                    'https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?w=800&auto=format&fit=crop'
+                    '/images/koi/showa.jpg',
+                    '/images/koi/ritsurin_koi_1.jpg',
+                    '/images/koi/ritsurin_koi_8.jpg'
                 ],
                 'auction' => [
                     'start_price' => 15000000,
-                    'current_bid' => 22300000,
+                    'current_bid' => 22000000,
                     'bid_increment' => 500000,
                     'bids_count' => 16,
                     'favorites_count' => 84,
@@ -564,18 +374,20 @@ class KoiSeeder extends Seeder
                 'size' => '68 cm',
                 'age' => 'Nisai',
                 'gender' => 'Female',
-                'price' => 19750000,
+                'price' => 19500000,
                 'description' => 'Lelang Favorit #3: Kombinasi shiroji, beni, dan sumi seimbang dengan prospek ukuran di atas 80 cm.',
                 'origin' => 'Sakai Fish Farm',
                 'year' => 2023,
                 'weight_gram' => 4300,
                 'images' => [
-                    'https://images.unsplash.com/photo-1582234372722-50d7ccc30ebd?w=800&auto=format&fit=crop'
+                    '/images/koi/sanke.jpg',
+                    '/images/koi/ritsurin_koi_2.jpg',
+                    '/images/koi/ritsurin_koi_9.jpg'
                 ],
                 'auction' => [
-                    'start_price' => 12000000,
-                    'current_bid' => 19750000,
-                    'bid_increment' => 250000,
+                    'start_price' => 14000000,
+                    'current_bid' => 19500000,
+                    'bid_increment' => 500000,
                     'bids_count' => 14,
                     'favorites_count' => 77,
                     'highest_bidder_id' => $andi->id,
@@ -590,18 +402,19 @@ class KoiSeeder extends Seeder
                 'size' => '65 cm',
                 'age' => 'Nisai',
                 'gender' => 'Female',
-                'price' => 17900000,
+                'price' => 18000000,
                 'description' => 'Lelang Favorit #4: Pola 5 warna kontras eksotis, jaring sisik biru baja dengan corak merah tegas tanpa bocor.',
                 'origin' => 'Kanno Koi Farm',
                 'year' => 2023,
                 'weight_gram' => 3800,
                 'images' => [
-                    'https://images.unsplash.com/photo-1508873696983-2df5293cb395?w=800&auto=format&fit=crop'
+                    '/images/koi/ritsurin_koi_6.jpg',
+                    '/images/koi/aka_muji.jpg'
                 ],
                 'auction' => [
-                    'start_price' => 10000000,
-                    'current_bid' => 17900000,
-                    'bid_increment' => 250000,
+                    'start_price' => 12000000,
+                    'current_bid' => 18000000,
+                    'bid_increment' => 500000,
                     'bids_count' => 11,
                     'favorites_count' => 69,
                     'highest_bidder_id' => $budi->id,
@@ -616,18 +429,19 @@ class KoiSeeder extends Seeder
                 'size' => '60 cm',
                 'age' => 'Nisai',
                 'gender' => 'Female',
-                'price' => 15600000,
+                'price' => 15500000,
                 'description' => 'Lelang Favorit #5: Pola hitam obsidian di atas putih porselen karya master Omosako Hiroshima.',
                 'origin' => 'Omosako Koi Farm Hiroshima',
                 'year' => 2023,
                 'weight_gram' => 3400,
                 'images' => [
-                    'https://images.unsplash.com/photo-1516683037151-9a17603a8dc7?w=800&auto=format&fit=crop'
+                    '/images/koi/ritsurin_koi_7.jpg',
+                    '/images/koi/platina_white.jpg'
                 ],
                 'auction' => [
-                    'start_price' => 9000000,
-                    'current_bid' => 15600000,
-                    'bid_increment' => 200000,
+                    'start_price' => 10000000,
+                    'current_bid' => 15500000,
+                    'bid_increment' => 500000,
                     'bids_count' => 13,
                     'favorites_count' => 64,
                     'highest_bidder_id' => $lover->id,
@@ -648,8 +462,9 @@ class KoiSeeder extends Seeder
                 'year' => 2024,
                 'weight_gram' => 3500,
                 'images' => [
-                    'https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?w=800&auto=format&fit=crop',
-                    'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=800&auto=format&fit=crop'
+                    '/images/koi/showa.jpg',
+                    '/images/koi/ritsurin_koi_1.jpg',
+                    '/images/koi/ritsurin_koi_8.jpg'
                 ],
             ],
             // 13
@@ -667,7 +482,9 @@ class KoiSeeder extends Seeder
                 'year' => 2023,
                 'weight_gram' => 3100,
                 'images' => [
-                    'https://images.unsplash.com/photo-1582234372722-50d7ccc30ebd?w=800&auto=format&fit=crop'
+                    '/images/koi/sanke.jpg',
+                    '/images/koi/ritsurin_koi_2.jpg',
+                    '/images/koi/ritsurin_koi_9.jpg'
                 ],
             ],
             // 14
@@ -685,7 +502,8 @@ class KoiSeeder extends Seeder
                 'year' => 2024,
                 'weight_gram' => 2600,
                 'images' => [
-                    'https://images.unsplash.com/photo-1508873696983-2df5293cb395?w=800&auto=format&fit=crop'
+                    '/images/koi/ritsurin_koi_6.jpg',
+                    '/images/koi/aka_muji.jpg'
                 ],
             ],
             // 15
@@ -703,8 +521,8 @@ class KoiSeeder extends Seeder
                 'year' => 2023,
                 'weight_gram' => 2100,
                 'images' => [
-                    'https://images.unsplash.com/photo-1576856497337-4f2be24683d2?w=800&auto=format&fit=crop',
-                    'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=800&auto=format&fit=crop'
+                    '/images/koi/kohaku_pond.jpg',
+                    '/images/koi/kohaku.jpg'
                 ],
             ],
             // 16
@@ -722,7 +540,8 @@ class KoiSeeder extends Seeder
                 'year' => 2024,
                 'weight_gram' => 2400,
                 'images' => [
-                    'https://images.unsplash.com/photo-1576856497337-4f2be24683d2?w=800&auto=format&fit=crop'
+                    '/images/koi/kujaku_gold.jpg',
+                    '/images/koi/ritsurin_koi_3.jpg'
                 ],
             ],
             // 17
@@ -740,7 +559,8 @@ class KoiSeeder extends Seeder
                 'year' => 2023,
                 'weight_gram' => 2700,
                 'images' => [
-                    'https://images.unsplash.com/photo-1516683037151-9a17603a8dc7?w=800&auto=format&fit=crop'
+                    '/images/koi/ritsurin_koi_7.jpg',
+                    '/images/koi/platina_white.jpg'
                 ],
             ],
             // 18
@@ -758,7 +578,8 @@ class KoiSeeder extends Seeder
                 'year' => 2024,
                 'weight_gram' => 1900,
                 'images' => [
-                    'https://images.unsplash.com/photo-1508873696983-2df5293cb395?w=800&auto=format&fit=crop'
+                    '/images/koi/aka_muji.jpg',
+                    '/images/koi/ritsurin_koi_5.jpg'
                 ],
             ],
             // 19
@@ -776,7 +597,8 @@ class KoiSeeder extends Seeder
                 'year' => 2023,
                 'weight_gram' => 3000,
                 'images' => [
-                    'https://images.unsplash.com/photo-1576856497337-4f2be24683d2?w=800&auto=format&fit=crop'
+                    '/images/koi/kujaku_gold.jpg',
+                    '/images/koi/ritsurin_koi_3.jpg'
                 ],
             ],
             // 20
@@ -794,7 +616,8 @@ class KoiSeeder extends Seeder
                 'year' => 2023,
                 'weight_gram' => 4500,
                 'images' => [
-                    'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=800&auto=format&fit=crop'
+                    '/images/koi/aka_muji.jpg',
+                    '/images/koi/ritsurin_koi_5.jpg'
                 ],
             ],
             // 21 - Toko Koi Sejahtera
@@ -812,7 +635,9 @@ class KoiSeeder extends Seeder
                 'year' => 2024,
                 'weight_gram' => 3800,
                 'images' => [
-                    'https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?w=800&auto=format&fit=crop'
+                    '/images/koi/showa.jpg',
+                    '/images/koi/ritsurin_koi_1.jpg',
+                    '/images/koi/ritsurin_koi_8.jpg'
                 ],
             ],
             // 22 - Toko Koi Sejahtera
@@ -830,7 +655,8 @@ class KoiSeeder extends Seeder
                 'year' => 2024,
                 'weight_gram' => 2900,
                 'images' => [
-                    'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=800&auto=format&fit=crop'
+                    '/images/koi/platina_white.jpg',
+                    '/images/koi/kohaku.jpg'
                 ],
             ],
             // 23 - Daisuke Nishikigoi Farm
@@ -848,7 +674,9 @@ class KoiSeeder extends Seeder
                 'year' => 2023,
                 'weight_gram' => 5200,
                 'images' => [
-                    'https://images.unsplash.com/photo-1582234372722-50d7ccc30ebd?w=800&auto=format&fit=crop'
+                    '/images/koi/sanke.jpg',
+                    '/images/koi/ritsurin_koi_2.jpg',
+                    '/images/koi/ritsurin_koi_9.jpg'
                 ],
             ],
             // 24 - Daisuke Nishikigoi Farm
@@ -866,7 +694,8 @@ class KoiSeeder extends Seeder
                 'year' => 2024,
                 'weight_gram' => 3400,
                 'images' => [
-                    'https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?w=800&auto=format&fit=crop'
+                    '/images/koi/kohaku_pond.jpg',
+                    '/images/koi/kohaku.jpg'
                 ],
             ],
             // 25 - Nusantara Koi Center
@@ -884,7 +713,9 @@ class KoiSeeder extends Seeder
                 'year' => 2023,
                 'weight_gram' => 4800,
                 'images' => [
-                    'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=800&auto=format&fit=crop'
+                    '/images/koi/kohaku.jpg',
+                    '/images/koi/kohaku_pond.jpg',
+                    '/images/koi/kohaku_classic.jpg'
                 ],
             ],
             // 26 - Nusantara Koi Center
@@ -902,7 +733,8 @@ class KoiSeeder extends Seeder
                 'year' => 2024,
                 'weight_gram' => 3700,
                 'images' => [
-                    'https://images.unsplash.com/photo-1516683037151-9a17603a8dc7?w=800&auto=format&fit=crop'
+                    '/images/koi/ritsurin_koi_7.jpg',
+                    '/images/koi/platina_white.jpg'
                 ],
             ],
             // 27 - Blitar Champion Koi Farm
@@ -920,7 +752,9 @@ class KoiSeeder extends Seeder
                 'year' => 2023,
                 'weight_gram' => 4500,
                 'images' => [
-                    'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=800&auto=format&fit=crop'
+                    '/images/koi/kohaku.jpg',
+                    '/images/koi/kohaku_pond.jpg',
+                    '/images/koi/kohaku_classic.jpg'
                 ],
             ],
             // 28 - Blitar Champion Koi Farm
@@ -938,7 +772,8 @@ class KoiSeeder extends Seeder
                 'year' => 2024,
                 'weight_gram' => 2800,
                 'images' => [
-                    'https://images.unsplash.com/photo-1576856497337-4f2be24683d2?w=800&auto=format&fit=crop'
+                    '/images/koi/kohaku_pond.jpg',
+                    '/images/koi/kohaku.jpg'
                 ],
             ],
             // 29 - Samurai Nishikigoi Surabaya
@@ -956,7 +791,9 @@ class KoiSeeder extends Seeder
                 'year' => 2023,
                 'weight_gram' => 4200,
                 'images' => [
-                    'https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?w=800&auto=format&fit=crop'
+                    '/images/koi/showa.jpg',
+                    '/images/koi/ritsurin_koi_1.jpg',
+                    '/images/koi/ritsurin_koi_8.jpg'
                 ],
             ],
             // 30 - Samurai Nishikigoi Surabaya
@@ -974,7 +811,9 @@ class KoiSeeder extends Seeder
                 'year' => 2024,
                 'weight_gram' => 3600,
                 'images' => [
-                    'https://images.unsplash.com/photo-1582234372722-50d7ccc30ebd?w=800&auto=format&fit=crop'
+                    '/images/koi/sanke.jpg',
+                    '/images/koi/ritsurin_koi_2.jpg',
+                    '/images/koi/ritsurin_koi_9.jpg'
                 ],
             ],
             // 31 - Jogja Heritage Koi Gallery
@@ -992,7 +831,8 @@ class KoiSeeder extends Seeder
                 'year' => 2023,
                 'weight_gram' => 3300,
                 'images' => [
-                    'https://images.unsplash.com/photo-1524704654690-b56c05c78a00?w=800&auto=format&fit=crop'
+                    '/images/koi/ritsurin_koi_3.jpg',
+                    '/images/koi/ritsurin_koi_5.jpg'
                 ],
             ],
             // 32 - Jogja Heritage Koi Gallery
@@ -1010,7 +850,8 @@ class KoiSeeder extends Seeder
                 'year' => 2024,
                 'weight_gram' => 2700,
                 'images' => [
-                    'https://images.unsplash.com/photo-1576856497337-4f2be24683d2?w=800&auto=format&fit=crop'
+                    '/images/koi/kujaku_gold.jpg',
+                    '/images/koi/ritsurin_koi_3.jpg'
                 ],
             ],
             // 33 - Sakura Koi Farm Sukabumi
@@ -1028,7 +869,8 @@ class KoiSeeder extends Seeder
                 'year' => 2024,
                 'weight_gram' => 3400,
                 'images' => [
-                    'https://images.unsplash.com/photo-1508873696983-2df5293cb395?w=800&auto=format&fit=crop'
+                    '/images/koi/ritsurin_koi_6.jpg',
+                    '/images/koi/aka_muji.jpg'
                 ],
             ],
             // 34 - Sakura Koi Farm Sukabumi
@@ -1046,7 +888,9 @@ class KoiSeeder extends Seeder
                 'year' => 2024,
                 'weight_gram' => 3100,
                 'images' => [
-                    'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=800&auto=format&fit=crop'
+                    '/images/koi/kohaku.jpg',
+                    '/images/koi/kohaku_pond.jpg',
+                    '/images/koi/kohaku_classic.jpg'
                 ],
             ],
             // 35 - Borneo Nishikigoi Center
@@ -1064,7 +908,8 @@ class KoiSeeder extends Seeder
                 'year' => 2023,
                 'weight_gram' => 3300,
                 'images' => [
-                    'https://images.unsplash.com/photo-1516683037151-9a17603a8dc7?w=800&auto=format&fit=crop'
+                    '/images/koi/ritsurin_koi_7.jpg',
+                    '/images/koi/platina_white.jpg'
                 ],
             ],
             // 36 - Borneo Nishikigoi Center
@@ -1082,7 +927,9 @@ class KoiSeeder extends Seeder
                 'year' => 2024,
                 'weight_gram' => 2700,
                 'images' => [
-                    'https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?w=800&auto=format&fit=crop'
+                    '/images/koi/showa.jpg',
+                    '/images/koi/ritsurin_koi_1.jpg',
+                    '/images/koi/ritsurin_koi_8.jpg'
                 ],
             ],
             // 37 - Bali Paradise Koi & Garden
@@ -1100,7 +947,8 @@ class KoiSeeder extends Seeder
                 'year' => 2024,
                 'weight_gram' => 2600,
                 'images' => [
-                    'https://images.unsplash.com/photo-1576856497337-4f2be24683d2?w=800&auto=format&fit=crop'
+                    '/images/koi/kujaku_gold.jpg',
+                    '/images/koi/ritsurin_koi_3.jpg'
                 ],
             ],
             // 38 - Bali Paradise Koi & Garden
@@ -1118,7 +966,8 @@ class KoiSeeder extends Seeder
                 'year' => 2024,
                 'weight_gram' => 2400,
                 'images' => [
-                    'https://images.unsplash.com/photo-1582234372722-50d7ccc30ebd?w=800&auto=format&fit=crop'
+                    '/images/koi/kohaku_pond.jpg',
+                    '/images/koi/kohaku.jpg'
                 ],
             ],
             // 39 - Sumatra Nishikigoi Farm
@@ -1136,7 +985,9 @@ class KoiSeeder extends Seeder
                 'year' => 2024,
                 'weight_gram' => 3300,
                 'images' => [
-                    'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=800&auto=format&fit=crop'
+                    '/images/koi/kohaku.jpg',
+                    '/images/koi/kohaku_pond.jpg',
+                    '/images/koi/kohaku_classic.jpg'
                 ],
             ],
             // 40 - Sumatra Nishikigoi Farm
@@ -1154,7 +1005,8 @@ class KoiSeeder extends Seeder
                 'year' => 2024,
                 'weight_gram' => 2800,
                 'images' => [
-                    'https://images.unsplash.com/photo-1524704654690-b56c05c78a00?w=800&auto=format&fit=crop'
+                    '/images/koi/ritsurin_koi_3.jpg',
+                    '/images/koi/ritsurin_koi_5.jpg'
                 ],
             ]
         ];
@@ -1232,19 +1084,6 @@ class KoiSeeder extends Seeder
                     }
                 }
             }
-
-            // Tambahkan Review dummy
-            Review::updateOrCreate(
-                [
-                    'product_id' => $product->id,
-                    'user_id' => $budi->id,
-                ],
-                [
-                    'order_id' => 1,
-                    'rating' => 5,
-                    'comment' => 'Kualitas ikan sangat memuaskan, renang aktif, dan sertifikat indukan resmi lengkap. Packing oksigen aman 100%.',
-                ]
-            );
         }
 
         // 7. Seed Data Transaksi Penjualan & Lelang Selesai (Untuk Back-Office Reports)
@@ -1362,6 +1201,18 @@ class KoiSeeder extends Seeder
                     'unit' => 'ekor',
                     'condition' => 'live',
                     'subtotal' => $o['price'],
+                ]
+            );
+
+            Review::updateOrCreate(
+                [
+                    'product_id' => $prod->id,
+                    'user_id' => $o['buyer_id'],
+                ],
+                [
+                    'order_id' => $order->id,
+                    'rating' => 5,
+                    'comment' => 'Kualitas ikan sangat memuaskan, renang aktif, dan sertifikat indukan resmi lengkap. Packing oksigen aman 100%.',
                 ]
             );
         }

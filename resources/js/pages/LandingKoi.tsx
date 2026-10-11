@@ -544,7 +544,7 @@ export default function LandingKoi({
                             >
                                 <div className="relative aspect-[4/5] rounded-xl overflow-hidden bg-slate-900">
                                     <img
-                                        src="https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=900&auto=format&fit=crop"
+                                        src="/images/koi/kohaku.jpg"
                                         alt="Kohaku Champion"
                                         className="h-full w-full object-cover opacity-90"
                                     />
@@ -590,7 +590,7 @@ export default function LandingKoi({
                         </div>
                         <div>
                             <div className={`text-2xl font-serif ${isDark ? 'text-slate-200' : 'text-slate-900'}`}>{stats.certified_breeders}</div>
-                            <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 font-light">Mitra Farm Jepang & Blitar</div>
+                            <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 font-light">Sertifikasi ZNA & APKI</div>
                         </div>
                         <div>
                             <div className={`text-2xl font-serif ${isDark ? 'text-slate-200' : 'text-slate-900'}`}>{stats.live_arrival_rate}</div>
@@ -700,7 +700,7 @@ export default function LandingKoi({
                                                 <img
                                                     src={
                                                         auction.product?.primary_image?.image_path ||
-                                                        'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=700&auto=format&fit=crop'
+                                                        '/images/koi/kohaku.jpg'
                                                     }
                                                     alt={auction.product?.name}
                                                     className="h-full w-full object-cover opacity-90 transition duration-500 group-hover:scale-105"
@@ -941,7 +941,7 @@ export default function LandingKoi({
                                         <img
                                             src={
                                                 koi.primary_image?.image_path ||
-                                                'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=600&auto=format&fit=crop'
+                                                '/images/koi/kohaku.jpg'
                                             }
                                             alt={koi.name}
                                             className="h-full w-full object-cover opacity-90 transition duration-500 group-hover:scale-105"

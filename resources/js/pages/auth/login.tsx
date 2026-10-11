@@ -220,7 +220,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                         {/* Background Image with Dark Vignette */}
                         <div className="absolute inset-0 z-0">
                             <img
-                                src="https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=900&auto=format&fit=crop"
+                                src="/images/koi/kohaku.jpg"
                                 alt="Nishikigoi Heritage"
                                 className="h-full w-full object-cover opacity-30 mix-blend-luminosity filter contrast-125"
                             />

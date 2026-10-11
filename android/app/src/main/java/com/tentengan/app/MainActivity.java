@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
+import androidx.activity.OnBackPressedCallback;
 import androidx.webkit.WebSettingsCompat;
 import androidx.webkit.WebViewFeature;
 import com.getcapacitor.BridgeActivity;
@@ -26,6 +27,24 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        try {
+            // Mencegah aplikasi langsung keluar saat tombol Back Android ditekan
+            getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+                @Override
+                public void handleOnBackPressed() {
+                    WebView webView = getBridge() != null ? getBridge().getWebView() : null;
+                    if (webView != null) {
+                        webView.evaluateJavascript("if (window.__handleAndroidBack) { window.__handleAndroidBack(); } else { window.history.back(); }", null);
+                    } else {
+                        setEnabled(false);
+                        getOnBackPressedDispatcher().onBackPressed();
+                        setEnabled(true);
+                    }
+                }
+            });
+        } catch (Exception ignored) {
+        }
 
         try {
             WebView webView = getBridge() != null ? getBridge().getWebView() : null;
@@ -168,6 +187,16 @@ public class MainActivity extends BridgeActivity {
         });
     }
 
+    @Override
+    public void onBackPressed() {
+        WebView webView = getBridge() != null ? getBridge().getWebView() : null;
+        if (webView != null) {
+            webView.evaluateJavascript("if (window.__handleAndroidBack) { window.__handleAndroidBack(); } else { window.history.back(); }", null);
+        } else {
+            super.onBackPressed();
+        }
+    }
+
     public class AndroidGoogleBridge {
         @JavascriptInterface
         public void signIn() {
@@ -184,6 +213,11 @@ public class MainActivity extends BridgeActivity {
                 } catch (Exception ignored) {
                 }
             });
+        }
+
+        @JavascriptInterface
+        public void exitApp() {
+            runOnUiThread(() -> finish());
         }
 
         @JavascriptInterface

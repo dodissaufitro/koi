@@ -53,42 +53,42 @@ class HomeController extends Controller
                 'kanji' => '紅白',
                 'description' => 'Raja dari segala jenis Koi. Pola warna putih bersih berselimut corak merah (Hi) pekat yang tajam (kiwa).',
                 'popular' => 'Kohaku Dainichi & Sakai',
-                'image' => 'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=600&auto=format&fit=crop',
+                'image' => '/images/koi/kohaku.jpg',
             ],
             [
                 'name' => 'Taisho Sanke',
                 'kanji' => '大正三色',
                 'description' => 'Tiga perpaduan warna harmonis: dasar putih salju, pola merah elegan, dan totol hitam (sumi) seperti kaligrafi.',
                 'popular' => 'Torazo & Sakai Bloodline',
-                'image' => 'https://images.unsplash.com/photo-1582234372722-50d7ccc30ebd?w=600&auto=format&fit=crop',
+                'image' => '/images/koi/sanke.jpg',
             ],
             [
                 'name' => 'Showa Sanshoku',
                 'kanji' => '昭和三色',
                 'description' => 'Karakter kuat dan maskulin dengan warna hitam legam sebagai pondasi, dihiasi ornamen merah berani dan putih.',
                 'popular' => 'Isa Showa & Dainichi',
-                'image' => 'https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?w=600&auto=format&fit=crop',
+                'image' => '/images/koi/showa.jpg',
             ],
             [
                 'name' => 'Tancho',
                 'kanji' => '丹頂',
                 'description' => 'Simbol bendera nasional Jepang dan keberuntungan. Tubuh putih mulus dengan bulatan merah sempurna tepat di kepala.',
                 'popular' => 'Tancho Kohaku & Tancho Showa',
-                'image' => 'https://images.unsplash.com/photo-1576856497337-4f2be24683d2?w=600&auto=format&fit=crop',
+                'image' => '/images/koi/kohaku_pond.jpg',
             ],
             [
                 'name' => 'Shiro Utsuri',
                 'kanji' => '白写り',
                 'description' => 'Daya tarik monokrom yang memukau. Pola hitam pekat kontras di atas dasar putih seputih porselen.',
                 'popular' => 'Omosako Farm Certified',
-                'image' => 'https://images.unsplash.com/photo-1516683037151-9a17603a8dc7?w=600&auto=format&fit=crop',
+                'image' => '/images/koi/ritsurin_koi_7.jpg',
             ],
             [
                 'name' => 'Asagi & Shusui',
                 'kanji' => '浅黄',
                 'description' => 'Koi klasik bernuansa biru langit dengan sisik seperti jaring laba-laba rapi dan semburat jingga kemerahan.',
                 'popular' => 'Maruhiro & Otsuka Bloodline',
-                'image' => 'https://images.unsplash.com/photo-1508873696983-2df5293cb395?w=600&auto=format&fit=crop',
+                'image' => '/images/koi/ritsurin_koi_3.jpg',
             ],
         ];
 
@@ -98,9 +98,9 @@ class HomeController extends Controller
             ->get();
 
         $stats = [
-            'total_koi_delivered' => '12.500+',
-            'certified_breeders' => '48+',
-            'live_arrival_rate' => '99.9%',
+            'total_koi_delivered' => '1.250+',
+            'certified_breeders' => 'Bloodline Resmi',
+            'live_arrival_rate' => '100%',
             'show_champion_awards' => '65+',
         ];
 

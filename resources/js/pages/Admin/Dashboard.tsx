@@ -108,19 +108,20 @@ const asset = (path: string) => {
 
 // Helper to get product fish image with fallback
 const getProductImage = (row: any) => {
-    if (!row) return asset('/images/koi-card.jpg');
+    if (!row) return asset('/images/koi/kohaku.jpg');
     if (row.primary_image?.image_path) return asset(row.primary_image.image_path);
     if (row.primaryImage?.image_path) return asset(row.primaryImage.image_path);
     if (row.images && row.images.length > 0 && row.images[0]?.image_path) return asset(row.images[0].image_path);
     if (row.image_url) return asset(row.image_url);
     if (row.image) return asset(row.image);
     const nameLower = (row.name || '').toLowerCase();
-    if (nameLower.includes('sanke')) return asset('/images/koi-sanke.jpg');
-    if (nameLower.includes('showa')) return asset('/images/koi-showa.jpg');
-    if (nameLower.includes('tancho')) return asset('/images/koi-tancho.jpg');
-    if (nameLower.includes('goshiki') || nameLower.includes('utsuri')) return asset('/images/koi-goshiki.jpg');
-    if (nameLower.includes('blitar') || nameLower.includes('paket')) return asset('/images/koi-hero-banner.jpg');
-    return asset('/images/koi-card.jpg');
+    if (nameLower.includes('sanke')) return asset('/images/koi/sanke.jpg');
+    if (nameLower.includes('showa')) return asset('/images/koi/showa.jpg');
+    if (nameLower.includes('tancho')) return asset('/images/koi/kohaku_pond.jpg');
+    if (nameLower.includes('utsuri')) return asset('/images/koi/ritsurin_koi_7.jpg');
+    if (nameLower.includes('kujaku') || nameLower.includes('ogon')) return asset('/images/koi/kujaku_gold.jpg');
+    if (nameLower.includes('goshiki') || nameLower.includes('asagi')) return asset('/images/koi/ritsurin_koi_6.jpg');
+    return asset('/images/koi/kohaku.jpg');
 };
 
 export default function AdminDashboard({ stats, tab = 'dashboard', search: initialSearch, data, helpers, auth, reports }: Props) {
@@ -1669,7 +1670,7 @@ export default function AdminDashboard({ stats, tab = 'dashboard', search: initi
                                                                                 alt={row.name}
                                                                                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                                                                                 onError={(e) => {
-                                                                                    (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1524704654690-b56c05c78a00?w=200&auto=format&fit=crop&q=80';
+                                                                                    (e.target as HTMLImageElement).src = '/images/koi/kohaku.jpg';
                                                                                 }}
                                                                             />
                                                                         ) : (
@@ -2046,7 +2047,7 @@ export default function AdminDashboard({ stats, tab = 'dashboard', search: initi
                                                         alt="Preview"
                                                         className="w-full h-full object-cover"
                                                         onError={(e) => {
-                                                            (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1524704654690-b56c05c78a00?w=200&auto=format&fit=crop&q=80';
+                                                            (e.target as HTMLImageElement).src = '/images/koi/kohaku.jpg';
                                                         }}
                                                     />
                                                 ) : (

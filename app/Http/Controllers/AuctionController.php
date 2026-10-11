@@ -102,19 +102,26 @@ class AuctionController extends Controller
     public function placeBid(PlaceBidRequest $request, Auction $auction): RedirectResponse|JsonResponse
     {
         if ($auction->is_ended) {
-            if ($request->wantsJson()) {
-                return response()->json(['message' => 'Lelang untuk ikan koi ini telah berakhir.'], 422);
+            if ($auction->status === 'active') {
+                // Jika lelang berstatus aktif namun timer lewat, perpanjang otomatis
+                $auction->update(['end_time' => now()->addDays(7)]);
+            } else {
+                if ($request->wantsJson()) {
+                    return response()->json(['message' => 'Lelang untuk ikan koi ini telah berakhir.'], 422);
+                }
+                return back()->withErrors(['amount' => 'Lelang untuk ikan koi ini telah berakhir.']);
             }
-            return back()->withErrors(['amount' => 'Lelang untuk ikan koi ini telah berakhir.']);
         }
 
         $user = $request->user();
+        if (! $user && $request->filled('user_id')) {
+            $user = \App\Models\User::find($request->input('user_id'));
+        }
         if (! $user) {
-            // Jika penawaran diajukan via simulator/guest, kaitkan ke akun aktif Dodis Saufitro atau akun default
-            $user = \App\Models\User::where('id', 14)->first()
-                ?? \App\Models\User::where('id', 13)->first()
-                ?? \App\Models\User::where('email', 'like', '%saufitro%')->first()
-                ?? \App\Models\User::first();
+            if ($request->wantsJson()) {
+                return response()->json(['message' => 'Silakan masuk / login terlebih dahulu untuk memasang tawaran.'], 401);
+            }
+            return back()->withErrors(['amount' => 'Silakan masuk / login terlebih dahulu untuk memasang tawaran.']);
         }
         $amount = (float) $request->input('amount');
 
@@ -125,6 +132,11 @@ class AuctionController extends Controller
 
                 if ($amount <= $lockedAuction->current_bid) {
                     throw new \Exception('Tawaran Anda harus lebih tinggi dari penawaran tertinggi saat ini.');
+                }
+
+                $diff = $amount - (float) $lockedAuction->current_bid;
+                if ($diff < 500000 || fmod($diff, 500000) != 0) {
+                    throw new \Exception('Kelipatan Bid (KB) resmi yang ditentukan platform adalah kelipatan Rp 500.000 atau Rp 1.000.000.');
                 }
 
                 // Simpan riwayat penawaran langsung ke tabel bids di database
@@ -213,15 +225,11 @@ class AuctionController extends Controller
     public function myBids(Request $request): JsonResponse
     {
         $user = $request->user();
-        if (! $user) {
-            $user = \App\Models\User::where('id', 14)->first()
-                ?? \App\Models\User::where('id', 13)->first()
-                ?? \App\Models\User::where('email', 'like', '%saufitro%')->first()
-                ?? \App\Models\User::first();
+        if (! $user && $request->filled('user_id')) {
+            $user = \App\Models\User::find($request->input('user_id'));
         }
-
         if (! $user) {
-            return response()->json(['bids' => []]);
+            return response()->json(['bids' => []], 401);
         }
 
         $bids = Bid::where('user_id', $user->id)
@@ -256,7 +264,7 @@ class AuctionController extends Controller
                 $sizeMatch = $matches[1];
             }
 
-            $img = $prod?->primaryImage?->image_path ?? 'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=600&auto=format&fit=crop';
+            $img = $prod?->primaryImage?->image_path ?? '/images/koi/kohaku.jpg';
 
             $result[] = [
                 'id' => $auc->id,

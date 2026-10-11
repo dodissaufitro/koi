@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { usePage, router } from '@inertiajs/react';
 import { SharedData } from '@/types';
 import { Auction, Category, Product } from '@/types/fish';
@@ -64,20 +64,17 @@ import {
     ArrowUpRight
 } from 'lucide-react';
 
-// Varietas data awal sesuai foto
+// Varietas Ikan Koi Premium Resmi (Hanya Koi Premium, Bukan Marketplace Umum)
 const INITIAL_CATEGORIES = [
-    { id: 'seafood', name: 'Ikan Laut & Seafood', count: 18, image: 'https://images.unsplash.com/photo-1615141982883-c7ad0e69fd62?w=500&auto=format&fit=crop' },
-    { id: 'air-tawar', name: 'Ikan Air Tawar', count: 15, image: 'https://images.unsplash.com/photo-1576806021995-9f68eb39f1ac?w=500&auto=format&fit=crop' },
-    { id: 'ikan-hias', name: 'Ikan Hias', count: 22, image: 'https://images.unsplash.com/photo-1524704654690-b56c05c78a00?w=500&auto=format&fit=crop' },
-    { id: 'olahan-beku', name: 'Olahan & Beku (Frozen)', count: 12, image: 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=500&auto=format&fit=crop' },
-    { id: 'bibit-pakan', name: 'Bibit & Pakan Ikan', count: 9, image: 'https://images.unsplash.com/photo-1598965675045-45c5e72c7d05?w=500&auto=format&fit=crop' },
-    { id: 'koi-nishikigoi', name: 'Ikan Koi (Nishikigoi)', count: 25, image: 'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=500&auto=format&fit=crop' },
-    { id: 'kohaku', name: 'Kohaku', count: 18, image: 'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=500&auto=format&fit=crop' },
-    { id: 'showa', name: 'Showa', count: 16, image: 'https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?w=500&auto=format&fit=crop' },
-    { id: 'sanke', name: 'Sanke', count: 14, image: 'https://images.unsplash.com/photo-1582234372722-50d7ccc30ebd?w=500&auto=format&fit=crop' },
-    { id: 'goshiki', name: 'Goshiki', count: 10, image: 'https://images.unsplash.com/photo-1508873696983-2df5293cb395?w=500&auto=format&fit=crop' },
-    { id: 'utsuri', name: 'Utsuri', count: 8, image: 'https://images.unsplash.com/photo-1516683037151-9a17603a8dc7?w=500&auto=format&fit=crop' },
-    { id: 'kujaku', name: 'Kujaku', count: 6, image: 'https://images.unsplash.com/photo-1576856497337-4f2be24683d2?w=500&auto=format&fit=crop' }
+    { id: 'kohaku', name: 'Kohaku Premium', count: 28, image: '/images/koi/kohaku.jpg' },
+    { id: 'showa', name: 'Showa Jumbo', count: 24, image: '/images/koi/showa.jpg' },
+    { id: 'sanke', name: 'Taisho Sanke', count: 19, image: '/images/koi/sanke.jpg' },
+    { id: 'tancho', name: 'Tancho Kohaku', count: 12, image: '/images/koi/kohaku_pond.jpg' },
+    { id: 'shiro-utsuri', name: 'Shiro Utsuri', count: 15, image: '/images/koi/ritsurin_koi_7.jpg' },
+    { id: 'goshiki', name: 'Goshiki Collector', count: 11, image: '/images/koi/ritsurin_koi_6.jpg' },
+    { id: 'kujaku', name: 'Kujaku Metallic', count: 9, image: '/images/koi/kujaku_gold.jpg' },
+    { id: 'chagoi', name: 'Chagoi & Karashi', count: 14, image: '/images/koi/aka_muji.jpg' },
+    { id: 'ginrin-doitsu', name: 'Ginrin & Doitsu', count: 16, image: '/images/koi/platina_white.jpg' },
 ];
 
 export interface StoreGalleryItem {
@@ -96,6 +93,8 @@ export interface StoreInfo {
     rating: number;
     reviewsCount: number;
     isVerified: boolean;
+    dealerType: 'import' | 'lokal';
+    verifiedBadge?: string;
     description: string;
     image: string;
     totalKoi: number;
@@ -108,248 +107,34 @@ export interface StoreInfo {
     gallery?: StoreGalleryItem[];
 }
 
-export const INITIAL_STORES: StoreInfo[] = [
-    {
-        id: 'store-1',
-        name: 'Toko Koi Sejahtera',
-        slug: 'toko-koi-sejahtera',
-        city: 'Jakarta Pusat',
-        rating: 4.8,
-        reviewsCount: 145,
-        isVerified: true,
-        description: 'Spesialis penyedia indukan dan show koi berkualitas kontes ZNA bersertifikasi karantina resmi.',
-        speciality: 'Show Quality & Indukan',
-        totalKoi: 18,
-        image: 'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=200&auto=format&fit=crop',
-        bannerImage: 'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=1200&auto=format&fit=crop',
-        address: 'Jl. Kemayoran Gempol No. 45, Jakarta Pusat, DKI Jakarta',
-        phone: '+62 812-8888-1001',
-        establishedYear: 2015,
-        facilities: ['Showroom Indukan AC', 'Karantina Standar KKP', 'Double Packing Oksigen Murni', 'Konsultasi Kolam'],
-        gallery: [
-            { id: 'g1-1', url: 'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=800&auto=format&fit=crop', title: 'Showroom Indukan Utama', description: 'Kolam display kaca 20 ton dengan filtrasi biologi bertingkat.', tag: 'Showroom' },
-            { id: 'g1-2', url: 'https://images.unsplash.com/photo-1508873696983-2df5293cb395?w=800&auto=format&fit=crop', title: 'Bak Karantina Beroksigen', description: 'Karantina 14 hari dengan pemantauan salinitas dan mikroskopis.', tag: 'Karantina' },
-            { id: 'g1-3', url: 'https://images.unsplash.com/photo-1516683037151-9a17603a8dc7?w=800&auto=format&fit=crop', title: 'Display Akuarium Kaca Bening', description: 'Pemeriksaan proporsi tubuh dan kualitas sisik dari samping.', tag: 'Fasilitas' },
-            { id: 'g1-4', url: 'https://images.unsplash.com/photo-1582234372722-50d7ccc30ebd?w=800&auto=format&fit=crop', title: 'Penghargaan ZNA Kontes', description: 'Deretan trofi kejuaraan nasional dan sertifikat breed resmi.', tag: 'Prestasi' },
-        ]
-    },
-    {
-        id: 'store-2',
-        name: 'Daisuke Nishikigoi Farm',
-        slug: 'daisuke-nishikigoi-farm',
-        city: 'Blitar, Jawa Timur',
-        rating: 4.9,
-        reviewsCount: 320,
-        isVerified: true,
-        description: 'Importir resmi bloodline Dainichi, Sakai Fish Farm, Momotaro, dan Isa Koi Farm Niigata.',
-        speciality: 'Import Jepang & Bloodline',
-        totalKoi: 35,
-        image: 'https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?w=200&auto=format&fit=crop',
-        bannerImage: 'https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?w=1200&auto=format&fit=crop',
-        address: 'Jl. Raya Gandusari No. 88, Kec. Gandusari, Kab. Blitar, Jawa Timur',
-        phone: '+62 813-7777-2002',
-        establishedYear: 2012,
-        facilities: ['Mudpond Alami 2 Hektar', 'Importir Bloodline Niigata', 'Sertifikat APKI & ZNA', 'Armada Live Fish Khusus'],
-        gallery: [
-            { id: 'g2-1', url: 'https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?w=800&auto=format&fit=crop', title: 'Mudpond Alami Blitar', description: 'Kolam tanah vulkanik kaya mineral penunjang kilau sisik dan beni.', tag: 'Mudpond' },
-            { id: 'g2-2', url: 'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=800&auto=format&fit=crop', title: 'Kolam Seleksi Nisai', description: 'Pemilahan koi calon juara show kelas 65-80 cm.', tag: 'Seleksi' },
-            { id: 'g2-3', url: 'https://images.unsplash.com/photo-1582234372722-50d7ccc30ebd?w=800&auto=format&fit=crop', title: 'Showroom Dainichi & Sakai', description: 'Etalase bloodline impor langsung dari breeder terkemuka Jepang.', tag: 'Showroom' },
-            { id: 'g2-4', url: 'https://images.unsplash.com/photo-1508873696983-2df5293cb395?w=800&auto=format&fit=crop', title: 'Laboratorium Kualitas Air', description: 'Pemeriksaan rutin pH, TDS, dan mikrobiologi kolam.', tag: 'Laboratorium' },
-        ]
-    },
-    {
-        id: 'store-3',
-        name: 'Nusantara Koi Center',
-        slug: 'nusantara-koi-center',
-        city: 'Bandung, Jawa Barat',
-        rating: 4.9,
-        reviewsCount: 210,
-        isVerified: true,
-        description: 'Pusat pembesaran dan salon ikan koi juara berhawa sejuk Lembang. Melayani konsultasi filtrasi kolam.',
-        speciality: 'Jumbo Size & Mudpond',
-        totalKoi: 24,
-        image: 'https://images.unsplash.com/photo-1582234372722-50d7ccc30ebd?w=200&auto=format&fit=crop',
-        bannerImage: 'https://images.unsplash.com/photo-1582234372722-50d7ccc30ebd?w=1200&auto=format&fit=crop',
-        address: 'Jl. Kolonel Masturi No. 128, Lembang, Bandung Barat, Jawa Barat',
-        phone: '+62 811-6666-3003',
-        establishedYear: 2016,
-        facilities: ['Suhu Sejuk Alami Lembang', 'Kolam Jumbo Size Salon', 'Drum Filter Stainless', 'Karantina Ketat 14 Hari'],
-        gallery: [
-            { id: 'g3-1', url: 'https://images.unsplash.com/photo-1582234372722-50d7ccc30ebd?w=800&auto=format&fit=crop', title: 'Kolam Sejuk Pegunungan Lembang', description: 'Suhu stabil 20-22°C mempercepat pertumbuhan jumbo.', tag: 'Fasilitas' },
-            { id: 'g3-2', url: 'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=800&auto=format&fit=crop', title: 'Salon Perawatan Sisik Koi', description: 'Perawatan shiroji dan sisik berkilau sebelum pengiriman.', tag: 'Salon Koi' },
-            { id: 'g3-3', url: 'https://images.unsplash.com/photo-1576856497337-4f2be24683d2?w=800&auto=format&fit=crop', title: 'Sistem Drum Filter Stainless', description: 'Penyaringan otomatis mekanik tanpa limbah kotoran mengendap.', tag: 'Filtrasi' },
-            { id: 'g3-4', url: 'https://images.unsplash.com/photo-1508873696983-2df5293cb395?w=800&auto=format&fit=crop', title: 'Kolam Pembesaran Jumbo 80 cm+', description: 'Spesialis pembesaran koi berbadan tebal (fukurin mantap).', tag: 'Kolam Jumbo' },
-        ]
-    },
-    {
-        id: 'store-4',
-        name: 'Blitar Champion Koi Farm',
-        slug: 'blitar-champion-koi',
-        city: 'Blitar, Jawa Timur',
-        rating: 4.9,
-        reviewsCount: 185,
-        isVerified: true,
-        description: 'Farm pembibitan Kohaku & Showa super bersertifikasi Asosiasi Pencinta Koi Indonesia (APKI).',
-        speciality: 'Kohaku & Showa APKI',
-        totalKoi: 29,
-        image: 'https://images.unsplash.com/photo-1508873696983-2df5293cb395?w=200&auto=format&fit=crop',
-        bannerImage: 'https://images.unsplash.com/photo-1508873696983-2df5293cb395?w=1200&auto=format&fit=crop',
-        address: 'Jl. Kenari No. 42, Sananwetan, Kota Blitar, Jawa Timur',
-        phone: '+62 812-5555-4004',
-        establishedYear: 2014,
-        facilities: ['Breeder APKI Juara', 'Pakan Khusus Spirulina', 'Kolam Tanah Vulkanik', 'Garansi DOA 100%'],
-        gallery: [
-            { id: 'g4-1', url: 'https://images.unsplash.com/photo-1508873696983-2df5293cb395?w=800&auto=format&fit=crop', title: 'Kompleks Pembibitan APKI', description: 'Pusat breeding Kohaku dan Showa bergaransi genetik murni.', tag: 'Breeding' },
-            { id: 'g4-2', url: 'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=800&auto=format&fit=crop', title: 'Indukan Kohaku Grand Champion', description: 'Pola Maruten istimewa dengan keturunan berbadan torpedo.', tag: 'Indukan' },
-            { id: 'g4-3', url: 'https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?w=800&auto=format&fit=crop', title: 'Kolam Aklimatisasi Air Baru', description: 'Penyesuaian parameter air bertahap sebelum kargo.', tag: 'Karantina' },
-            { id: 'g4-4', url: 'https://images.unsplash.com/photo-1582234372722-50d7ccc30ebd?w=800&auto=format&fit=crop', title: 'Area Pakan Formula Tinggi Protein', description: 'Pakan wheatgerm dan probiotik untuk imunitas optimal.', tag: 'Nutrisi' },
-        ]
-    },
-    {
-        id: 'store-5',
-        name: 'Samurai Nishikigoi Surabaya',
-        slug: 'samurai-nishikigoi',
-        city: 'Surabaya, Jawa Timur',
-        rating: 4.8,
-        reviewsCount: 98,
-        isVerified: true,
-        description: 'Agen lelang resmi dan showroom koi import Gosanke (Kohaku, Sanke, Showa) sertifikat ZNA.',
-        speciality: 'Lelang & Gosanke Show',
-        totalKoi: 16,
-        image: 'https://images.unsplash.com/photo-1516683037151-9a17603a8dc7?w=200&auto=format&fit=crop',
-        bannerImage: 'https://images.unsplash.com/photo-1516683037151-9a17603a8dc7?w=1200&auto=format&fit=crop',
-        address: 'Jl. Raya Darmo Permai III Blok B No. 8, Sambikerep, Surabaya, Jawa Timur',
-        phone: '+62 813-4444-5005',
-        establishedYear: 2017,
-        facilities: ['Showroom AC 500m²', 'Arena Lelang Koi Live', 'Dekat Bandara Juanda', 'VIP Collector Lounge'],
-        gallery: [
-            { id: 'g5-1', url: 'https://images.unsplash.com/photo-1516683037151-9a17603a8dc7?w=800&auto=format&fit=crop', title: 'Showroom Megah Surabaya Barat', description: 'Fasilitas showroom indoor modern lengkap dengan lampu full spectrum.', tag: 'Showroom' },
-            { id: 'g5-2', url: 'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=800&auto=format&fit=crop', title: 'Studio Lelang Live KoiMart', description: 'Tempat penyelenggaraan lelang online & offline bersertifikat ZNA.', tag: 'Lelang' },
-            { id: 'g5-3', url: 'https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?w=800&auto=format&fit=crop', title: 'Bak Fiber Kaca Display', description: 'Memudahkan kolektor memeriksa integritas sirip dan gerakan renang.', tag: 'Display' },
-            { id: 'g5-4', url: 'https://images.unsplash.com/photo-1576856497337-4f2be24683d2?w=800&auto=format&fit=crop', title: 'VIP Lounge Koi Mania', description: 'Ruang diskusi dan konsultasi desain kolam bersama arsitek.', tag: 'Lounge' },
-        ]
-    },
-    {
-        id: 'store-6',
-        name: 'Jogja Heritage Koi Gallery',
-        slug: 'jogja-heritage-koi',
-        city: 'Yogyakarta',
-        rating: 4.7,
-        reviewsCount: 112,
-        isVerified: true,
-        description: 'Galeri koi varietas eksotis langka: Tancho, Goshiki, Kujaku, Asagi, Shusui kelas kolektor.',
-        speciality: 'Tancho & Varietas Unik',
-        totalKoi: 14,
-        image: 'https://images.unsplash.com/photo-1576856497337-4f2be24683d2?w=200&auto=format&fit=crop',
-        bannerImage: 'https://images.unsplash.com/photo-1576856497337-4f2be24683d2?w=1200&auto=format&fit=crop',
-        address: 'Jl. Kaliurang KM 12.5, Ngaglik, Sleman, D.I. Yogyakarta',
-        phone: '+62 812-3333-6006',
-        establishedYear: 2018,
-        facilities: ['Zen Garden & Nuansa Jawa', 'Galeri Varietas Langka', 'Edukasi Koi Pemula', 'Air Bersih Gunung Merapi'],
-        gallery: [
-            { id: 'g6-1', url: 'https://images.unsplash.com/photo-1576856497337-4f2be24683d2?w=800&auto=format&fit=crop', title: 'Taman Kolam Zen Tradisional', description: 'Kombinasi estetika taman batu Jepang dan bebatuan candi Merapi.', tag: 'Zen Garden' },
-            { id: 'g6-2', url: 'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=800&auto=format&fit=crop', title: 'Galeri Varietas Eksotis Tancho', description: 'Koleksi Tancho Kohaku, Tancho Sanke, dan Tancho Goshiki langka.', tag: 'Varietas' },
-            { id: 'g6-3', url: 'https://images.unsplash.com/photo-1508873696983-2df5293cb395?w=800&auto=format&fit=crop', title: 'Kolam Alami Air Gunung Merapi', description: 'Kaya mineral alami membuat pigmen warna ikan berkembang tajam.', tag: 'Mata Air' },
-            { id: 'g6-4', url: 'https://images.unsplash.com/photo-1524704654690-b56c05c78a00?w=800&auto=format&fit=crop', title: 'Workshop Pemula Koi Mania', description: 'Sesi rutin panduan filtrasi kolam dan penanganan ikan sakit.', tag: 'Workshop' },
-        ]
-    },
-    {
-        id: 'store-7',
-        name: 'Sakura Koi Farm Sukabumi',
-        slug: 'sakura-koi-sukabumi',
-        city: 'Sukabumi, Jawa Barat',
-        rating: 4.8,
-        reviewsCount: 130,
-        isVerified: true,
-        description: 'Farm pembesaran air pegunungan alami Gunung Gede. Karakter warna beni dan sumi sangat pekat.',
-        speciality: 'Air Alami Pegunungan',
-        totalKoi: 22,
-        image: 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=200&auto=format&fit=crop',
-        bannerImage: 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=1200&auto=format&fit=crop',
-        address: 'Jl. Selabintana KM 7, Sukabumi, Jawa Barat',
-        phone: '+62 812-2222-7007',
-        establishedYear: 2013,
-        facilities: ['Air Alami Gunung Gede', 'Mudpond Bebas Polusi', 'Pigmentasi Pekat', 'Kargo Cepat Jabodetabek'],
-        gallery: [
-            { id: 'g7-1', url: 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=800&auto=format&fit=crop', title: 'Mudpond Lembah Gunung Gede', description: 'Air jernih dingin langsung dari mata air pegunungan Sukabumi.', tag: 'Mudpond' },
-            { id: 'g7-2', url: 'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=800&auto=format&fit=crop', title: 'Pemberian Pakan Warna Alami', description: 'Pakan dengan peningkat warna alami dan suplemen spirulina.', tag: 'Pakan' },
-            { id: 'g7-3', url: 'https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?w=800&auto=format&fit=crop', title: 'Koleksi Goshiki & Sanke', description: 'Corak warna sumi tebal dan beni pekat tahan pudar.', tag: 'Koleksi' },
-            { id: 'g7-4', url: 'https://images.unsplash.com/photo-1508873696983-2df5293cb395?w=800&auto=format&fit=crop', title: 'Area Karantina Steril UV', description: 'Air disterilkan dengan lampu UV 110W pencegah parasit air.', tag: 'Karantina' },
-        ]
-    },
-    {
-        id: 'store-8',
-        name: 'Borneo Nishikigoi Center',
-        slug: 'borneo-nishikigoi',
-        city: 'Balikpapan, Kaltim',
-        rating: 4.8,
-        reviewsCount: 76,
-        isVerified: true,
-        description: 'Pusat karantina dan distribusi koi berkualitas untuk wilayah IKN dan seluruh Kalimantan.',
-        speciality: 'Karantina Kargo Kalimantan',
-        totalKoi: 15,
-        image: 'https://images.unsplash.com/photo-1576806021995-9f68eb39f1ac?w=200&auto=format&fit=crop',
-        bannerImage: 'https://images.unsplash.com/photo-1576806021995-9f68eb39f1ac?w=1200&auto=format&fit=crop',
-        address: 'Jl. Syarifuddin Yoes No. 99, Balikpapan Selatan, Kalimantan Timur',
-        phone: '+62 813-1111-8008',
-        establishedYear: 2019,
-        facilities: ['Hub Karantina IKN Nusantara', 'Garansi Lintas Pulau', 'Konsultasi Kolam Tropis', 'Armada Pengantaran Cepat'],
-        gallery: [
-            { id: 'g8-1', url: 'https://images.unsplash.com/photo-1576806021995-9f68eb39f1ac?w=800&auto=format&fit=crop', title: 'Fasilitas Hub Karantina IKN', description: 'Pusat karantina resmi terakreditasi balai karantina hewani.', tag: 'Karantina' },
-            { id: 'g8-2', url: 'https://images.unsplash.com/photo-1516683037151-9a17603a8dc7?w=800&auto=format&fit=crop', title: 'Koleksi Shiro Utsuri Omosako', description: 'Spesialis varietas hitam putih kontras tinggi tahan iklim tropis.', tag: 'Koleksi' },
-            { id: 'g8-3', url: 'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=800&auto=format&fit=crop', title: 'Sistem Oksigenasi Bertekanan', description: 'Tabung oksigen medis murni untuk kargo antar pulau aman.', tag: 'Packing' },
-            { id: 'g8-4', url: 'https://images.unsplash.com/photo-1582234372722-50d7ccc30ebd?w=800&auto=format&fit=crop', title: 'Kolam Display Outdoor Tertutup', description: 'Atap polycarbonat pelindung sinar UV terik Kalimantan.', tag: 'Display' },
-        ]
-    },
-    {
-        id: 'store-9',
-        name: 'Bali Paradise Koi & Garden',
-        slug: 'bali-paradise-koi',
-        city: 'Denpasar, Bali',
-        rating: 4.9,
-        reviewsCount: 92,
-        isVerified: true,
-        description: 'Showroom koi resort premium & landscape kolam koi Jepang-Bali dengan garansi karantina ketat.',
-        speciality: 'Resort Grade & Tancho',
-        totalKoi: 12,
-        image: 'https://images.unsplash.com/photo-1615141982883-c7ad0e69fd62?w=200&auto=format&fit=crop',
-        bannerImage: 'https://images.unsplash.com/photo-1615141982883-c7ad0e69fd62?w=1200&auto=format&fit=crop',
-        address: 'Jl. Bypass Ngurah Rai No. 210, Sanur Kauh, Denpasar Selatan, Bali',
-        phone: '+62 819-9999-9009',
-        establishedYear: 2015,
-        facilities: ['Landscape Design Villa', 'Karantina Air Garam Bali', 'Resort Grade Selection', 'Pengiriman Cepat Antar Pulau'],
-        gallery: [
-            { id: 'g9-1', url: 'https://images.unsplash.com/photo-1615141982883-c7ad0e69fd62?w=800&auto=format&fit=crop', title: 'Showroom Nuansa Resort Tropis', description: 'Kolam taman resort bernuansa Sanur dengan tanaman eksotis.', tag: 'Resort' },
-            { id: 'g9-2', url: 'https://images.unsplash.com/photo-1576856497337-4f2be24683d2?w=800&auto=format&fit=crop', title: 'Kolam Kaca Bawah Air Bening', description: 'Kolam view kaca tembus pandang untuk koleksi villa mewah.', tag: 'Kolam Kaca' },
-            { id: 'g9-3', url: 'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=800&auto=format&fit=crop', title: 'Koleksi Kujaku & Tancho Resort', description: 'Ikan koi berkilau metalik perak keemasan sangat disukai ekspatriat.', tag: 'Koleksi' },
-            { id: 'g9-4', url: 'https://images.unsplash.com/photo-1508873696983-2df5293cb395?w=800&auto=format&fit=crop', title: 'Aklimatisasi Khusus Air Tropis', description: 'Adaptasi suhu air pantai Bali terbukti aman dan bebas jamur.', tag: 'Karantina' },
-        ]
-    },
-    {
-        id: 'store-10',
-        name: 'Sumatra Nishikigoi Farm',
-        slug: 'sumatra-nishikigoi',
-        city: 'Medan, Sumatera Utara',
-        rating: 4.7,
-        reviewsCount: 84,
-        isVerified: true,
-        description: 'Distributor resmi filtrasi drum filter modern dan koi impor Niigata pilihan di pulau Sumatera.',
-        speciality: 'Niigata Direct & Drum Filter',
-        totalKoi: 17,
-        image: 'https://images.unsplash.com/photo-1524704654690-b56c05c78a00?w=200&auto=format&fit=crop',
-        bannerImage: 'https://images.unsplash.com/photo-1524704654690-b56c05c78a00?w=1200&auto=format&fit=crop',
-        address: 'Jl. Gagak Hitam (Ringroad) No. 77, Medan Sunggal, Kota Medan, Sumatera Utara',
-        phone: '+62 811-8888-0010',
-        establishedYear: 2016,
-        facilities: ['Distributor Drum Filter Otomatis', 'Karantina Dekat Kualanamu', 'Pakan Impor Hikari & JPD', 'Garansi Kematian 100%'],
-        gallery: [
-            { id: 'g10-1', url: 'https://images.unsplash.com/photo-1524704654690-b56c05c78a00?w=800&auto=format&fit=crop', title: 'Pusat Distribusi Koi Niigata', description: 'Gudang transit dan aklimatisasi koi Niigata pulau Sumatera.', tag: 'Distribusi' },
-            { id: 'g10-2', url: 'https://images.unsplash.com/photo-1508873696983-2df5293cb395?w=800&auto=format&fit=crop', title: 'Perakitan Drum Filter Otomatis', description: 'Pabrikasi unit drum filter stainless bergaransi motor penggerak 2 tahun.', tag: 'Workshop' },
-            { id: 'g10-3', url: 'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=800&auto=format&fit=crop', title: 'Indukan Asagi & Goshiki', description: 'Karakter sisik jaring biru pekat dengan sirip dada merah cerah.', tag: 'Indukan' },
-            { id: 'g10-4', url: 'https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?w=800&auto=format&fit=crop', title: 'Karantina Bandara Kualanamu', description: 'Dekat akses kargo bandara, pengiriman hanya 2 jam dari packing.', tag: 'Kargo' },
-        ]
-    },
-];
+export const OFFICIAL_KOI_GALLERY: StoreInfo = {
+    id: 'koki-official',
+    name: 'Koki Nishikigoi Official Gallery',
+    slug: 'koki-nishikigoi-gallery',
+    city: 'Blitar & Jakarta',
+    rating: 5.0,
+    reviewsCount: 480,
+    isVerified: true,
+    dealerType: 'import',
+    verifiedBadge: 'Official Private Breeder & Importer (ZNA & APKI Certified)',
+    description: 'Galeri pribadi & farm resmi spesialis Nishikigoi Show Quality terpilih dari Niigata, Sakai, Dainichi, dan seleksi mudpond terbaik.',
+    speciality: 'Show Quality, Bloodline Jepang & Indukan Juara',
+    totalKoi: 40,
+    image: '/images/koi/kohaku.jpg',
+    bannerImage: '/images/koi/koi_pond_group.jpg',
+    address: 'Jl. Nishikigoi Sanctuary No. 88, Blitar & Gallery Showroom Jakarta',
+    phone: '+62 812-8888-1001',
+    establishedYear: 2015,
+    facilities: ['Mudpond Alami 3 Hektar', 'Karantina Standar KKP & ZNA', 'Tabung Oksigen Medis Khusus', 'Sertifikat Bloodline Asli'],
+    gallery: [
+        { id: 'g1', url: '/images/koi/koi_pond_group.jpg', title: 'Main Showroom & Pond', description: 'Kolam display kaca 30 ton dengan filtrasi biologis bertingkat.', tag: 'Showroom' },
+        { id: 'g2', url: '/images/koi/ritsurin_koi_1.jpg', title: 'Japanese Garden Sanctuary', description: 'Lingkungan alami air pegunungan untuk menjaga kejernihan warna dan pertumbuhan fukurin.', tag: 'Sanctuary' },
+        { id: 'g3', url: '/images/koi/kohaku_pond.jpg', title: 'Bak Seleksi Show Grade', description: 'Seleksi ketat proporsi tubuh (body conformation) dan kualitas kiwa.', tag: 'Seleksi' },
+        { id: 'g4', url: '/images/koi/ritsurin_koi_3.jpg', title: 'Fasilitas Karantina Beroksigen', description: 'Karantina 14 hari dengan pemantauan salinitas dan mikroskopis.', tag: 'Karantina' },
+    ]
+};
+
+export const INITIAL_STORES: StoreInfo[] = [OFFICIAL_KOI_GALLERY];
 
 const INITIAL_PRODUCTS = [
     {
@@ -360,11 +145,11 @@ const INITIAL_PRODUCTS = [
         age: 'Nisai',
         gender: 'Female',
         price: 12500000,
-        city: 'Jakarta Pusat',
-        store: 'Toko Koi Sejahtera',
-        sellerUserId: 10,
-        storeRating: 4.8,
-        storeReviews: 145,
+        city: 'Blitar & Jakarta',
+        store: 'Koki Nishikigoi Official Gallery',
+        sellerUserId: 1,
+        storeRating: 5.0,
+        storeReviews: 480,
         rating: 4.8,
         reviewsCount: 16,
         isPremium: true,
@@ -372,8 +157,9 @@ const INITIAL_PRODUCTS = [
         year: 2023,
         description: 'Kohaku show grade pola dua step tajam merata, shiroji seputih salju, sertifikat karantina resmi.',
         images: [
-            'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=800&auto=format&fit=crop',
-            'https://images.unsplash.com/photo-1582234372722-50d7ccc30ebd?w=800&auto=format&fit=crop',
+            '/images/koi/kohaku.jpg',
+            '/images/koi/kohaku_pond.jpg',
+            '/images/koi/kohaku_classic.jpg'
         ]
     },
     {
@@ -384,11 +170,11 @@ const INITIAL_PRODUCTS = [
         age: 'Nisai',
         gender: 'Male',
         price: 13500000,
-        city: 'Blitar, Jawa Timur',
-        store: 'Daisuke Nishikigoi Farm',
-        sellerUserId: 11,
-        storeRating: 4.9,
-        storeReviews: 320,
+        city: 'Blitar & Jakarta',
+        store: 'Koki Nishikigoi Official Gallery',
+        sellerUserId: 1,
+        storeRating: 5.0,
+        storeReviews: 480,
         rating: 4.9,
         reviewsCount: 24,
         isPremium: true,
@@ -396,8 +182,9 @@ const INITIAL_PRODUCTS = [
         year: 2024,
         description: 'Showa Sanshoku dengan pola sumi tajam dan motoguro kuat di sirip dada. Siap rawat untuk grand champion.',
         images: [
-            'https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?w=800&auto=format&fit=crop',
-            'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=800&auto=format&fit=crop'
+            '/images/koi/showa.jpg',
+            '/images/koi/ritsurin_koi_1.jpg',
+            '/images/koi/ritsurin_koi_8.jpg'
         ]
     },
     {
@@ -408,11 +195,11 @@ const INITIAL_PRODUCTS = [
         age: 'Nisai',
         gender: 'Female',
         price: 11000000,
-        city: 'Bandung, Jawa Barat',
-        store: 'Nusantara Koi Center',
-        sellerUserId: 12,
-        storeRating: 4.9,
-        storeReviews: 210,
+        city: 'Blitar & Jakarta',
+        store: 'Koki Nishikigoi Official Gallery',
+        sellerUserId: 1,
+        storeRating: 5.0,
+        storeReviews: 480,
         rating: 4.9,
         reviewsCount: 19,
         isPremium: true,
@@ -420,7 +207,9 @@ const INITIAL_PRODUCTS = [
         year: 2023,
         description: 'Sanke 3 warna seimbang dengan dasar shiroji mulus seperti marmer. Potensi pertumbuhan sangat pesat.',
         images: [
-            'https://images.unsplash.com/photo-1582234372722-50d7ccc30ebd?w=800&auto=format&fit=crop'
+            '/images/koi/sanke.jpg',
+            '/images/koi/ritsurin_koi_2.jpg',
+            '/images/koi/ritsurin_koi_9.jpg'
         ]
     },
     {
@@ -431,11 +220,11 @@ const INITIAL_PRODUCTS = [
         age: 'Nisai',
         gender: 'Female',
         price: 8500000,
-        city: 'Blitar, Jawa Timur',
-        store: 'Blitar Champion Koi Farm',
-        sellerUserId: 13,
-        storeRating: 4.9,
-        storeReviews: 185,
+        city: 'Blitar & Jakarta',
+        store: 'Koki Nishikigoi Official Gallery',
+        sellerUserId: 1,
+        storeRating: 5.0,
+        storeReviews: 480,
         rating: 4.9,
         reviewsCount: 22,
         isPremium: false,
@@ -443,7 +232,9 @@ const INITIAL_PRODUCTS = [
         year: 2024,
         description: 'Kohaku pola maruten merah mahkota bulat sempurna di kepala, tubuh bersih mulus sertifikat APKI.',
         images: [
-            'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=800&auto=format&fit=crop'
+            '/images/koi/kohaku.jpg',
+            '/images/koi/kohaku_pond.jpg',
+            '/images/koi/kohaku_classic.jpg'
         ]
     },
     {
@@ -454,11 +245,11 @@ const INITIAL_PRODUCTS = [
         age: 'Sansai',
         gender: 'Male',
         price: 15000000,
-        city: 'Surabaya, Jawa Timur',
-        store: 'Samurai Nishikigoi Surabaya',
-        sellerUserId: 14,
-        storeRating: 4.8,
-        storeReviews: 98,
+        city: 'Blitar & Jakarta',
+        store: 'Koki Nishikigoi Official Gallery',
+        sellerUserId: 1,
+        storeRating: 5.0,
+        storeReviews: 480,
         rating: 4.8,
         reviewsCount: 14,
         isPremium: true,
@@ -466,7 +257,9 @@ const INITIAL_PRODUCTS = [
         year: 2023,
         description: 'Postur tubuh jumbo torpedo tegap dengan menware petir hitam pekat menyilang kepala.',
         images: [
-            'https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?w=800&auto=format&fit=crop'
+            '/images/koi/showa.jpg',
+            '/images/koi/ritsurin_koi_1.jpg',
+            '/images/koi/ritsurin_koi_8.jpg'
         ]
     },
     {
@@ -477,11 +270,11 @@ const INITIAL_PRODUCTS = [
         age: 'Nisai',
         gender: 'Female',
         price: 9000000,
-        city: 'Yogyakarta',
-        store: 'Jogja Heritage Koi Gallery',
-        sellerUserId: 15,
-        storeRating: 4.7,
-        storeReviews: 112,
+        city: 'Blitar & Jakarta',
+        store: 'Koki Nishikigoi Official Gallery',
+        sellerUserId: 1,
+        storeRating: 5.0,
+        storeReviews: 480,
         rating: 4.7,
         reviewsCount: 17,
         isPremium: false,
@@ -489,7 +282,8 @@ const INITIAL_PRODUCTS = [
         year: 2023,
         description: 'Simbol hoki keberuntungan Jepang: lingkaran merah crimson bulat presisi di dahi tanpa noda sisik.',
         images: [
-            'https://images.unsplash.com/photo-1576856497337-4f2be24683d2?w=800&auto=format&fit=crop'
+            '/images/koi/kohaku_pond.jpg',
+            '/images/koi/kohaku.jpg'
         ]
     },
     {
@@ -500,11 +294,11 @@ const INITIAL_PRODUCTS = [
         age: 'Nisai',
         gender: 'Female',
         price: 9500000,
-        city: 'Sukabumi, Jawa Barat',
-        store: 'Sakura Koi Farm Sukabumi',
-        sellerUserId: 16,
-        storeRating: 4.8,
-        storeReviews: 130,
+        city: 'Blitar & Jakarta',
+        store: 'Koki Nishikigoi Official Gallery',
+        sellerUserId: 1,
+        storeRating: 5.0,
+        storeReviews: 480,
         rating: 4.8,
         reviewsCount: 18,
         isPremium: false,
@@ -512,7 +306,8 @@ const INITIAL_PRODUCTS = [
         year: 2024,
         description: 'Goshiki 5 warna dramatis dengan jaring sisik kebiruan khas air pegunungan Sukabumi yang segar.',
         images: [
-            'https://images.unsplash.com/photo-1508873696983-2df5293cb395?w=800&auto=format&fit=crop'
+            '/images/koi/ritsurin_koi_6.jpg',
+            '/images/koi/aka_muji.jpg'
         ]
     },
     {
@@ -523,11 +318,11 @@ const INITIAL_PRODUCTS = [
         age: 'Nisai',
         gender: 'Female',
         price: 10500000,
-        city: 'Balikpapan, Kaltim',
-        store: 'Borneo Nishikigoi Center',
-        sellerUserId: 17,
-        storeRating: 4.8,
-        storeReviews: 76,
+        city: 'Blitar & Jakarta',
+        store: 'Koki Nishikigoi Official Gallery',
+        sellerUserId: 1,
+        storeRating: 5.0,
+        storeReviews: 480,
         rating: 4.8,
         reviewsCount: 11,
         isPremium: true,
@@ -535,7 +330,8 @@ const INITIAL_PRODUCTS = [
         year: 2023,
         description: 'Monokrom hitam obsidian di atas shiroji putih bersih karya maestro Omosako, adaptasi prima di Kalimantan.',
         images: [
-            'https://images.unsplash.com/photo-1516683037151-9a17603a8dc7?w=800&auto=format&fit=crop'
+            '/images/koi/ritsurin_koi_7.jpg',
+            '/images/koi/platina_white.jpg'
         ]
     },
     {
@@ -546,11 +342,11 @@ const INITIAL_PRODUCTS = [
         age: 'Nisai',
         gender: 'Male',
         price: 7800000,
-        city: 'Denpasar, Bali',
-        store: 'Bali Paradise Koi & Garden',
-        sellerUserId: 18,
-        storeRating: 4.9,
-        storeReviews: 92,
+        city: 'Blitar & Jakarta',
+        store: 'Koki Nishikigoi Official Gallery',
+        sellerUserId: 1,
+        storeRating: 5.0,
+        storeReviews: 480,
         rating: 4.9,
         reviewsCount: 15,
         isPremium: false,
@@ -558,7 +354,8 @@ const INITIAL_PRODUCTS = [
         year: 2024,
         description: 'Sisik kemilau metalik perak dan oranye keemasan menyala, sangat menawan di kolam resort kaca.',
         images: [
-            'https://images.unsplash.com/photo-1576856497337-4f2be24683d2?w=800&auto=format&fit=crop'
+            '/images/koi/kujaku_gold.jpg',
+            '/images/koi/ritsurin_koi_3.jpg'
         ]
     },
     {
@@ -569,11 +366,11 @@ const INITIAL_PRODUCTS = [
         age: 'Nisai',
         gender: 'Female',
         price: 8900000,
-        city: 'Medan, Sumatera Utara',
-        store: 'Sumatra Nishikigoi Farm',
-        sellerUserId: 19,
-        storeRating: 4.7,
-        storeReviews: 84,
+        city: 'Blitar & Jakarta',
+        store: 'Koki Nishikigoi Official Gallery',
+        sellerUserId: 1,
+        storeRating: 5.0,
+        storeReviews: 480,
         rating: 4.7,
         reviewsCount: 13,
         isPremium: false,
@@ -581,7 +378,8 @@ const INITIAL_PRODUCTS = [
         year: 2023,
         description: 'Asagi jaring sisik biru indigo teratur dengan rona merah menyala di pipi dan pangkal sirip dada.',
         images: [
-            'https://images.unsplash.com/photo-1524704654690-b56c05c78a00?w=800&auto=format&fit=crop'
+            '/images/koi/ritsurin_koi_3.jpg',
+            '/images/koi/ritsurin_koi_5.jpg'
         ]
     },
     // Toko Koi Sejahtera
@@ -593,18 +391,22 @@ const INITIAL_PRODUCTS = [
         age: 'Nisai',
         gender: 'Male',
         price: 15000000,
-        city: 'Jakarta Pusat',
-        store: 'Toko Koi Sejahtera',
-        sellerUserId: 10,
-        storeRating: 4.8,
-        storeReviews: 145,
+        city: 'Blitar & Jakarta',
+        store: 'Koki Nishikigoi Official Gallery',
+        sellerUserId: 1,
+        storeRating: 5.0,
+        storeReviews: 480,
         rating: 4.8,
         reviewsCount: 15,
         isPremium: true,
         origin: 'Dainichi Koi Farm',
         year: 2024,
         description: 'Showa dengan tanda bulat merah di dahi dan sumi pekat menyerupai kilat di atas shiroji bersih.',
-        images: ['https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?w=800&auto=format&fit=crop']
+        images: [
+            '/images/koi/showa.jpg',
+            '/images/koi/ritsurin_koi_1.jpg',
+            '/images/koi/ritsurin_koi_8.jpg'
+        ]
     },
     {
         id: 'prod-12',
@@ -614,18 +416,21 @@ const INITIAL_PRODUCTS = [
         age: 'Nisai',
         gender: 'Female',
         price: 9800000,
-        city: 'Jakarta Pusat',
-        store: 'Toko Koi Sejahtera',
-        sellerUserId: 10,
-        storeRating: 4.8,
-        storeReviews: 145,
+        city: 'Blitar & Jakarta',
+        store: 'Koki Nishikigoi Official Gallery',
+        sellerUserId: 1,
+        storeRating: 5.0,
+        storeReviews: 480,
         rating: 4.9,
         reviewsCount: 18,
         isPremium: false,
         origin: 'Marudo Koi Farm',
         year: 2024,
         description: 'Sisik berkilau permata Ginrin berpadu indah dengan beni merah pekat 2-step (Nidan) istimewa.',
-        images: ['https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=800&auto=format&fit=crop']
+        images: [
+            '/images/koi/platina_white.jpg',
+            '/images/koi/kohaku.jpg'
+        ]
     },
     {
         id: 'prod-13',
@@ -635,18 +440,21 @@ const INITIAL_PRODUCTS = [
         age: 'Nisai',
         gender: 'Female',
         price: 8500000,
-        city: 'Jakarta Pusat',
-        store: 'Toko Koi Sejahtera',
-        sellerUserId: 10,
-        storeRating: 4.8,
-        storeReviews: 145,
+        city: 'Blitar & Jakarta',
+        store: 'Koki Nishikigoi Official Gallery',
+        sellerUserId: 1,
+        storeRating: 5.0,
+        storeReviews: 480,
         rating: 4.8,
         reviewsCount: 20,
         isPremium: false,
         origin: 'Maruhiro Koi Farm',
         year: 2023,
         description: 'Ikan koi cokelat teh dengan karakter super jinak (hand-tame). Sangat mudah dilatih makan langsung dari tangan.',
-        images: ['https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=800&auto=format&fit=crop']
+        images: [
+            '/images/koi/aka_muji.jpg',
+            '/images/koi/ritsurin_koi_5.jpg'
+        ]
     },
     // Daisuke Nishikigoi Farm
     {
@@ -657,18 +465,22 @@ const INITIAL_PRODUCTS = [
         age: 'Nisai',
         gender: 'Female',
         price: 26000000,
-        city: 'Blitar, Jawa Timur',
-        store: 'Daisuke Nishikigoi Farm',
-        sellerUserId: 11,
-        storeRating: 4.9,
-        storeReviews: 320,
+        city: 'Blitar & Jakarta',
+        store: 'Koki Nishikigoi Official Gallery',
+        sellerUserId: 1,
+        storeRating: 5.0,
+        storeReviews: 480,
         rating: 5.0,
         reviewsCount: 22,
         isPremium: true,
         origin: 'Sakai Fish Farm Hiroshima',
         year: 2023,
         description: 'Bloodline asli Sakai Fish Farm dengan body tebal, kiwa rapi, dan bercak sumi hitam legam mengkilap.',
-        images: ['https://images.unsplash.com/photo-1582234372722-50d7ccc30ebd?w=800&auto=format&fit=crop']
+        images: [
+            '/images/koi/sanke.jpg',
+            '/images/koi/ritsurin_koi_2.jpg',
+            '/images/koi/ritsurin_koi_9.jpg'
+        ]
     },
     {
         id: 'prod-15',
@@ -678,18 +490,21 @@ const INITIAL_PRODUCTS = [
         age: 'Nisai',
         gender: 'Male',
         price: 16500000,
-        city: 'Blitar, Jawa Timur',
-        store: 'Daisuke Nishikigoi Farm',
-        sellerUserId: 11,
-        storeRating: 4.9,
-        storeReviews: 320,
+        city: 'Blitar & Jakarta',
+        store: 'Koki Nishikigoi Official Gallery',
+        sellerUserId: 1,
+        storeRating: 5.0,
+        storeReviews: 480,
         rating: 4.9,
         reviewsCount: 14,
         isPremium: true,
         origin: 'Omosako Koi Farm',
         year: 2024,
         description: 'Kontras dua warna monokrom legendaris Omosako: putih bersih porselen dengan corak hitam arang tajam.',
-        images: ['https://images.unsplash.com/photo-1516683037151-9a17603a8dc7?w=800&auto=format&fit=crop']
+        images: [
+            '/images/koi/ritsurin_koi_7.jpg',
+            '/images/koi/platina_white.jpg'
+        ]
     },
     {
         id: 'prod-16',
@@ -699,18 +514,22 @@ const INITIAL_PRODUCTS = [
         age: 'Nisai',
         gender: 'Female',
         price: 21000000,
-        city: 'Blitar, Jawa Timur',
-        store: 'Daisuke Nishikigoi Farm',
-        sellerUserId: 11,
-        storeRating: 4.9,
-        storeReviews: 320,
+        city: 'Blitar & Jakarta',
+        store: 'Koki Nishikigoi Official Gallery',
+        sellerUserId: 1,
+        storeRating: 5.0,
+        storeReviews: 480,
         rating: 4.9,
         reviewsCount: 19,
         isPremium: true,
         origin: 'Dainichi Koi Farm',
         year: 2023,
         description: 'Bentuk tubuh torpedo sempurna siap bersaing di All Japan Koi Show. Kualitas beni tebal merata.',
-        images: ['https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=800&auto=format&fit=crop']
+        images: [
+            '/images/koi/kohaku.jpg',
+            '/images/koi/kohaku_pond.jpg',
+            '/images/koi/kohaku_classic.jpg'
+        ]
     },
     // Nusantara Koi Center
     {
@@ -721,18 +540,22 @@ const INITIAL_PRODUCTS = [
         age: 'Nisai',
         gender: 'Female',
         price: 18000000,
-        city: 'Bandung, Jawa Barat',
-        store: 'Nusantara Koi Center',
-        sellerUserId: 12,
-        storeRating: 4.9,
-        storeReviews: 210,
+        city: 'Blitar & Jakarta',
+        store: 'Koki Nishikigoi Official Gallery',
+        sellerUserId: 1,
+        storeRating: 5.0,
+        storeReviews: 480,
         rating: 4.8,
         reviewsCount: 17,
         isPremium: true,
         origin: 'Isa Koi Farm',
         year: 2023,
         description: 'Karakter Isa yang kuat dengan sumi menawan di kepala (menware) dan pundak yang kekar.',
-        images: ['https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?w=800&auto=format&fit=crop']
+        images: [
+            '/images/koi/showa.jpg',
+            '/images/koi/ritsurin_koi_1.jpg',
+            '/images/koi/ritsurin_koi_8.jpg'
+        ]
     },
     {
         id: 'prod-18',
@@ -742,18 +565,21 @@ const INITIAL_PRODUCTS = [
         age: 'Tosai',
         gender: 'Male',
         price: 11500000,
-        city: 'Bandung, Jawa Barat',
-        store: 'Nusantara Koi Center',
-        sellerUserId: 12,
-        storeRating: 4.9,
-        storeReviews: 210,
+        city: 'Blitar & Jakarta',
+        store: 'Koki Nishikigoi Official Gallery',
+        sellerUserId: 1,
+        storeRating: 5.0,
+        storeReviews: 480,
         rating: 4.8,
         reviewsCount: 11,
         isPremium: false,
         origin: 'Dainichi Breeder',
         year: 2024,
         description: 'Pancaran sisik Ginrin berkilau seperti mutiara di bawah cahaya matahari kolam luar ruangan.',
-        images: ['https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?w=800&auto=format&fit=crop']
+        images: [
+            '/images/koi/platina_white.jpg',
+            '/images/koi/ritsurin_koi_5.jpg'
+        ]
     },
     {
         id: 'prod-19',
@@ -763,18 +589,21 @@ const INITIAL_PRODUCTS = [
         age: 'Nisai',
         gender: 'Female',
         price: 10200000,
-        city: 'Bandung, Jawa Barat',
-        store: 'Nusantara Koi Center',
-        sellerUserId: 12,
-        storeRating: 4.9,
-        storeReviews: 210,
+        city: 'Blitar & Jakarta',
+        store: 'Koki Nishikigoi Official Gallery',
+        sellerUserId: 1,
+        storeRating: 5.0,
+        storeReviews: 480,
         rating: 4.7,
         reviewsCount: 9,
         isPremium: false,
         origin: 'Aoki Koi Farm',
         year: 2024,
         description: 'Kujaku bersisik metalik dengan corak oranye kemerahan dan jaring sumi platinum rapi.',
-        images: ['https://images.unsplash.com/photo-1576856497337-4f2be24683d2?w=800&auto=format&fit=crop']
+        images: [
+            '/images/koi/kujaku_gold.jpg',
+            '/images/koi/ritsurin_koi_3.jpg'
+        ]
     },
     // Blitar Champion Koi Farm
     {
@@ -785,11 +614,11 @@ const INITIAL_PRODUCTS = [
         age: 'Nisai',
         gender: 'Female',
         price: 33000000,
-        city: 'Blitar, Jawa Timur',
-        store: 'Blitar Champion Koi Farm',
-        sellerUserId: 13,
-        storeRating: 4.8,
-        storeReviews: 120,
+        city: 'Blitar & Jakarta',
+        store: 'Koki Nishikigoi Official Gallery',
+        sellerUserId: 1,
+        storeRating: 5.0,
+        storeReviews: 480,
         rating: 4.8,
         reviewsCount: 1,
         isPremium: true,
@@ -797,8 +626,9 @@ const INITIAL_PRODUCTS = [
         year: 2023,
         description: 'Peringkat #4 Rekor Lelang: Showa berpostur kekar tegap dengan motoguro sirip seimbang.',
         images: [
-            'https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?w=800&auto=format&fit=crop',
-            'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=800&auto=format&fit=crop'
+            '/images/koi/showa.jpg',
+            '/images/koi/ritsurin_koi_1.jpg',
+            '/images/koi/ritsurin_koi_8.jpg'
         ]
     },
     {
@@ -809,18 +639,22 @@ const INITIAL_PRODUCTS = [
         age: 'Nisai',
         gender: 'Female',
         price: 14500000,
-        city: 'Blitar, Jawa Timur',
-        store: 'Blitar Champion Koi Farm',
-        sellerUserId: 13,
-        storeRating: 4.8,
-        storeReviews: 120,
+        city: 'Blitar & Jakarta',
+        store: 'Koki Nishikigoi Official Gallery',
+        sellerUserId: 1,
+        storeRating: 5.0,
+        storeReviews: 480,
         rating: 4.9,
         reviewsCount: 15,
         isPremium: true,
         origin: 'Blitar Champion Bloodline',
         year: 2023,
         description: 'Pola tiga tapak (sandan) sangat proporsional dari kepala, punggung, hingga menjelang pangkal ekor.',
-        images: ['https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=800&auto=format&fit=crop']
+        images: [
+            '/images/koi/kohaku.jpg',
+            '/images/koi/kohaku_pond.jpg',
+            '/images/koi/kohaku_classic.jpg'
+        ]
     },
     {
         id: 'prod-22',
@@ -830,18 +664,22 @@ const INITIAL_PRODUCTS = [
         age: 'Nisai',
         gender: 'Male',
         price: 12800000,
-        city: 'Blitar, Jawa Timur',
-        store: 'Blitar Champion Koi Farm',
-        sellerUserId: 13,
-        storeRating: 4.8,
-        storeReviews: 120,
+        city: 'Blitar & Jakarta',
+        store: 'Koki Nishikigoi Official Gallery',
+        sellerUserId: 1,
+        storeRating: 5.0,
+        storeReviews: 480,
         rating: 4.7,
         reviewsCount: 12,
         isPremium: true,
         origin: 'Jinbei Lineage',
         year: 2024,
         description: 'Garis keturunan Jinbei terkenal dengan corak sumi legam seperti tumpahan tinta kaligrafi Jepang.',
-        images: ['https://images.unsplash.com/photo-1582234372722-50d7ccc30ebd?w=800&auto=format&fit=crop']
+        images: [
+            '/images/koi/sanke.jpg',
+            '/images/koi/ritsurin_koi_2.jpg',
+            '/images/koi/ritsurin_koi_9.jpg'
+        ]
     },
     // Samurai Nishikigoi Surabaya
     {
@@ -852,18 +690,22 @@ const INITIAL_PRODUCTS = [
         age: 'Nisai',
         gender: 'Female',
         price: 28000000,
-        city: 'Surabaya, Jawa Timur',
-        store: 'Samurai Nishikigoi Surabaya',
-        sellerUserId: 14,
-        storeRating: 4.8,
-        storeReviews: 98,
+        city: 'Blitar & Jakarta',
+        store: 'Koki Nishikigoi Official Gallery',
+        sellerUserId: 1,
+        storeRating: 5.0,
+        storeReviews: 480,
         rating: 4.9,
         reviewsCount: 25,
         isPremium: true,
         origin: 'Torazo Koi Farm',
         year: 2023,
         description: 'Body tegap raksasa dengan kualitas beni merah tua mengkilap dan kiwa model kamisori presisi tinggi.',
-        images: ['https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=800&auto=format&fit=crop']
+        images: [
+            '/images/koi/kohaku.jpg',
+            '/images/koi/kohaku_pond.jpg',
+            '/images/koi/kohaku_classic.jpg'
+        ]
     },
     {
         id: 'prod-24',
@@ -873,18 +715,22 @@ const INITIAL_PRODUCTS = [
         age: 'Nisai',
         gender: 'Male',
         price: 13900000,
-        city: 'Surabaya, Jawa Timur',
-        store: 'Samurai Nishikigoi Surabaya',
-        sellerUserId: 14,
-        storeRating: 4.8,
-        storeReviews: 98,
+        city: 'Blitar & Jakarta',
+        store: 'Koki Nishikigoi Official Gallery',
+        sellerUserId: 1,
+        storeRating: 5.0,
+        storeReviews: 480,
         rating: 4.8,
         reviewsCount: 8,
         isPremium: true,
         origin: 'Sekiguchi Koi Farm',
         year: 2024,
         description: 'Varian Showa dengan kilauan mutiara pada sisik lateral dan sumi yang mulai naik solid.',
-        images: ['https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?w=800&auto=format&fit=crop']
+        images: [
+            '/images/koi/showa.jpg',
+            '/images/koi/ritsurin_koi_1.jpg',
+            '/images/koi/ritsurin_koi_8.jpg'
+        ]
     },
     {
         id: 'prod-25',
@@ -894,18 +740,22 @@ const INITIAL_PRODUCTS = [
         age: 'Nisai',
         gender: 'Female',
         price: 17500000,
-        city: 'Surabaya, Jawa Timur',
-        store: 'Samurai Nishikigoi Surabaya',
-        sellerUserId: 14,
-        storeRating: 4.8,
-        storeReviews: 98,
+        city: 'Blitar & Jakarta',
+        store: 'Koki Nishikigoi Official Gallery',
+        sellerUserId: 1,
+        storeRating: 5.0,
+        storeReviews: 480,
         rating: 4.9,
         reviewsCount: 16,
         isPremium: true,
         origin: 'Nogami Koi Farm',
         year: 2023,
         description: 'Karakter shiroji putih bersih dengan susunan pola beni dan tsubo sumi yang sangat teratur.',
-        images: ['https://images.unsplash.com/photo-1582234372722-50d7ccc30ebd?w=800&auto=format&fit=crop']
+        images: [
+            '/images/koi/sanke.jpg',
+            '/images/koi/ritsurin_koi_2.jpg',
+            '/images/koi/ritsurin_koi_9.jpg'
+        ]
     },
     // Jogja Heritage Koi Gallery
     {
@@ -916,18 +766,21 @@ const INITIAL_PRODUCTS = [
         age: 'Nisai',
         gender: 'Female',
         price: 14000000,
-        city: 'Yogyakarta',
-        store: 'Jogja Heritage Koi Gallery',
-        sellerUserId: 15,
-        storeRating: 4.7,
-        storeReviews: 112,
+        city: 'Blitar & Jakarta',
+        store: 'Koki Nishikigoi Official Gallery',
+        sellerUserId: 1,
+        storeRating: 5.0,
+        storeReviews: 480,
         rating: 4.9,
         reviewsCount: 16,
         isPremium: true,
         origin: 'Marudo Koi Farm Niigata',
         year: 2023,
         description: 'Simbol keberuntungan: bulatan merah crimson sempurna di kepala dengan badan putih mulus tanpa noda.',
-        images: ['https://images.unsplash.com/photo-1576856497337-4f2be24683d2?w=800&auto=format&fit=crop']
+        images: [
+            '/images/koi/kohaku_pond.jpg',
+            '/images/koi/kohaku.jpg'
+        ]
     },
     {
         id: 'prod-27',
@@ -937,18 +790,21 @@ const INITIAL_PRODUCTS = [
         age: 'Nisai',
         gender: 'Male',
         price: 15500000,
-        city: 'Yogyakarta',
-        store: 'Jogja Heritage Koi Gallery',
-        sellerUserId: 15,
-        storeRating: 4.7,
-        storeReviews: 112,
+        city: 'Blitar & Jakarta',
+        store: 'Koki Nishikigoi Official Gallery',
+        sellerUserId: 1,
+        storeRating: 5.0,
+        storeReviews: 480,
         rating: 4.8,
         reviewsCount: 10,
         isPremium: true,
         origin: 'Marudo Koi Farm',
         year: 2023,
         description: 'Kombinasi mahkota merah tancho dengan aksen sumi hitam legam di punggung.',
-        images: ['https://images.unsplash.com/photo-1576856497337-4f2be24683d2?w=800&auto=format&fit=crop']
+        images: [
+            '/images/koi/kohaku_pond.jpg',
+            '/images/koi/kohaku.jpg'
+        ]
     },
     {
         id: 'prod-28',
@@ -958,18 +814,21 @@ const INITIAL_PRODUCTS = [
         age: 'Tosai',
         gender: 'Male',
         price: 9500000,
-        city: 'Yogyakarta',
-        store: 'Jogja Heritage Koi Gallery',
-        sellerUserId: 15,
-        storeRating: 4.7,
-        storeReviews: 112,
+        city: 'Blitar & Jakarta',
+        store: 'Koki Nishikigoi Official Gallery',
+        sellerUserId: 1,
+        storeRating: 5.0,
+        storeReviews: 480,
         rating: 4.7,
         reviewsCount: 14,
         isPremium: false,
         origin: 'Kanno Koi Farm',
         year: 2024,
         description: 'Varian Kuro Goshiki dengan bayang hitam pekat menyelimuti punggung dan hi merah tua.',
-        images: ['https://images.unsplash.com/photo-1508873696983-2df5293cb395?w=800&auto=format&fit=crop']
+        images: [
+            '/images/koi/ritsurin_koi_6.jpg',
+            '/images/koi/aka_muji.jpg'
+        ]
     },
     // Sakura Koi Farm Sukabumi
     {
@@ -980,18 +839,21 @@ const INITIAL_PRODUCTS = [
         age: 'Nisai',
         gender: 'Male',
         price: 8800000,
-        city: 'Sukabumi, Jawa Barat',
-        store: 'Sakura Koi Farm Sukabumi',
-        sellerUserId: 16,
-        storeRating: 4.8,
-        storeReviews: 130,
+        city: 'Blitar & Jakarta',
+        store: 'Koki Nishikigoi Official Gallery',
+        sellerUserId: 1,
+        storeRating: 5.0,
+        storeReviews: 480,
         rating: 4.8,
         reviewsCount: 12,
         isPremium: false,
         origin: 'Aoki Koi Farm',
         year: 2024,
         description: 'Sisik Ginrin berkilau seperti intan berlian di bawah sinar matahari dengan corak oranye keemasan.',
-        images: ['https://images.unsplash.com/photo-1576856497337-4f2be24683d2?w=800&auto=format&fit=crop']
+        images: [
+            '/images/koi/kujaku_gold.jpg',
+            '/images/koi/ritsurin_koi_3.jpg'
+        ]
     },
     {
         id: 'prod-30',
@@ -1001,18 +863,22 @@ const INITIAL_PRODUCTS = [
         age: 'Nisai',
         gender: 'Female',
         price: 11200000,
-        city: 'Sukabumi, Jawa Barat',
-        store: 'Sakura Koi Farm Sukabumi',
-        sellerUserId: 16,
-        storeRating: 4.8,
-        storeReviews: 130,
+        city: 'Blitar & Jakarta',
+        store: 'Koki Nishikigoi Official Gallery',
+        sellerUserId: 1,
+        storeRating: 5.0,
+        storeReviews: 480,
         rating: 4.7,
         reviewsCount: 8,
         isPremium: false,
         origin: 'Sukabumi Mountain Spring',
         year: 2023,
         description: 'Dibesarkan di air pegunungan dingin Selabintana sehingga warna beni merah tebal dan sisik kencang.',
-        images: ['https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=800&auto=format&fit=crop']
+        images: [
+            '/images/koi/kohaku.jpg',
+            '/images/koi/kohaku_pond.jpg',
+            '/images/koi/kohaku_classic.jpg'
+        ]
     },
     {
         id: 'prod-31',
@@ -1022,18 +888,21 @@ const INITIAL_PRODUCTS = [
         age: 'Nisai',
         gender: 'Male',
         price: 7900000,
-        city: 'Sukabumi, Jawa Barat',
-        store: 'Sakura Koi Farm Sukabumi',
-        sellerUserId: 16,
-        storeRating: 4.8,
-        storeReviews: 130,
+        city: 'Blitar & Jakarta',
+        store: 'Koki Nishikigoi Official Gallery',
+        sellerUserId: 1,
+        storeRating: 5.0,
+        storeReviews: 480,
         rating: 4.7,
         reviewsCount: 7,
         isPremium: false,
         origin: 'Yamazaki Koi Farm',
         year: 2024,
         description: 'Koi Doitsu dengan jajaran sisik punggung biru langit sejajar dan pipi merah menyala.',
-        images: ['https://images.unsplash.com/photo-1508873696983-2df5293cb395?w=800&auto=format&fit=crop']
+        images: [
+            '/images/koi/ritsurin_koi_6.jpg',
+            '/images/koi/aka_muji.jpg'
+        ]
     },
     // Borneo Nishikigoi Center
     {
@@ -1044,18 +913,21 @@ const INITIAL_PRODUCTS = [
         age: 'Nisai',
         gender: 'Female',
         price: 11500000,
-        city: 'Balikpapan, Kalimantan Timur',
-        store: 'Borneo Nishikigoi Center',
-        sellerUserId: 17,
-        storeRating: 4.7,
-        storeReviews: 65,
+        city: 'Blitar & Jakarta',
+        store: 'Koki Nishikigoi Official Gallery',
+        sellerUserId: 1,
+        storeRating: 5.0,
+        storeReviews: 480,
         rating: 4.8,
         reviewsCount: 11,
         isPremium: false,
         origin: 'Shinoda Koi Farm',
         year: 2023,
         description: 'Hi Utsuri warna merah api menyala berbalut pola sumi pekat menyerupai harimau.',
-        images: ['https://images.unsplash.com/photo-1516683037151-9a17603a8dc7?w=800&auto=format&fit=crop']
+        images: [
+            '/images/koi/ritsurin_koi_7.jpg',
+            '/images/koi/platina_white.jpg'
+        ]
     },
     {
         id: 'prod-33',
@@ -1065,18 +937,21 @@ const INITIAL_PRODUCTS = [
         age: 'Nisai',
         gender: 'Male',
         price: 10500000,
-        city: 'Balikpapan, Kalimantan Timur',
-        store: 'Borneo Nishikigoi Center',
-        sellerUserId: 17,
-        storeRating: 4.7,
-        storeReviews: 65,
+        city: 'Blitar & Jakarta',
+        store: 'Koki Nishikigoi Official Gallery',
+        sellerUserId: 1,
+        storeRating: 5.0,
+        storeReviews: 480,
         rating: 4.7,
         reviewsCount: 6,
         isPremium: false,
         origin: 'Maruhiro Breeder',
         year: 2024,
         description: 'Varietas langka kolektor: warna kuning lemon kontras dengan corak belang hitam arang.',
-        images: ['https://images.unsplash.com/photo-1516683037151-9a17603a8dc7?w=800&auto=format&fit=crop']
+        images: [
+            '/images/koi/ritsurin_koi_7.jpg',
+            '/images/koi/platina_white.jpg'
+        ]
     },
     {
         id: 'prod-34',
@@ -1086,18 +961,22 @@ const INITIAL_PRODUCTS = [
         age: 'Nisai',
         gender: 'Female',
         price: 13000000,
-        city: 'Balikpapan, Kalimantan Timur',
-        store: 'Borneo Nishikigoi Center',
-        sellerUserId: 17,
-        storeRating: 4.7,
-        storeReviews: 65,
+        city: 'Blitar & Jakarta',
+        store: 'Koki Nishikigoi Official Gallery',
+        sellerUserId: 1,
+        storeRating: 5.0,
+        storeReviews: 480,
         rating: 4.8,
         reviewsCount: 14,
         isPremium: true,
         origin: 'Dainichi x Borneo Farm',
         year: 2023,
         description: 'Showa berpostur gagah telah melewati karantina ketat adaptasi suhu tropis Kalimantan.',
-        images: ['https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?w=800&auto=format&fit=crop']
+        images: [
+            '/images/koi/showa.jpg',
+            '/images/koi/ritsurin_koi_1.jpg',
+            '/images/koi/ritsurin_koi_8.jpg'
+        ]
     },
     // Bali Paradise Koi & Garden
     {
@@ -1108,18 +987,21 @@ const INITIAL_PRODUCTS = [
         age: 'Nisai',
         gender: 'Male',
         price: 7800000,
-        city: 'Denpasar, Bali',
-        store: 'Bali Paradise Koi & Garden',
-        sellerUserId: 18,
-        storeRating: 4.9,
-        storeReviews: 180,
+        city: 'Blitar & Jakarta',
+        store: 'Koki Nishikigoi Official Gallery',
+        sellerUserId: 1,
+        storeRating: 5.0,
+        storeReviews: 480,
         rating: 4.8,
         reviewsCount: 10,
         isPremium: false,
         origin: 'Seitaro Koi Farm',
         year: 2024,
         description: 'Koi doitsu (tanpa sisik) legendaris dengan corak awan naga yang dapat bermutasi warna dinamis.',
-        images: ['https://images.unsplash.com/photo-1508873696983-2df5293cb395?w=800&auto=format&fit=crop']
+        images: [
+            '/images/koi/kujaku_gold.jpg',
+            '/images/koi/ritsurin_koi_3.jpg'
+        ]
     },
     {
         id: 'prod-36',
@@ -1129,18 +1011,21 @@ const INITIAL_PRODUCTS = [
         age: 'Nisai',
         gender: 'Female',
         price: 9000000,
-        city: 'Denpasar, Bali',
-        store: 'Bali Paradise Koi & Garden',
-        sellerUserId: 18,
-        storeRating: 4.9,
-        storeReviews: 180,
+        city: 'Blitar & Jakarta',
+        store: 'Koki Nishikigoi Official Gallery',
+        sellerUserId: 1,
+        storeRating: 5.0,
+        storeReviews: 480,
         rating: 4.8,
         reviewsCount: 9,
         isPremium: false,
         origin: 'Hiroi Koi Farm',
         year: 2023,
         description: 'Karakter doitsu mulus seperti kulit sutra dengan kontras tiga warna merah, hitam, dan putih cerah.',
-        images: ['https://images.unsplash.com/photo-1582234372722-50d7ccc30ebd?w=800&auto=format&fit=crop']
+        images: [
+            '/images/koi/platina_white.jpg',
+            '/images/koi/ritsurin_koi_5.jpg'
+        ]
     },
     {
         id: 'prod-37',
@@ -1150,18 +1035,21 @@ const INITIAL_PRODUCTS = [
         age: 'Nisai',
         gender: 'Female',
         price: 8200000,
-        city: 'Denpasar, Bali',
-        store: 'Bali Paradise Koi & Garden',
-        sellerUserId: 18,
-        storeRating: 4.9,
-        storeReviews: 180,
+        city: 'Blitar & Jakarta',
+        store: 'Koki Nishikigoi Official Gallery',
+        sellerUserId: 1,
+        storeRating: 5.0,
+        storeReviews: 480,
         rating: 4.9,
         reviewsCount: 15,
         isPremium: false,
         origin: 'Maruhiro Breeder',
         year: 2024,
         description: 'Chagoi jinak bersisik kilap emas matahari Bali. Pemimpin penenang di dalam kolam.',
-        images: ['https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=800&auto=format&fit=crop']
+        images: [
+            '/images/koi/kujaku_gold.jpg',
+            '/images/koi/ritsurin_koi_3.jpg'
+        ]
     },
     // Sumatra Nishikigoi Farm
     {
@@ -1172,18 +1060,21 @@ const INITIAL_PRODUCTS = [
         age: 'Nisai',
         gender: 'Female',
         price: 9200000,
-        city: 'Medan, Sumatera Utara',
-        store: 'Sumatra Nishikigoi Farm',
-        sellerUserId: 19,
-        storeRating: 4.7,
-        storeReviews: 84,
+        city: 'Blitar & Jakarta',
+        store: 'Koki Nishikigoi Official Gallery',
+        sellerUserId: 1,
+        storeRating: 5.0,
+        storeReviews: 480,
         rating: 4.8,
         reviewsCount: 16,
         isPremium: false,
         origin: 'Izumiya Koi Farm',
         year: 2023,
         description: 'Satu warna kuning emas pekat berkilau menyeluruh dari ujung moncong hingga sirip ekor.',
-        images: ['https://images.unsplash.com/photo-1576856497337-4f2be24683d2?w=800&auto=format&fit=crop']
+        images: [
+            '/images/koi/kujaku_gold.jpg',
+            '/images/koi/ritsurin_koi_3.jpg'
+        ]
     },
     {
         id: 'prod-39',
@@ -1193,18 +1084,22 @@ const INITIAL_PRODUCTS = [
         age: 'Nisai',
         gender: 'Female',
         price: 13200000,
-        city: 'Medan, Sumatera Utara',
-        store: 'Sumatra Nishikigoi Farm',
-        sellerUserId: 19,
-        storeRating: 4.7,
-        storeReviews: 84,
+        city: 'Blitar & Jakarta',
+        store: 'Koki Nishikigoi Official Gallery',
+        sellerUserId: 1,
+        storeRating: 5.0,
+        storeReviews: 480,
         rating: 4.8,
         reviewsCount: 12,
         isPremium: true,
         origin: 'Niigata Direct',
         year: 2023,
         description: 'Kohaku show grade direct landing bandara Kualanamu, body bulat padat bergaransi sehat.',
-        images: ['https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=800&auto=format&fit=crop']
+        images: [
+            '/images/koi/kohaku.jpg',
+            '/images/koi/kohaku_pond.jpg',
+            '/images/koi/kohaku_classic.jpg'
+        ]
     },
     {
         id: 'prod-40',
@@ -1214,35 +1109,38 @@ const INITIAL_PRODUCTS = [
         age: 'Nisai',
         gender: 'Male',
         price: 10800000,
-        city: 'Medan, Sumatera Utara',
-        store: 'Sumatra Nishikigoi Farm',
-        sellerUserId: 19,
-        storeRating: 4.7,
-        storeReviews: 84,
+        city: 'Blitar & Jakarta',
+        store: 'Koki Nishikigoi Official Gallery',
+        sellerUserId: 1,
+        storeRating: 5.0,
+        storeReviews: 480,
         rating: 4.7,
         reviewsCount: 11,
         isPremium: false,
         origin: 'Oofuchi Koi Farm',
         year: 2024,
         description: 'Motif zebra hitam putih simetris dengan sirip dada motoguro menawan.',
-        images: ['https://images.unsplash.com/photo-1516683037151-9a17603a8dc7?w=800&auto=format&fit=crop']
+        images: [
+            '/images/koi/ritsurin_koi_7.jpg',
+            '/images/koi/platina_white.jpg'
+        ]
     }
 ];
 
 const INITIAL_TOP_AUCTIONS = [
-    { id: 2, rank: 1, name: 'Showa Jumbo', size: '85 cm', age: 'Nisai', price: 48500000, status: 'Lelang selesai', isRecord: true, image: 'https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?w=600&auto=format&fit=crop' },
-    { id: 3, rank: 2, name: 'Kohaku Jumbo', size: '88 cm', age: 'Sansai', price: 42000000, status: 'Lelang selesai', image: 'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=600&auto=format&fit=crop' },
-    { id: 4, rank: 3, name: 'Sanke Jumbo', size: '80 cm', age: 'Nisai', price: 37500000, status: 'Lelang selesai', image: 'https://images.unsplash.com/photo-1582234372722-50d7ccc30ebd?w=600&auto=format&fit=crop' },
-    { id: 5, rank: 4, name: 'Showa', size: '75 cm', age: 'Nisai', price: 33000000, status: 'Lelang selesai', image: 'https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?w=600&auto=format&fit=crop' },
-    { id: 6, rank: 5, name: 'Kohaku', size: '72 cm', age: 'Nisai', price: 28000000, status: 'Lelang selesai', image: 'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=600&auto=format&fit=crop' }
+    { id: 2, rank: 1, name: 'Showa Jumbo', size: '85 cm', age: 'Nisai', price: 48500000, startPrice: 35000000, bidIncrement: 500000, dealerName: 'Koki Nishikigoi Official Gallery', dealerPhone: '+62 812-8888-1001', dealerType: 'import' as const, dealerBadge: 'Diler Import Niigata Terverifikasi', status: 'Lelang selesai', isRecord: true, image: '/images/koi/showa.jpg' },
+    { id: 3, rank: 2, name: 'Kohaku Jumbo', size: '88 cm', age: 'Sansai', price: 42000000, startPrice: 30000000, bidIncrement: 500000, dealerName: 'Koki Nishikigoi Official Gallery', dealerPhone: '+62 812-8888-1001', dealerType: 'lokal' as const, dealerBadge: 'Breeder Lokal ZNA Terverifikasi', status: 'Lelang selesai', image: '/images/koi/kohaku.jpg' },
+    { id: 4, rank: 3, name: 'Sanke Jumbo', size: '80 cm', age: 'Nisai', price: 37500000, startPrice: 25000000, bidIncrement: 500000, dealerName: 'Koki Nishikigoi Official Gallery', dealerPhone: '+62 812-8888-1001', dealerType: 'lokal' as const, dealerBadge: 'Breeder Lokal Lembang Terverifikasi', status: 'Lelang selesai', image: '/images/koi/sanke.jpg' },
+    { id: 5, rank: 4, name: 'Showa', size: '75 cm', age: 'Nisai', price: 33000000, startPrice: 22000000, bidIncrement: 500000, dealerName: 'Koki Nishikigoi Official Gallery', dealerPhone: '+62 812-8888-1001', dealerType: 'import' as const, dealerBadge: 'Diler Import Gosanke Terverifikasi', status: 'Lelang selesai', image: '/images/koi/ritsurin_koi_1.jpg' },
+    { id: 6, rank: 5, name: 'Kohaku', size: '72 cm', age: 'Nisai', price: 28000000, startPrice: 18000000, bidIncrement: 500000, dealerName: 'Koki Nishikigoi Official Gallery', dealerPhone: '+62 812-8888-1001', dealerType: 'lokal' as const, dealerBadge: 'Breeder Lokal APKI Terverifikasi', status: 'Lelang selesai', image: '/images/koi/kohaku_pond.jpg' }
 ];
 
 const INITIAL_FAVORITE_AUCTIONS = [
-    { id: 7, rank: 1, name: 'Kohaku Jumbo', size: '75 cm', timeLeft: 'Lelang berakhir 2 hari lagi', price: 25500000, isFavorite: true, image: 'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=600&auto=format&fit=crop' },
-    { id: 8, rank: 2, name: 'Showa', size: '70 cm', timeLeft: 'Lelang berakhir 1 hari lagi', price: 22300000, isFavorite: true, image: 'https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?w=600&auto=format&fit=crop' },
-    { id: 9, rank: 3, name: 'Sanke', size: '68 cm', timeLeft: 'Lelang berakhir 3 hari lagi', price: 19750000, isFavorite: true, image: 'https://images.unsplash.com/photo-1582234372722-50d7ccc30ebd?w=600&auto=format&fit=crop' },
-    { id: 10, rank: 4, name: 'Goshiki', size: '65 cm', timeLeft: 'Lelang berakhir 2 hari lagi', price: 17900000, isFavorite: true, image: 'https://images.unsplash.com/photo-1508873696983-2df5293cb395?w=600&auto=format&fit=crop' },
-    { id: 11, rank: 5, name: 'Utsuri', size: '60 cm', timeLeft: 'Lelang berakhir 4 hari lagi', price: 15600000, isFavorite: true, image: 'https://images.unsplash.com/photo-1516683037151-9a17603a8dc7?w=600&auto=format&fit=crop' }
+    { id: 7, rank: 1, name: 'Kohaku Jumbo', size: '75 cm', startPrice: 18000000, bidIncrement: 500000, dealerName: 'Koki Nishikigoi Official Gallery', dealerPhone: '+62 812-8888-1001', dealerType: 'import' as const, dealerBadge: 'Diler Import Niigata Terverifikasi', timeLeft: 'Lelang berakhir 2 hari lagi', price: 25500000, isFavorite: true, image: '/images/koi/kohaku.jpg' },
+    { id: 8, rank: 2, name: 'Showa', size: '70 cm', startPrice: 16000000, bidIncrement: 500000, dealerName: 'Koki Nishikigoi Official Gallery', dealerPhone: '+62 812-8888-1001', dealerType: 'lokal' as const, dealerBadge: 'Breeder Lokal APKI Terverifikasi', timeLeft: 'Lelang berakhir 1 hari lagi', price: 22000000, isFavorite: true, image: '/images/koi/showa.jpg' },
+    { id: 9, rank: 3, name: 'Sanke', size: '68 cm', startPrice: 14000000, bidIncrement: 500000, dealerName: 'Koki Nishikigoi Official Gallery', dealerPhone: '+62 812-8888-1001', dealerType: 'lokal' as const, dealerBadge: 'Breeder Lokal Lembang Terverifikasi', timeLeft: 'Lelang berakhir 3 hari lagi', price: 19500000, isFavorite: true, image: '/images/koi/sanke.jpg' },
+    { id: 10, rank: 4, name: 'Goshiki', size: '65 cm', startPrice: 12000000, bidIncrement: 500000, dealerName: 'Koki Nishikigoi Official Gallery', dealerPhone: '+62 812-8888-1001', dealerType: 'lokal' as const, dealerBadge: 'Breeder Lokal Sukabumi Terverifikasi', timeLeft: 'Lelang berakhir 2 hari lagi', price: 18000000, isFavorite: true, image: '/images/koi/ritsurin_koi_6.jpg' },
+    { id: 11, rank: 5, name: 'Utsuri', size: '60 cm', startPrice: 10000000, bidIncrement: 500000, dealerName: 'Koki Nishikigoi Official Gallery', dealerPhone: '+62 812-8888-1001', dealerType: 'import' as const, dealerBadge: 'Diler Import Omosako Terverifikasi', timeLeft: 'Lelang berakhir 4 hari lagi', price: 15500000, isFavorite: true, image: '/images/koi/ritsurin_koi_7.jpg' }
 ];
 
 export type ScreenType =
@@ -1313,6 +1211,11 @@ export interface LiveAuctionState {
     size: string;
     age: string;
     gender: string;
+    startPrice?: number; // Open Bid (OB) ditentukan oleh Seller
+    bidIncrement?: number; // Kelipatan Bid (KB) resmi platform: 500.000 / 1.000.000
+    dealerName?: string;
+    dealerPhone?: string;
+    dealerType?: 'import' | 'lokal';
     currentBid: number;
     highestBidder: string;
     image: string;
@@ -1360,6 +1263,273 @@ const buildUserInitialChatThreads = (_userName: string = 'Kolektor'): ChatThread
 
 const INITIAL_CHAT_THREADS: ChatThread[] = [];
 
+// Sample data awal hasil lelang (hanya untuk akun demo)
+const INITIAL_SAMPLE_BIDS: UserBidItem[] = [
+    {
+        id: 2,
+        auctionId: 2,
+        name: 'Showa Jumbo Isa Bloodline 85 cm',
+        size: '85 cm',
+        variety: 'Showa',
+        store: 'Koki Nishikigoi Official Gallery',
+        image: '/images/koi/showa.jpg',
+        currentBid: 49000000,
+        myBid: 49000000,
+        highestBidder: 'dodis saufitro',
+        isLeading: true,
+        status: 'leading',
+        isEnded: false,
+        bidsCount: 29,
+        timeLeft: 'Berakhir 7 hari lagi',
+        updatedAt: '15 menit lalu'
+    },
+    {
+        id: 7,
+        auctionId: 7,
+        name: 'Kohaku Jumbo Favorit Kolektor 75 cm',
+        size: '75 cm',
+        variety: 'Kohaku',
+        store: 'Koki Nishikigoi Official Gallery',
+        image: '/images/koi/kohaku.jpg',
+        currentBid: 26000000,
+        myBid: 26000000,
+        highestBidder: 'dodis saufitro',
+        isLeading: true,
+        status: 'leading',
+        isEnded: false,
+        bidsCount: 20,
+        timeLeft: 'Berakhir 6 hari lagi',
+        updatedAt: 'Baru saja'
+    },
+    {
+        id: 4,
+        auctionId: 4,
+        name: 'Sanke Jumbo Sakai Bloodline 80 cm',
+        size: '80 cm',
+        variety: 'Sanke',
+        store: 'Koki Nishikigoi Official Gallery',
+        image: '/images/koi/sanke.jpg',
+        currentBid: 38000000,
+        myBid: 36500000,
+        highestBidder: 'Budi Santoso',
+        isLeading: false,
+        status: 'outbid',
+        isEnded: false,
+        bidsCount: 19,
+        timeLeft: 'Berakhir 5 hari lagi',
+        updatedAt: '2 jam lalu'
+    },
+    {
+        id: 13,
+        auctionId: 13,
+        name: 'Shiro Utsuri Oofuchi Special 58 cm',
+        size: '58 cm',
+        variety: 'Utsuri',
+        store: 'Koki Nishikigoi Official Gallery',
+        image: '/images/koi/ritsurin_koi_7.jpg',
+        currentBid: 14500000,
+        myBid: 14500000,
+        highestBidder: 'dodis saufitro (Anda)',
+        isLeading: true,
+        status: 'won',
+        isEnded: true,
+        bidsCount: 14,
+        timeLeft: 'Lelang Telah Selesai',
+        updatedAt: 'Kemarin'
+    }
+];
+
+// Sample data awal pesanan (hanya untuk akun demo)
+const INITIAL_SAMPLE_ORDERS: any[] = [
+    {
+        id: 'ord-8812',
+        orderNumber: 'KM-ORD-2026-8812',
+        date: '28 Sep 2026, 10:14',
+        status: 'paid',
+        statusLabel: 'Karantina & Pengiriman',
+        product: {
+            id: 'prod-0',
+            name: 'Kohaku Jumbo Grand Champion 88 cm',
+            category: 'Kohaku',
+            store: 'Koki Nishikigoi Official Gallery',
+            sellerUserId: 1,
+            city: 'Blitar & Jakarta',
+            size: '88 cm',
+            age: 'Sansai',
+            gender: 'Female',
+            price: 12500000,
+            images: [
+                '/images/koi/kohaku.jpg'
+            ]
+        },
+        fishPrice: 12500000,
+        oxygenPackingCost: 150000,
+        shippingCost: 200000,
+        appFee: 5000,
+        grandTotal: 12855000,
+        paymentMethod: 'BCA Virtual Account',
+        odooSoNumber: 'SO-2026-0921',
+        odooInvNumber: 'INV-2026-0921',
+        wagLink: 'https://chat.whatsapp.com/KoiMart-WAG-Live8812',
+        courier: 'Cargo Pesawat Express Live Fish',
+        trackingNumber: 'KM-CARGO-882910-CGK',
+        deliveryStep: 3,
+        recipient: {
+            name: 'Budi Santoso',
+            phone: '+62 812-9876-5432',
+            address: 'Jl. Graha Raya Bintaro Blok M7 No. 12, Pondok Aren, Tangerang Selatan, Banten (15220)',
+            notes: 'Box Live Fish beroksigen harap langsung ditaruh di dekat kolam karantina, hindari paparan matahari langsung.'
+        },
+        trackingHistory: [
+            {
+                title: 'Diberangkatkan via Cargo Pesawat Express',
+                description: 'Box styrofoam double-bag beroksigen murni telah take-off dari Bandara Juanda (SUB) menuju Bandara Soekarno-Hatta (CGK). Resi: KM-CARGO-882910-CGK.',
+                time: '28 Sep 2026, 14:30',
+                isCurrent: true,
+                done: true
+            },
+            {
+                title: 'Selesai Karantina & Packing Tabung Oksigen',
+                description: 'Ikan dipuasakan 48 jam, pemeriksaan kesehatan & insang lolos kurasi spesialis, sertifikat keaslian Blitar disertakan dalam kemasan anti-bocor.',
+                time: '28 Sep 2026, 11:20',
+                isCurrent: false,
+                done: true
+            },
+            {
+                title: 'Pembayaran Lunas & Rekber Escrow Aktif',
+                description: 'Pembayaran Rp 12.855.000 diverifikasi otomatis via BCA Virtual Account. Sinkronisasi ke Odoo ERP (SO-2026-0921). Dana diamankan di penampung rekber.',
+                time: '28 Sep 2026, 10:14',
+                isCurrent: false,
+                done: true
+            }
+        ],
+        payoutReleased: false,
+    },
+    {
+        id: 'ord-882910',
+        orderNumber: 'KM-882910',
+        date: '25 Sep 2026, 14:20',
+        status: 'completed',
+        statusLabel: 'Ikan Selesai Diterima',
+        product: {
+            id: 'prod-1',
+            name: 'Kohaku Nisai 70 cm',
+            category: 'Kohaku',
+            store: 'Koki Nishikigoi Official Gallery',
+            sellerUserId: 1,
+            city: 'Blitar & Jakarta',
+            size: '70 cm',
+            age: 'Nisai',
+            gender: 'Female',
+            price: 12500000,
+            images: [
+                '/images/koi/kohaku.jpg'
+            ]
+        },
+        fishPrice: 12500000,
+        oxygenPackingCost: 150000,
+        shippingCost: 150000,
+        appFee: 5000,
+        grandTotal: 12500000,
+        paymentMethod: 'QRIS Instant',
+        odooSoNumber: 'SO-2026-0810',
+        odooInvNumber: 'INV-2026-0810',
+        wagLink: 'https://chat.whatsapp.com/KoiMart-WAG-882910',
+        courier: 'JNE Live Truck Spesialis Ikan Hidup',
+        trackingNumber: 'JNE-LT-882910-ID',
+        deliveryStep: 4,
+        recipient: {
+            name: 'Budi Santoso',
+            phone: '+62 812-9876-5432',
+            address: 'Jl. Graha Raya Bintaro Blok M7 No. 12, Pondok Aren, Tangerang Selatan, Banten (15220)',
+            notes: 'Kolam siap aklimatisasi.'
+        },
+        trackingHistory: [
+            {
+                title: 'Ikan Telah Diterima oleh Pembeli',
+                description: 'Paket box ikan telah diterima di alamat tujuan. Kondisi ikan aktif, sehat, dan berenang lincah di kolam karantina. Transaksi selesai dan bergaransi resmi.',
+                time: '27 Sep 2026, 11:30',
+                isCurrent: true,
+                done: true
+            },
+            {
+                title: 'Kurir Khusus Menuju Alamat Kolam',
+                description: 'Kurir khusus JNE Live Truck membawa box sterofoam beroksigen menuju alamat pengantaran.',
+                time: '27 Sep 2026, 08:15',
+                isCurrent: false,
+                done: true
+            },
+            {
+                title: 'Tiba di Hub Transit Logistik Hewan Jakarta',
+                description: 'Paket kargo tiba di hub transit dan dicek kondisi kadar oksigen oleh petugas logistik.',
+                time: '26 Sep 2026, 21:00',
+                isCurrent: false,
+                done: true
+            },
+            {
+                title: 'Paket Diberangkatkan dari Farm',
+                description: 'Ikan telah dipacking oksigen murni ganda dan diberangkatkan dengan mobil thermo-box khusus.',
+                time: '25 Sep 2026, 17:00',
+                isCurrent: false,
+                done: true
+            },
+            {
+                title: 'Pembayaran Terverifikasi',
+                description: 'Pembayaran berhasil diverifikasi via QRIS Instant. Odoo ERP Sales Order dibuat.',
+                time: '25 Sep 2026, 14:20',
+                isCurrent: false,
+                done: true
+            }
+        ],
+        payoutReleased: true,
+    }
+];
+
+// Komponen Card UI Tampilan Terkunci jika User Belum Login
+const LockedAccessCard = ({
+    title,
+    description,
+    icon: IconComp,
+    onLoginClick,
+    onBackClick,
+}: {
+    title: string;
+    description: string;
+    icon: any;
+    onLoginClick: () => void;
+    onBackClick?: () => void;
+}) => (
+    <div className="flex-1 flex flex-col bg-slate-50 min-h-[460px] items-center justify-center p-6 pb-24 text-center animate-in fade-in duration-200">
+        <div className="w-20 h-20 rounded-3xl bg-red-50 border border-red-200/80 flex items-center justify-center text-red-600 shadow-md mb-4 relative">
+            <IconComp className="w-10 h-10" />
+            <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-slate-900 text-white flex items-center justify-center shadow-sm">
+                <Lock className="w-3.5 h-3.5" />
+            </div>
+        </div>
+        <h3 className="text-base font-extrabold text-slate-900 mb-1.5">{title}</h3>
+        <p className="text-xs text-slate-500 max-w-xs mb-6 leading-relaxed">
+            {description}
+        </p>
+        <div className="w-full max-w-xs space-y-2.5">
+            <button
+                onClick={onLoginClick}
+                className="w-full py-3.5 px-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-2xl text-xs shadow-lg shadow-red-600/30 flex items-center justify-center gap-2 transition active:scale-98 cursor-pointer"
+            >
+                <ShieldCheck className="w-4 h-4" />
+                <span>Masuk dengan Google</span>
+            </button>
+            {onBackClick && (
+                <button
+                    onClick={onBackClick}
+                    className="w-full py-2.5 px-4 bg-white border border-slate-200 text-slate-700 font-semibold rounded-2xl text-xs hover:bg-slate-50 transition active:scale-98 cursor-pointer"
+                >
+                    Kembali ke Beranda
+                </button>
+            )}
+        </div>
+    </div>
+);
+
 interface Props {
     onExitAndroidView?: () => void;
     products?: Product[];
@@ -1375,13 +1545,18 @@ export default function AndroidKoiApp({
     favoriteAuctions = [],
     categories = [],
 }: Props) {
+    // User & Autentikasi Laravel / Google
+    const pageProps = usePage<SharedData>().props;
+    const authUser = pageProps.auth?.user;
+    const isLoggedIn = Boolean(authUser);
+
     // Data Dinamis dari Database (Sinkron langsung dengan Dashboard Admin & Lapak)
     const dynamicProducts = products.length > 0 ? products.map((p) => {
         const sizeMatch = p.name.match(/\b(\d+\s*cm)\b/i);
         const extractedSize = sizeMatch ? sizeMatch[1] : (p.weight_gram ? `${Math.round(p.weight_gram / 60)} cm` : '65 cm');
         const imagesList = p.images && p.images.length > 0
             ? p.images.map(img => img.image_path)
-            : (p.primary_image ? [p.primary_image.image_path] : ['https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=800&auto=format&fit=crop']);
+            : (p.primary_image ? [p.primary_image.image_path] : ['/images/koi/kohaku.jpg']);
 
         return {
             id: String(p.id),
@@ -1410,14 +1585,14 @@ export default function AndroidKoiApp({
         id: c.slug,
         name: c.name,
         count: c.products_count || 0,
-        image: c.image || 'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=500&auto=format&fit=crop',
+        image: c.image || '/images/koi/kohaku.jpg',
     })) : INITIAL_CATEGORIES;
 
     const dynamicTopAuctions = highestBidAuctions.length > 0 ? highestBidAuctions.map((auc, idx) => {
         const prod = auc.product;
         const sizeMatch = prod?.name?.match(/\b(\d+\s*cm)\b/i);
         const extractedSize = sizeMatch ? sizeMatch[1] : '75 cm';
-        const img = prod?.primary_image?.image_path || prod?.images?.[0]?.image_path || 'https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?w=600&auto=format&fit=crop';
+        const img = prod?.primary_image?.image_path || prod?.images?.[0]?.image_path || '/images/koi/showa.jpg';
         return {
             id: auc.id,
             rank: idx + 1,
@@ -1436,7 +1611,7 @@ export default function AndroidKoiApp({
         const prod = auc.product;
         const sizeMatch = prod?.name?.match(/\b(\d+\s*cm)\b/i);
         const extractedSize = sizeMatch ? sizeMatch[1] : '70 cm';
-        const img = prod?.primary_image?.image_path || prod?.images?.[0]?.image_path || 'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=600&auto=format&fit=crop';
+        const img = prod?.primary_image?.image_path || prod?.images?.[0]?.image_path || '/images/koi/kohaku.jpg';
         return {
             id: auc.id,
             rank: idx + 1,
@@ -1453,15 +1628,27 @@ export default function AndroidKoiApp({
     // Helper untuk buka ruang lelang sesuai item yang dipilih
     const openAuctionDetail = (aucItem: any) => {
         if (!aucItem) return;
+        if (!isLoggedIn) {
+            setGoogleLoginReason('tawaran');
+            setPendingLoginAction({ type: 'navigate', payload: 'auction_detail' });
+            setIsGoogleLoginModalOpen(true);
+            triggerToast('🔒 Silakan login dengan Google terlebih dahulu untuk mengecek tawaran lelang.');
+            return;
+        }
         const raw = aucItem.auctionRaw;
         const targetAuctionId = raw?.id || aucItem.auctionId || aucItem.id || 7;
         const effectivePrice = Number(aucItem.currentBid ?? aucItem.price ?? raw?.current_bid ?? 25000000);
+        const effectiveStartPrice = Number(raw?.start_price ?? aucItem.startPrice ?? Math.round(effectivePrice * 0.75));
         const effectiveBidder = aucItem.highestBidder || raw?.highest_bidder?.name || 'KolektorKoi';
         const effectiveName = aucItem.name || raw?.product?.name || 'Ikan Lelang Koi';
         const effectiveSize = aucItem.size || '75 cm';
         const effectiveAge = aucItem.age || 'Nisai';
         const effectiveGender = aucItem.gender || 'Female';
-        const effectiveImage = aucItem.image || raw?.product?.primary_image?.image_path || 'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=600&auto=format&fit=crop';
+        const effectiveImage = aucItem.image || raw?.product?.primary_image?.image_path || '/images/koi/kohaku.jpg';
+        const effectiveDealerType: 'import' | 'lokal' = aucItem.dealerType || (raw?.user?.name?.toLowerCase().includes('import') ? 'import' : 'lokal');
+        const effectiveDealerName = aucItem.dealerName || raw?.product?.store || raw?.user?.name || (effectiveDealerType === 'import' ? 'Daisuke Nishikigoi Farm' : 'Toko Koi Sejahtera');
+        const effectiveDealerPhone = aucItem.dealerPhone || raw?.user?.phone || '+62 813-7777-2002';
+        const effectiveDealerBadge = aucItem.dealerBadge || (effectiveDealerType === 'import' ? 'Diler Import Niigata Terverifikasi' : 'Breeder Lokal APKI Terverifikasi');
 
         const bidsHistory = raw?.bids && raw.bids.length > 0
             ? raw.bids.map((b: any) => ({
@@ -1484,6 +1671,12 @@ export default function AndroidKoiApp({
             size: effectiveSize,
             age: effectiveAge,
             gender: effectiveGender,
+            startPrice: effectiveStartPrice,
+            bidIncrement: 500000,
+            dealerName: effectiveDealerName,
+            dealerPhone: effectiveDealerPhone,
+            dealerType: effectiveDealerType,
+            dealerBadge: effectiveDealerBadge,
             currentBid: effectivePrice,
             highestBidder: effectiveBidder,
             image: effectiveImage,
@@ -1534,6 +1727,15 @@ export default function AndroidKoiApp({
     const [activeGalleryModalItem, setActiveGalleryModalItem] = useState<StoreGalleryItem | null>(null);
     const [followedStores, setFollowedStores] = useState<string[]>([]);
 
+    // Helper Integrasi WhatsApp Resmi Platform
+    const openWhatsApp = (phone?: string, customText?: string) => {
+        const cleanPhone = (phone || '+6281288881001').replace(/[^0-9]/g, '');
+        const formattedPhone = cleanPhone.startsWith('0') ? '62' + cleanPhone.slice(1) : cleanPhone;
+        const defaultMsg = 'Halo Diler Koi, saya melihat ikan koi premium Anda di aplikasi KoiMart dan ingin berkonsultasi mengenai spesifikasi & sertifikatnya.';
+        const encodedText = encodeURIComponent(customText || defaultMsg);
+        window.open(`https://wa.me/${formattedPhone}?text=${encodedText}`, '_blank');
+    };
+
     // Sinkronkan produk terpilih jika data berubah
     useEffect(() => {
         if (dynamicProducts.length > 0) {
@@ -1549,9 +1751,15 @@ export default function AndroidKoiApp({
         size: '75 cm',
         age: 'Nisai',
         gender: 'Male',
+        startPrice: 25000000,
+        bidIncrement: 500000,
+        dealerName: 'Daisuke Nishikigoi Farm',
+        dealerPhone: '+62 813-7777-2002',
+        dealerType: 'import',
+        dealerBadge: 'Diler Import Niigata Terverifikasi',
         currentBid: 32500000,
         highestBidder: 'KolektorKoi',
-        image: 'https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?w=800&auto=format&fit=crop',
+        image: '/images/koi/showa.jpg',
         history: [
             { user: 'KolektorKoi', amount: 32500000, time: '10 menit lalu' },
             { user: 'AndiKoi', amount: 31500000, time: '18 menit lalu' },
@@ -1561,112 +1769,81 @@ export default function AndroidKoiApp({
     const [customBidInput, setCustomBidInput] = useState('');
     const [secondsLeft, setSecondsLeft] = useState(4965); // 01:22:45 approx
 
-    // User & Wallet State - Terhubung langsung dengan autentikasi Laravel / Google
-    const pageProps = usePage<SharedData>().props;
-    const authUser = pageProps.auth?.user;
-    const isLoggedIn = Boolean(authUser);
-
+    // User & Status Peserta Lelang (Pengganti E-Wallet)
+    // Sesuai requirement: E-wallet diganti biaya pendaftaran Rp 250.000 untuk kurasi penawar serius
+    const [isRegisteredParticipant, setIsRegisteredParticipant] = useState<boolean>(() => {
+        try {
+            const key = authUser?.id ? `koimart_registered_bidder_${authUser.id}` : 'koimart_registered_bidder_guest';
+            return localStorage.getItem(key) === 'true';
+        } catch {
+            return false;
+        }
+    });
+    const registrationFee = 250000;
     const [userWallet, setUserWallet] = useState(2500000);
     const userName = authUser?.name || 'Tamu';
     const userEmail = authUser?.email || 'Belum masuk';
     const userAvatar = authUser?.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop';
-    const [isTopUpOpen, setIsTopUpOpen] = useState(false);
+    const [isTopUpOpen, setIsTopUpOpen] = useState(false); // Modal Biaya Pendaftaran Peserta Lelang
     const [toastMessage, setToastMessage] = useState<string | null>(null);
 
     // =========================================================================
-    // USER BIDS STATE (HASIL TAWARAN LELANG SAYA - SINKRONISASI DATABASE)
+    // USER BIDS STATE (HASIL TAWARAN LELANG SAYA - KHUSUS AKUN LOGIN)
     // =========================================================================
-    const [userBids, setUserBids] = useState<UserBidItem[]>([
-        {
-            id: 2,
-            auctionId: 2,
-            name: 'Showa Jumbo Isa Bloodline 85 cm',
-            size: '85 cm',
-            variety: 'Showa',
-            store: 'Daisuke Nishikigoi Farm',
-            image: 'https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?w=600&auto=format&fit=crop',
-            currentBid: 49000000,
-            myBid: 49000000,
-            highestBidder: userName || 'dodis saufitro',
-            isLeading: true,
-            status: 'leading',
-            isEnded: false,
-            bidsCount: 29,
-            timeLeft: 'Berakhir besok, 20:00 WIB',
-            updatedAt: '15 menit lalu'
-        },
-        {
-            id: 7,
-            auctionId: 7,
-            name: 'Kohaku Jumbo Favorit Kolektor 75 cm',
-            size: '75 cm',
-            variety: 'Kohaku',
-            store: 'Jogja Heritage Koi Gallery',
-            image: 'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=600&auto=format&fit=crop',
-            currentBid: 26000000,
-            myBid: 26000000,
-            highestBidder: userName || 'dodis saufitro',
-            isLeading: true,
-            status: 'leading',
-            isEnded: false,
-            bidsCount: 20,
-            timeLeft: 'Berakhir 2 hari lagi',
-            updatedAt: 'Baru saja'
-        },
-        {
-            id: 4,
-            auctionId: 4,
-            name: 'Sanke Jumbo Sakai Bloodline 80 cm',
-            size: '80 cm',
-            variety: 'Sanke',
-            store: 'Nusantara Koi Center',
-            image: 'https://images.unsplash.com/photo-1582234372722-50d7ccc30ebd?w=600&auto=format&fit=crop',
-            currentBid: 38000000,
-            myBid: 36500000,
-            highestBidder: 'Budi Santoso',
-            isLeading: false,
-            status: 'outbid',
-            isEnded: false,
-            bidsCount: 19,
-            timeLeft: 'Berakhir 1 hari lagi',
-            updatedAt: '2 jam lalu'
-        },
-        {
-            id: 13,
-            auctionId: 13,
-            name: 'Shiro Utsuri Oofuchi Special 58 cm',
-            size: '58 cm',
-            variety: 'Utsuri',
-            store: 'Oofuchi Koi Farm',
-            image: 'https://images.unsplash.com/photo-1516683037151-9a17603a8dc7?w=600&auto=format&fit=crop',
-            currentBid: 14500000,
-            myBid: 14500000,
-            highestBidder: `${userName || 'dodis saufitro'} (Anda)`,
-            isLeading: true,
-            status: 'won',
-            isEnded: true,
-            bidsCount: 14,
-            timeLeft: 'Lelang Telah Selesai',
-            updatedAt: 'Kemarin'
+    const [userBids, setUserBids] = useState<UserBidItem[]>(() => {
+        if (!authUser?.id) return [];
+        const storageKey = `koimart_bids_user_${authUser.id}`;
+        if (typeof window !== 'undefined') {
+            try {
+                const saved = localStorage.getItem(storageKey);
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+                }
+            } catch { }
         }
-    ]);
+        if (Number(authUser.id) === 14 || authUser.email?.includes('dodis')) {
+            return INITIAL_SAMPLE_BIDS;
+        }
+        return [];
+    });
     const [bidStatusFilter, setBidStatusFilter] = useState<'all' | 'leading' | 'outbid' | 'won'>('all');
     const [isRefreshingBids, setIsRefreshingBids] = useState(false);
 
+    // Simpan otomatis ke localStorage setiap kali userBids berubah
+    useEffect(() => {
+        if (authUser?.id && typeof window !== 'undefined') {
+            const storageKey = `koimart_bids_user_${authUser.id}`;
+            try {
+                localStorage.setItem(storageKey, JSON.stringify(userBids));
+            } catch { }
+        }
+    }, [userBids, authUser?.id]);
+
     // Ambil data penawaran terbaru dari backend API /my-bids
     const fetchUserBids = async () => {
+        if (!authUser?.id) {
+            setUserBids([]);
+            return;
+        }
         setIsRefreshingBids(true);
         try {
-            const res = await fetch('/my-bids', {
+            const url = `/my-bids?user_id=${authUser.id}`;
+            const res = await fetch(url, {
                 headers: { 'Accept': 'application/json' }
             });
             if (res.ok) {
                 const data = await res.json();
-                if (data.bids && Array.isArray(data.bids) && data.bids.length > 0) {
+                if (data.bids && Array.isArray(data.bids)) {
                     setUserBids(prev => {
                         const dbIds = new Set(data.bids.map((b: any) => Number(b.auctionId)));
                         const remaining = prev.filter(p => !dbIds.has(Number(p.auctionId)));
-                        return [...data.bids, ...remaining];
+                        const merged = [...data.bids, ...remaining];
+                        const storageKey = `koimart_bids_user_${authUser.id}`;
+                        try {
+                            localStorage.setItem(storageKey, JSON.stringify(merged));
+                        } catch { }
+                        return merged;
                     });
                 }
             }
@@ -1678,8 +1855,12 @@ export default function AndroidKoiApp({
     };
 
     useEffect(() => {
-        fetchUserBids();
-    }, []);
+        if (authUser?.id) {
+            fetchUserBids();
+        } else {
+            setUserBids([]);
+        }
+    }, [authUser?.id]);
 
     // =========================================================================
     // USER-SPECIFIC FAVORITES & CHAT STORAGE
@@ -1696,11 +1877,11 @@ export default function AndroidKoiApp({
     });
 
     // =========================================================================
-    // GOOGLE AUTH STATE & INTERCEPTOR (LOGIN GOOGLE SEBELUM FAVORIT & CHAT)
+    // GOOGLE AUTH STATE & INTERCEPTOR (LOGIN GOOGLE SEBELUM AKSES FITUR PRIVAT)
     // =========================================================================
     const [isGoogleLoginModalOpen, setIsGoogleLoginModalOpen] = useState(false);
     const [googleLoginLoading, setGoogleLoginLoading] = useState(false);
-    const [googleLoginReason, setGoogleLoginReason] = useState<'favorit' | 'chat' | 'like' | 'general'>('general');
+    const [googleLoginReason, setGoogleLoginReason] = useState<'favorit' | 'chat' | 'like' | 'pesanan' | 'tawaran' | 'general'>('general');
     const [pendingLoginAction, setPendingLoginAction] = useState<{ type: 'navigate' | 'like' | 'chat'; payload?: any } | null>(null);
 
     // =========================================================================
@@ -1749,7 +1930,7 @@ export default function AndroidKoiApp({
         }
     };
 
-    // Sinkronisasi data favorit & chat saat user login, ganti akun, atau logout
+    // Sinkronisasi data favorit, chat, pesanan & tawaran saat user login, ganti akun, atau logout
     useEffect(() => {
         if (authUser?.id) {
             // 1. Muat Favorit Khusus User Ini
@@ -1762,11 +1943,48 @@ export default function AndroidKoiApp({
 
             // 2. Muat Chat Threads Asli Khusus User Ini dari Backend Database
             refreshChatThreads();
+
+            // 3. Muat Pesanan Khusus User Ini
+            try {
+                const savedOrders = localStorage.getItem(`koimart_orders_user_${authUser.id}`);
+                if (savedOrders) {
+                    setOrdersList(JSON.parse(savedOrders));
+                } else if (Number(authUser.id) === 14 || authUser.email?.includes('dodis')) {
+                    setOrdersList(INITIAL_SAMPLE_ORDERS);
+                } else {
+                    setOrdersList([]);
+                }
+            } catch {
+                setOrdersList([]);
+            }
+
+            // 4. Muat Tawaran Khusus User Ini
+            try {
+                const savedBids = localStorage.getItem(`koimart_bids_user_${authUser.id}`);
+                if (savedBids) {
+                    setUserBids(JSON.parse(savedBids));
+                } else if (Number(authUser.id) === 14 || authUser.email?.includes('dodis')) {
+                    setUserBids(INITIAL_SAMPLE_BIDS);
+                } else {
+                    setUserBids([]);
+                }
+            } catch {
+                setUserBids([]);
+            }
+            fetchUserBids();
         } else {
             // User Guest / Belum Login: bersihkan memori privat
             setFavoritesList([]);
             setChatThreads([]);
             setActiveThreadId('');
+            setOrdersList([]);
+            setUserBids([]);
+            setCurrentScreen(prev => {
+                if (['orders', 'order_detail', 'checkout_invoice', 'wag_tracking', 'chat_list', 'chat_room', 'my_bids', 'auction_detail'].includes(prev)) {
+                    return 'home';
+                }
+                return prev;
+            });
         }
     }, [authUser?.id, userName]);
 
@@ -1818,6 +2036,13 @@ export default function AndroidKoiApp({
 
     // Buka room chat dan ambil riwayat obrolan asli dari database
     const openChatThread = async (threadId: string) => {
+        if (!isLoggedIn) {
+            setGoogleLoginReason('chat');
+            setPendingLoginAction({ type: 'navigate', payload: 'chat_list' });
+            setIsGoogleLoginModalOpen(true);
+            triggerToast('🔒 Silakan login dengan Google terlebih dahulu untuk membuka pesan');
+            return;
+        }
         setActiveThreadId(threadId);
         setActiveTab('chat');
         navigateTo('chat_room');
@@ -1881,151 +2106,34 @@ export default function AndroidKoiApp({
         }
     }, [products]);
 
-    // Initial Orders List (mencakup pesanan dari screenshot user)
-    const [ordersList, setOrdersList] = useState<any[]>([
-        {
-            id: 'ord-8812',
-            orderNumber: 'KM-ORD-2026-8812',
-            date: '28 Sep 2026, 10:14',
-            status: 'paid', // 'paid' | 'completed' | 'draft_locked'
-            statusLabel: 'Karantina & Pengiriman',
-            product: {
-                id: 'prod-0',
-                name: 'Kohaku Jumbo Grand Champion 88 cm',
-                category: 'Kohaku',
-                store: 'Daisuke Nishikigoi Farm',
-                sellerUserId: 11,
-                city: 'Blitar, Jawa Timur',
-                size: '88 cm',
-                age: 'Sansai',
-                gender: 'Female',
-                price: 12500000,
-                images: [
-                    'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=600&auto=format&fit=crop'
-                ]
-            },
-            fishPrice: 12500000,
-            oxygenPackingCost: 150000,
-            shippingCost: 200000,
-            appFee: 5000,
-            grandTotal: 12855000,
-            paymentMethod: 'BCA Virtual Account',
-            odooSoNumber: 'SO-2026-0921',
-            odooInvNumber: 'INV-2026-0921',
-            wagLink: 'https://chat.whatsapp.com/KoiMart-WAG-Live8812',
-            courier: 'Cargo Pesawat Express Live Fish',
-            trackingNumber: 'KM-CARGO-882910-CGK',
-            deliveryStep: 3, // 1: Bayar Lunas, 2: Karantina & QC, 3: Dalam Pengiriman Kargo, 4: Ikan Selesai Diterima
-            recipient: {
-                name: userName || 'Budi Santoso',
-                phone: '+62 812-9876-5432',
-                address: 'Jl. Graha Raya Bintaro Blok M7 No. 12, Pondok Aren, Tangerang Selatan, Banten (15220)',
-                notes: 'Box Live Fish beroksigen harap langsung ditaruh di dekat kolam karantina, hindari paparan matahari langsung.'
-            },
-            trackingHistory: [
-                {
-                    title: 'Diberangkatkan via Cargo Pesawat Express',
-                    description: 'Box styrofoam double-bag beroksigen murni telah take-off dari Bandara Juanda (SUB) menuju Bandara Soekarno-Hatta (CGK). Resi: KM-CARGO-882910-CGK.',
-                    time: '28 Sep 2026, 14:30',
-                    isCurrent: true,
-                    done: true
-                },
-                {
-                    title: 'Selesai Karantina & Packing Tabung Oksigen',
-                    description: 'Ikan dipuasakan 48 jam, pemeriksaan kesehatan & insang lolos kurasi spesialis, sertifikat keaslian Blitar disertakan dalam kemasan anti-bocor.',
-                    time: '28 Sep 2026, 11:20',
-                    isCurrent: false,
-                    done: true
-                },
-                {
-                    title: 'Pembayaran Lunas & Rekber Escrow Aktif',
-                    description: 'Pembayaran Rp 12.855.000 diverifikasi otomatis via BCA Virtual Account. Sinkronisasi ke Odoo ERP (SO-2026-0921). Dana diamankan di penampung rekber.',
-                    time: '28 Sep 2026, 10:14',
-                    isCurrent: false,
-                    done: true
+    // Initial Orders List (Disinkronkan khusus per user akun login)
+    const [ordersList, setOrdersList] = useState<any[]>(() => {
+        if (!authUser?.id) return [];
+        const storageKey = `koimart_orders_user_${authUser.id}`;
+        if (typeof window !== 'undefined') {
+            try {
+                const saved = localStorage.getItem(storageKey);
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    if (Array.isArray(parsed)) return parsed;
                 }
-            ],
-            payoutReleased: false,
-        },
-        {
-            id: 'ord-882910',
-            orderNumber: 'KM-882910',
-            date: '25 Sep 2026, 14:20',
-            status: 'completed',
-            statusLabel: 'Ikan Selesai Diterima',
-            product: {
-                id: 'prod-1',
-                name: 'Kohaku Nisai 70 cm',
-                category: 'Kohaku',
-                store: 'Toko Koi Sejahtera',
-                sellerUserId: 10,
-                city: 'Jakarta Barat',
-                size: '70 cm',
-                age: 'Nisai',
-                gender: 'Female',
-                price: 12500000,
-                images: [
-                    'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=600&auto=format&fit=crop'
-                ]
-            },
-            fishPrice: 12500000,
-            oxygenPackingCost: 150000,
-            shippingCost: 150000,
-            appFee: 5000,
-            grandTotal: 12500000,
-            paymentMethod: 'QRIS Instant',
-            odooSoNumber: 'SO-2026-0810',
-            odooInvNumber: 'INV-2026-0810',
-            wagLink: 'https://chat.whatsapp.com/KoiMart-WAG-882910',
-            courier: 'JNE Live Truck Spesialis Ikan Hidup',
-            trackingNumber: 'JNE-LT-882910-ID',
-            deliveryStep: 4,
-            recipient: {
-                name: userName || 'Budi Santoso',
-                phone: '+62 812-9876-5432',
-                address: 'Jl. Graha Raya Bintaro Blok M7 No. 12, Pondok Aren, Tangerang Selatan, Banten (15220)',
-                notes: 'Kolam siap aklimatisasi.'
-            },
-            trackingHistory: [
-                {
-                    title: 'Ikan Telah Diterima oleh Pembeli',
-                    description: 'Paket box ikan telah diterima di alamat tujuan. Kondisi ikan aktif, sehat, dan berenang lincah di kolam karantina. Payout Rp 11.875.000 telah diteruskan ke mitra peternak Toko Koi Sejahtera.',
-                    time: '27 Sep 2026, 11:30',
-                    isCurrent: true,
-                    done: true
-                },
-                {
-                    title: 'Kurir Khusus Menuju Alamat Kolam',
-                    description: 'Kurir khusus JNE Live Truck membawa box sterofoam beroksigen menuju alamat pengantaran.',
-                    time: '27 Sep 2026, 08:15',
-                    isCurrent: false,
-                    done: true
-                },
-                {
-                    title: 'Tiba di Hub Transit Logistik Hewan Jakarta',
-                    description: 'Paket kargo tiba di hub transit dan dicek kondisi kadar oksigen oleh petugas logistik.',
-                    time: '26 Sep 2026, 21:00',
-                    isCurrent: false,
-                    done: true
-                },
-                {
-                    title: 'Paket Diberangkatkan dari Farm',
-                    description: 'Ikan telah dipacking oksigen murni ganda dan diberangkatkan dengan mobil thermo-box khusus.',
-                    time: '25 Sep 2026, 17:00',
-                    isCurrent: false,
-                    done: true
-                },
-                {
-                    title: 'Pembayaran Terverifikasi',
-                    description: 'Pembayaran berhasil diverifikasi via QRIS Instant. Odoo ERP Sales Order dibuat.',
-                    time: '25 Sep 2026, 14:20',
-                    isCurrent: false,
-                    done: true
-                }
-            ],
-            payoutReleased: true,
+            } catch { }
         }
-    ]);
+        if (Number(authUser.id) === 14 || authUser.email?.includes('dodis')) {
+            return INITIAL_SAMPLE_ORDERS;
+        }
+        return [];
+    });
+
+    // Simpan otomatis ke localStorage setiap kali ordersList berubah
+    useEffect(() => {
+        if (authUser?.id && typeof window !== 'undefined') {
+            const storageKey = `koimart_orders_user_${authUser.id}`;
+            try {
+                localStorage.setItem(storageKey, JSON.stringify(ordersList));
+            } catch { }
+        }
+    }, [ordersList, authUser?.id]);
 
     // Active Order (Reference to latest order or ord-8812)
     const [activeOrder, setActiveOrder] = useState<any>(() => ordersList[0]);
@@ -2044,14 +2152,14 @@ export default function AndroidKoiApp({
     const [isCopiedLink, setIsCopiedLink] = useState(false);
 
     // =========================================================================
-    // PENGATUR UKURAN TULISAN (RAMAH LANSIA / AKI-AKI)
+    // PENGATUR UKURAN TULISAN
     // =========================================================================
     const [fontSizeScale, setFontSizeScale] = useState<'normal' | 'large' | 'xlarge'>(() => {
         if (typeof window !== 'undefined') {
             const saved = localStorage.getItem('koki_font_scale');
             if (saved === 'normal' || saved === 'large' || saved === 'xlarge') return saved;
         }
-        return 'large'; // Default langsung BESAR & JELAS untuk ramah lansia
+        return 'large'; // Default BESAR & JELAS
     });
     const [isFontSizeModalOpen, setIsFontSizeModalOpen] = useState(false);
 
@@ -2062,10 +2170,10 @@ export default function AndroidKoiApp({
         }
         triggerToast(
             scale === 'xlarge'
-                ? '🔍 Ukuran Tulisan: Sangat Besar (Super Jelas)'
+                ? '🔍 Ukuran Tulisan: Sangat Besar'
                 : scale === 'large'
-                    ? '👓 Ukuran Tulisan: Besar (Ramah Lansia)'
-                    : '📝 Ukuran Tulisan: Standar'
+                    ? '🔤 Ukuran Tulisan: Besar'
+                    : '📝 Ukuran Tulisan: Standard'
         );
     };
 
@@ -2098,7 +2206,7 @@ export default function AndroidKoiApp({
                 price: 10000000,
                 store: 'Nusantara Koi Center',
                 city: 'Bandung',
-                image: 'https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?w=600&auto=format&fit=crop',
+                image: '/images/koi/showa.jpg',
                 sellerUserId: 12,
                 status: 'draft_locked',
                 orderNumber: 'KM-ORD-2026-7731',
@@ -2118,6 +2226,12 @@ export default function AndroidKoiApp({
 
     const handleAddToCart = (prod: any) => {
         if (!prod) return;
+        if (!isLoggedIn) {
+            setGoogleLoginReason('pesanan');
+            setIsGoogleLoginModalOpen(true);
+            triggerToast('🔒 Silakan login dengan Google terlebih dahulu untuk menambahkan ke keranjang');
+            return;
+        }
         const exists = cartItems.find((c) => c.productId === prod.id || c.name === prod.name);
         if (exists) {
             triggerToast(`ℹ️ "${prod.name}" sudah ada di keranjang Anda!`);
@@ -2135,7 +2249,7 @@ export default function AndroidKoiApp({
             price: prod.price || 0,
             store: prod.store || 'Mitra Koi Farm',
             city: prod.city || 'Indonesia',
-            image: (prod.images && prod.images[0]) || prod.image || 'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=600&auto=format&fit=crop',
+            image: (prod.images && prod.images[0]) || prod.image || '/images/koi/kohaku.jpg',
             sellerUserId: prod.sellerUserId,
             status: 'unpaid',
             addedAt: 'Baru saja',
@@ -2170,6 +2284,13 @@ export default function AndroidKoiApp({
     };
 
     const handlePayFromCart = (item: CartItem) => {
+        if (!isLoggedIn) {
+            setGoogleLoginReason('pesanan');
+            setPendingLoginAction({ type: 'navigate', payload: 'orders' });
+            setIsGoogleLoginModalOpen(true);
+            triggerToast('🔒 Silakan login dengan Google terlebih dahulu untuk melanjutkan pembayaran');
+            return;
+        }
         let targetOrder = ordersList.find((o) => o.orderNumber === item.orderNumber || o.product?.name === item.name);
         if (!targetOrder) {
             const oxygenCost = 150000;
@@ -2244,7 +2365,7 @@ export default function AndroidKoiApp({
         certificate: true,
         origin: 'Blitar Farm Heritage',
         description: 'Koi show grade pola maruten merah merata, shiroji seputih salju, sertifikat indukan resmi import Niigata.',
-        image: 'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=800&auto=format&fit=crop',
+        image: '/images/koi/kohaku.jpg',
     });
     const [curationStep, setCurationStep] = useState<'input' | 'submitted_push_notif' | 'approved_published'>('input');
 
@@ -2340,6 +2461,13 @@ export default function AndroidKoiApp({
 
     // STEP 6 & 7: Customer Pilih Ikan & Klik "Beli Sekarang" -> Lock Stok Ikan (Draft Order) & Hitung Total Tagihan
     const handleBuyNow = (prod: any) => {
+        if (!isLoggedIn) {
+            setGoogleLoginReason('pesanan');
+            setPendingLoginAction({ type: 'navigate', payload: 'orders' });
+            setIsGoogleLoginModalOpen(true);
+            triggerToast('🔒 Silakan login dengan Google terlebih dahulu untuk membeli ikan');
+            return;
+        }
         const oxygenCost = 150000;
         const courierCost = 200000;
         const fee = 5000;
@@ -2560,20 +2688,8 @@ export default function AndroidKoiApp({
         return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
     };
 
-    // Navigation Helper
-    const navigateTo = (screen: ScreenType) => {
-        try {
-            window.history.pushState({ screen }, '', '');
-        } catch { }
-        setScreenStack((prev) => [...prev, screen]);
-        setCurrentScreen(screen);
-
-        const routerEl = document.getElementById('main-screen-router');
-        if (routerEl) {
-            routerEl.scrollTop = 0;
-        }
-
-        // sync bottom tab if relevant
+    // Sinkronisasi Bottom Tab sesuai layar yang aktif
+    const syncTabForScreen = (screen: ScreenType) => {
         if (screen === 'home') setActiveTab('home');
         else if (screen === 'categories') setActiveTab('categories');
         else if (screen === 'chat_list' || screen === 'chat_room') setActiveTab('chat');
@@ -2582,54 +2698,200 @@ export default function AndroidKoiApp({
         else if (screen === 'profile' || screen === 'merchant_add_koi' || screen === 'my_bids') setActiveTab('profile');
     };
 
-    const goBack = () => {
-        if (screenStack.length > 1) {
-            const newStack = [...screenStack];
-            newStack.pop();
-            const prevScreen = newStack[newStack.length - 1];
-            setScreenStack(newStack);
-            setCurrentScreen(prevScreen);
-            if (prevScreen === 'home') setActiveTab('home');
-            else if (prevScreen === 'favorite' || prevScreen === 'favorite_auction') setActiveTab('favorite');
-            else if (prevScreen === 'categories') setActiveTab('categories');
-            else if (prevScreen === 'chat_list' || prevScreen === 'chat_room') setActiveTab('chat');
-            else if (prevScreen === 'orders' || prevScreen === 'checkout_invoice' || prevScreen === 'wag_tracking' || prevScreen === 'order_detail') setActiveTab('orders');
-            else if (prevScreen === 'profile' || prevScreen === 'merchant_add_koi' || prevScreen === 'my_bids') setActiveTab('profile');
-        } else {
-            setCurrentScreen('home');
-            setActiveTab('home');
+    // Navigation Helper
+    const navigateTo = (screen: ScreenType) => {
+        if (screen === currentScreen) return;
+
+        // AUTH GUARD: Pesanan, Chat, dan Tawaran hanya bisa diakses ketika sudah login
+        if (!isLoggedIn) {
+            if (screen === 'orders' || screen === 'order_detail' || screen === 'checkout_invoice' || screen === 'wag_tracking') {
+                setGoogleLoginReason('pesanan');
+                setPendingLoginAction({ type: 'navigate', payload: screen });
+                setIsGoogleLoginModalOpen(true);
+                triggerToast('🔒 Silakan login dengan Google untuk mengakses Pesanan Saya');
+                return;
+            }
+            if (screen === 'chat_list' || screen === 'chat_room') {
+                setGoogleLoginReason('chat');
+                setPendingLoginAction({ type: 'navigate', payload: screen });
+                setIsGoogleLoginModalOpen(true);
+                triggerToast('🔒 Silakan login dengan Google untuk mengakses Chat');
+                return;
+            }
+            if (screen === 'my_bids' || screen === 'auction_detail') {
+                setGoogleLoginReason('tawaran');
+                setPendingLoginAction({ type: 'navigate', payload: screen });
+                setIsGoogleLoginModalOpen(true);
+                triggerToast('🔒 Silakan login dengan Google untuk mengecek tawaran lelang');
+                return;
+            }
+        }
+
+        try {
+            window.history.pushState({ screen, __koki_active: true }, '', '');
+        } catch { }
+
+        setScreenStack((prev) => {
+            if (screen === 'home') return ['home'];
+            return [...prev, screen];
+        });
+        setCurrentScreen(screen);
+        syncTabForScreen(screen);
+
+        const routerEl = document.getElementById('main-screen-router');
+        if (routerEl) {
+            routerEl.scrollTop = 0;
         }
     };
 
-    // Sinkronisasi tombol back browser / device gesture
-    useEffect(() => {
-        const handlePopState = () => {
-            if (screenStack.length > 1) {
-                const newStack = [...screenStack];
-                newStack.pop();
-                const prevScreen = newStack[newStack.length - 1];
-                setScreenStack(newStack);
-                setCurrentScreen(prevScreen);
-                if (prevScreen === 'home') setActiveTab('home');
-                else if (prevScreen === 'favorite' || prevScreen === 'favorite_auction') setActiveTab('favorite');
-                else if (prevScreen === 'categories') setActiveTab('categories');
-                else if (prevScreen === 'chat_list' || prevScreen === 'chat_room') setActiveTab('chat');
-                else if (prevScreen === 'orders' || prevScreen === 'checkout_invoice' || prevScreen === 'wag_tracking') setActiveTab('orders');
-                else if (prevScreen === 'profile' || prevScreen === 'merchant_add_koi' || prevScreen === 'my_bids') setActiveTab('profile');
+    // Fungsi untuk menutup modal / popup jika sedang terbuka
+    const closeAnyOpenModal = (): boolean => {
+        if (isFontSizeModalOpen) {
+            setIsFontSizeModalOpen(false);
+            return true;
+        }
+        if (isShareModalOpen) {
+            setIsShareModalOpen(false);
+            return true;
+        }
+        if (isBidConfirmModalOpen) {
+            setIsBidConfirmModalOpen(false);
+            return true;
+        }
+        if (isConfirmReceiveModalOpen) {
+            setIsConfirmReceiveModalOpen(false);
+            return true;
+        }
+        if (isAttachmentSheetOpen) {
+            setIsAttachmentSheetOpen(false);
+            return true;
+        }
+        if (isNegoModalOpen) {
+            setIsNegoModalOpen(false);
+            return true;
+        }
+        if (isGoogleLoginModalOpen) {
+            setIsGoogleLoginModalOpen(false);
+            return true;
+        }
+        if (isTopUpOpen) {
+            setIsTopUpOpen(false);
+            return true;
+        }
+        return false;
+    };
+
+    const lastBackPressTimeRef = useRef<number>(0);
+
+    // Penanganan Terpadu Tombol Back (Mencegah Keluar Aplikasi & Kembali ke Halaman Sebelumnya)
+    const handleBackAction = (): boolean => {
+        // 1. Jika ada popup modal / sheet yang terbuka, tutup dulu modalnya
+        if (closeAnyOpenModal()) {
+            return true;
+        }
+
+        // 2. Jika ada riwayat halaman sebelumnya di stack, kembali ke halaman sebelumnya
+        if (screenStack.length > 1) {
+            const newStack = [...screenStack];
+            newStack.pop();
+            const prevScreen = newStack[newStack.length - 1] || 'home';
+            setScreenStack(newStack);
+            setCurrentScreen(prevScreen);
+            syncTabForScreen(prevScreen);
+
+            const routerEl = document.getElementById('main-screen-router');
+            if (routerEl) routerEl.scrollTop = 0;
+            return true;
+        }
+
+        // 3. Jika sedang bukan di layar 'home' (misal di tab lain), arahkan kembali ke 'home'
+        if (currentScreen !== 'home') {
+            setCurrentScreen('home');
+            setActiveTab('home');
+            setScreenStack(['home']);
+
+            const routerEl = document.getElementById('main-screen-router');
+            if (routerEl) routerEl.scrollTop = 0;
+            return true;
+        }
+
+        // 4. Sudah berada di halaman 'home' (layar utama):
+        // Jangan langsung keluar aplikasi, tampilkan konfirmasi double-tap back
+        const now = Date.now();
+        if (now - lastBackPressTimeRef.current < 2000) {
+            if (typeof window !== 'undefined' && (window as any).AndroidGoogleBridge?.exitApp) {
+                (window as any).AndroidGoogleBridge.exitApp();
+                return true;
             }
+            return false;
+        } else {
+            lastBackPressTimeRef.current = now;
+            triggerToast('Tekan sekali lagi untuk keluar dari aplikasi');
+            return true;
+        }
+    };
+
+    const goBack = () => {
+        handleBackAction();
+    };
+
+    const handleBackActionRef = useRef(handleBackAction);
+    useEffect(() => {
+        handleBackActionRef.current = handleBackAction;
+    });
+
+    // Daftarkan listener global ke window untuk dipanggil oleh Native Android (MainActivity OnBackPressed)
+    useEffect(() => {
+        (window as any).__handleAndroidBack = () => {
+            return handleBackActionRef.current();
+        };
+        return () => {
+            delete (window as any).__handleAndroidBack;
+        };
+    }, []);
+
+    // Sinkronisasi tombol back browser / device gesture / popstate
+    useEffect(() => {
+        try {
+            if (!window.history.state || !window.history.state.__koki_active) {
+                window.history.replaceState({ __koki_active: true, screen: currentScreen }, '', '');
+                window.history.pushState({ __koki_active: true, screen: currentScreen }, '', '');
+            }
+        } catch { }
+
+        const handlePopState = () => {
+            try {
+                window.history.pushState({ __koki_active: true, screen: currentScreen }, '', '');
+            } catch { }
+
+            handleBackActionRef.current();
         };
 
         window.addEventListener('popstate', handlePopState);
         return () => window.removeEventListener('popstate', handlePopState);
-    }, [screenStack]);
+    }, [currentScreen]);
 
     const handleTabClick = (tab: 'home' | 'categories' | 'chat' | 'favorite' | 'orders' | 'profile') => {
-        // Intercept jika belum login dengan Google untuk tab Favorit & Chat
-        if ((tab === 'favorite' || tab === 'chat') && !isLoggedIn) {
-            setGoogleLoginReason(tab === 'favorite' ? 'favorit' : 'chat');
-            setPendingLoginAction({ type: 'navigate', payload: tab === 'favorite' ? 'favorite' : 'chat_list' });
+        // Intercept jika belum login dengan Google untuk tab Favorit, Chat, & Pesanan
+        if (tab === 'favorite' && !isLoggedIn) {
+            setGoogleLoginReason('favorit');
+            setPendingLoginAction({ type: 'navigate', payload: 'favorite' });
             setIsGoogleLoginModalOpen(true);
-            triggerToast(`🔒 Silakan login dengan Google terlebih dahulu untuk mengakses menu ${tab === 'favorite' ? 'Favorit' : 'Chat'}`);
+            triggerToast('🔒 Silakan login dengan Google terlebih dahulu untuk mengakses menu Favorit');
+            return;
+        }
+        if (tab === 'chat' && !isLoggedIn) {
+            setGoogleLoginReason('chat');
+            setPendingLoginAction({ type: 'navigate', payload: 'chat_list' });
+            setIsGoogleLoginModalOpen(true);
+            triggerToast('🔒 Silakan login dengan Google terlebih dahulu untuk mengakses menu Chat');
+            return;
+        }
+        if (tab === 'orders' && !isLoggedIn) {
+            setGoogleLoginReason('pesanan');
+            setPendingLoginAction({ type: 'navigate', payload: 'orders' });
+            setIsGoogleLoginModalOpen(true);
+            triggerToast('🔒 Silakan login dengan Google terlebih dahulu untuk mengakses menu Pesanan Saya');
             return;
         }
 
@@ -2708,6 +2970,9 @@ export default function AndroidKoiApp({
     const handleLogout = () => {
         setFavoritesList([]);
         setChatThreads([]);
+        setOrdersList([]);
+        setUserBids([]);
+        setActiveThreadId('');
         router.post('/logout');
     };
 
@@ -2743,7 +3008,7 @@ export default function AndroidKoiApp({
             name: prod?.name || 'Ikan Koi Pilihan',
             size: `${prod?.size || '75 cm'}`,
             price: Number(prod?.price || prod?.grandTotal || 12855000),
-            image: prod?.images?.[0] || prod?.image || 'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=500&auto=format&fit=crop',
+            image: prod?.images?.[0] || prod?.image || '/images/koi/kohaku.jpg',
             store: storeName
         };
 
@@ -2756,7 +3021,7 @@ export default function AndroidKoiApp({
             const newThread: ChatThread = {
                 id: targetUserId,
                 name: storeName,
-                avatar: prod?.images?.[0] || 'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=200&auto=format&fit=crop',
+                avatar: prod?.images?.[0] || '/images/koi/kohaku.jpg',
                 type: 'merchant',
                 role: `Mitra Peternak • ${prod?.city || 'Blitar'}`,
                 isOnline: true,
@@ -2892,11 +3157,25 @@ export default function AndroidKoiApp({
 
     // Bid Action: Buka Notifikasi / Dialog Konfirmasi untuk Memastikan Pembeli Serius Menawar
     const handleRequestBid = (incrementAmount?: number) => {
+        if (!isLoggedIn) {
+            setGoogleLoginReason('tawaran');
+            setIsGoogleLoginModalOpen(true);
+            triggerToast('🔒 Silakan login dengan Google terlebih dahulu untuk memasang tawaran');
+            return;
+        }
+
+        // Cek Status Pendaftaran Peserta Lelang (Pengganti E-Wallet)
+        if (!isRegisteredParticipant) {
+            triggerToast('⚠️ Pendaftaran Diperlukan! Bayar biaya pendaftaran peserta lelang (Rp 250.000) untuk mulai menawar.');
+            setIsTopUpOpen(true);
+            return;
+        }
+
         const rawCustom = customBidInput.replace(/[^0-9]/g, '');
         const amountToAdd = incrementAmount || (rawCustom ? Number(rawCustom) : 0);
 
         if (!incrementAmount && !amountToAdd) {
-            triggerToast('Silakan pilih opsi kenaikan cepat atau masukkan nominal tawaran');
+            triggerToast('Silakan pilih kelipatan bid (+500rb / +1jt) atau masukkan nominal tawaran');
             return;
         }
 
@@ -2907,9 +3186,10 @@ export default function AndroidKoiApp({
             return;
         }
 
-        if (userWallet < 500000) {
-            triggerToast('Saldo jaminan lelang minimal Rp 500.000. Silakan Top Up dompet terlebih dahulu.');
-            setIsTopUpOpen(true);
+        // Validasi Kelipatan Bid (KB) resmi platform: kelipatan 500.000 dan 1.000.000
+        const diff = newBid - liveAuction.currentBid;
+        if (diff % 500000 !== 0) {
+            triggerToast('⚠️ Kelipatan Bid (KB) resmi platform adalah Rp 500.000 atau Rp 1.000.000!');
             return;
         }
 
@@ -2935,37 +3215,46 @@ export default function AndroidKoiApp({
             highestBidder: bidderName,
             history: [
                 { user: bidderName, amount: bidToSave, time: 'Baru saja' },
-                ...prev.history
+                ...(prev.history || [])
             ]
         }));
+
+        const updatedItem: UserBidItem = {
+            id: targetAuctionId,
+            auctionId: targetAuctionId,
+            name: liveAuction.name,
+            size: liveAuction.size,
+            variety: liveAuction.name.split(' ')[0] || 'Kohaku',
+            store: 'Koki Nishikigoi Official Gallery',
+            image: liveAuction.image,
+            currentBid: bidToSave,
+            myBid: bidToSave,
+            highestBidder: `${userName} (Anda)`,
+            isLeading: true,
+            status: 'leading',
+            isEnded: false,
+            bidsCount: ((liveAuction as any).history?.length || 0) + 1,
+            timeLeft: 'Berakhir 7 hari lagi',
+            updatedAt: 'Baru saja',
+            auctionRaw: (liveAuction as any).auctionRaw || liveAuction
+        };
+
         setUserBids(prev => {
             const exists = prev.findIndex(b => Number(b.auctionId) === Number(targetAuctionId));
-            const updatedItem: UserBidItem = {
-                id: targetAuctionId,
-                auctionId: targetAuctionId,
-                name: liveAuction.name,
-                size: liveAuction.size,
-                variety: liveAuction.name.split(' ')[0] || 'Kohaku',
-                store: 'Lapak Mitra Peternak',
-                image: liveAuction.image,
-                currentBid: bidToSave,
-                myBid: bidToSave,
-                highestBidder: `${userName} (Anda)`,
-                isLeading: true,
-                status: 'leading',
-                isEnded: false,
-                bidsCount: ((liveAuction as any).history?.length || 0) + 1,
-                timeLeft: 'Berakhir 30 Sep 2026',
-                updatedAt: 'Baru saja',
-                auctionRaw: (liveAuction as any).auctionRaw || liveAuction
-            };
+            let nextList: UserBidItem[];
             if (exists >= 0) {
-                const nextList = [...prev];
+                nextList = [...prev];
                 nextList[exists] = updatedItem;
-                return nextList;
+            } else {
+                nextList = [updatedItem, ...prev];
             }
-            return [updatedItem, ...prev];
+            const storageKey = authUser?.id ? `koimart_bids_user_${authUser.id}` : 'koimart_bids_guest';
+            try {
+                localStorage.setItem(storageKey, JSON.stringify(nextList));
+            } catch { }
+            return nextList;
         });
+
         setCustomBidInput('');
         setIsBidConfirmModalOpen(false);
 
@@ -2982,7 +3271,8 @@ export default function AndroidKoiApp({
                     'X-CSRF-TOKEN': csrfToken,
                 },
                 body: JSON.stringify({
-                    amount: bidToSave
+                    amount: bidToSave,
+                    user_id: authUser?.id || undefined,
                 })
             });
 
@@ -3001,6 +3291,8 @@ export default function AndroidKoiApp({
                     }));
                 }
                 triggerToast(`🎉 Berhasil menawar Rp ${bidToSave.toLocaleString('id-ID')} & tersimpan di database!`);
+                // Muat ulang daftar tawaran terbaru dari server
+                fetchUserBids();
             } else {
                 const errData = await response.json().catch(() => null);
                 const errMsg = errData?.message || 'Gagal menyimpan penawaran ke database.';
@@ -3008,7 +3300,7 @@ export default function AndroidKoiApp({
             }
         } catch (error) {
             console.error('Error saat menyimpan bid ke database:', error);
-            triggerToast(`🎉 Tawaran Rp ${bidToSave.toLocaleString('id-ID')} dicatat!`);
+            triggerToast(`🎉 Tawaran Rp ${bidToSave.toLocaleString('id-ID')} tersimpan!`);
         }
     };
 
@@ -3039,11 +3331,22 @@ export default function AndroidKoiApp({
         }
     };
 
-    // Top up wallet
+    // Pendaftaran Peserta Lelang Resmi (Biaya Pendaftaran Rp 250.000)
+    const handleConfirmRegistration = () => {
+        setIsRegisteredParticipant(true);
+        try {
+            const key = authUser?.id ? `koimart_registered_bidder_${authUser.id}` : 'koimart_registered_bidder_guest';
+            localStorage.setItem(key, 'true');
+        } catch { }
+        setIsTopUpOpen(false);
+        triggerToast('🎉 Selamat! Biaya pendaftaran berhasil diverifikasi. Anda resmi terdaftar sebagai Peserta Lelang Koi Premium.');
+    };
+
+    // Backward-compatible Top up wallet handler
     const handleTopUp = (amount: number) => {
         setUserWallet(prev => prev + amount);
         setIsTopUpOpen(false);
-        triggerToast(`✨ Top Up Saldo Rp ${amount.toLocaleString('id-ID')} Berhasil!`);
+        triggerToast(`✨ Biaya Pendaftaran / Jaminan Rp ${amount.toLocaleString('id-ID')} Berhasil Dikonfirmasi!`);
     };
 
     // Handler Share Sosial Media
@@ -3128,9 +3431,9 @@ export default function AndroidKoiApp({
 
     return (
         <div className="relative min-h-screen bg-slate-950 flex justify-center items-center py-0 sm:py-6 select-none font-sans">
-            {/* Scoped CSS Rule: Memperbesar Ukuran Tulisan & Kontras Tajam untuk Pengguna Lansia (Aki-Aki) */}
+            {/* Scoped CSS Rule: Memperbesar Ukuran Tulisan & Kontras Tajam */}
             <style>{`
-                /* MODE BESAR (RAMAH LANSIA - DEFAULT AKTIF) */
+                /* MODE BESAR */
                 .font-scale-large .text-\\[8px\\], .font-scale-large .text-\\[9px\\] { font-size: 11.5px !important; line-height: 1.35 !important; }
                 .font-scale-large .text-\\[10px\\] { font-size: 13px !important; line-height: 1.35 !important; }
                 .font-scale-large .text-\\[11px\\] { font-size: 14px !important; line-height: 1.4 !important; }
@@ -3141,7 +3444,7 @@ export default function AndroidKoiApp({
                 .font-scale-large .text-xl { font-size: 24px !important; }
                 .font-scale-large .text-2xl { font-size: 27px !important; }
 
-                /* MODE SANGAT BESAR (SUPER JELAS / RABUN DEKAT) */
+                /* MODE SANGAT BESAR */
                 .font-scale-xlarge .text-\\[8px\\], .font-scale-xlarge .text-\\[9px\\] { font-size: 13px !important; line-height: 1.35 !important; }
                 .font-scale-xlarge .text-\\[10px\\] { font-size: 14.5px !important; line-height: 1.4 !important; }
                 .font-scale-xlarge .text-\\[11px\\] { font-size: 15.5px !important; line-height: 1.4 !important; }
@@ -3152,13 +3455,13 @@ export default function AndroidKoiApp({
                 .font-scale-xlarge .text-xl { font-size: 26px !important; }
                 .font-scale-xlarge .text-2xl { font-size: 30px !important; }
 
-                /* KONTRAST TEKS TAJAM UNTUK MATA LANSIA */
+                /* KONTRAST TEKS TAJAM */
                 .font-scale-large .text-slate-400, .font-scale-xlarge .text-slate-400 { color: #475569 !important; }
                 .font-scale-large .text-slate-500, .font-scale-xlarge .text-slate-500 { color: #334155 !important; font-weight: 500 !important; }
                 .font-scale-large .text-slate-600, .font-scale-xlarge .text-slate-600 { color: #1e293b !important; font-weight: 600 !important; }
             `}</style>
 
-            {/* ANDROID DEVICE WRAPPER (Mobile width container with Android aesthetics & Senior-Friendly Typography) */}
+            {/* ANDROID DEVICE WRAPPER (Mobile width container with Android aesthetics) */}
             <div className={`w-full sm:max-w-[420px] h-[100dvh] sm:h-[892px] sm:max-h-[92vh] bg-white sm:rounded-[40px] shadow-2xl overflow-hidden flex flex-col relative border-0 sm:border-[8px] sm:border-slate-800 font-scale-${fontSizeScale}`}>
 
                 {/* TOAST NOTIFICATION POPUP */}
@@ -3185,7 +3488,7 @@ export default function AndroidKoiApp({
                             {/* Background Koi Image with Dark Gradient Overlay */}
                             <div className="absolute inset-0">
                                 <img
-                                    src="https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=1000&auto=format&fit=crop"
+                                    src="/images/koi/kohaku.jpg"
                                     alt="Koi Background"
                                     className="w-full h-full object-cover opacity-60"
                                 />
@@ -3285,11 +3588,11 @@ export default function AndroidKoiApp({
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-1.5">
-                                    {/* Tombol Ukuran Huruf Cepat (Mode Ramah Lansia / Aki-Aki) */}
+                                    {/* Tombol Ukuran Huruf Cepat */}
                                     <button
                                         onClick={() => setIsFontSizeModalOpen(true)}
                                         className="px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-900 rounded-full border border-amber-300 flex items-center gap-1 transition-all active:scale-95 shadow-2xs"
-                                        title="Ubah Ukuran Tulisan (Mode Ramah Lansia)"
+                                        title="Ubah Ukuran Tulisan"
                                     >
                                         <span className="text-xs font-black bg-amber-600 text-white rounded-md px-1 py-0.2">A⁺</span>
                                         <span className="text-[11px] font-extrabold text-amber-900">Huruf</span>
@@ -3356,7 +3659,7 @@ export default function AndroidKoiApp({
                                         </button>
                                     </div>
                                     <img
-                                        src="https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=500&auto=format&fit=crop"
+                                        src="/images/koi/kohaku.jpg"
                                         alt="Koi Banner"
                                         className="absolute -right-6 -bottom-6 w-44 h-44 object-cover rotate-12 drop-shadow-2xl opacity-90 rounded-full"
                                     />
@@ -3388,15 +3691,7 @@ export default function AndroidKoiApp({
                                     </button>
 
                                     {dynamicCategories.map((cat) => {
-                                        let shortName = cat.name;
-                                        if (/seafood|laut/i.test(cat.name)) shortName = 'Seafood';
-                                        else if (/air tawar/i.test(cat.name)) shortName = 'Air Tawar';
-                                        else if (/hias/i.test(cat.name)) shortName = 'Ikan Hias';
-                                        else if (/olahan|frozen/i.test(cat.name)) shortName = 'Olahan';
-                                        else if (/pakan|bibit/i.test(cat.name)) shortName = 'Pakan';
-                                        else if (/koi/i.test(cat.name)) shortName = 'Ikan Koi';
-                                        else shortName = cat.name.replace(/^Ikan\s+/i, '').split('&')[0].trim();
-
+                                        const shortName = cat.name.replace(/^(Ikan\s+|Koi\s+)/i, '').split('&')[0].trim();
                                         const isSelected = selectedCategoryPill === cat.name;
 
                                         return (
@@ -3415,7 +3710,7 @@ export default function AndroidKoiApp({
                                                         alt={cat.name}
                                                         className="w-full h-full object-cover rounded-xl"
                                                         onError={(e) => {
-                                                            (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=500&auto=format&fit=crop';
+                                                            (e.target as HTMLImageElement).src = '/images/koi/kohaku.jpg';
                                                         }}
                                                     />
                                                 </div>
@@ -3486,7 +3781,7 @@ export default function AndroidKoiApp({
 
                                         <div className="flex items-center gap-1.5 shrink-0">
                                             <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-extrabold border border-emerald-200/70 whitespace-nowrap">
-                                                {userBids.length} Lelang
+                                                {isLoggedIn ? `${userBids.length} Lelang` : 'Kunci (Login)'}
                                             </span>
                                             <div className="w-7 h-7 rounded-full bg-white border border-emerald-200/80 text-emerald-700 flex items-center justify-center shadow-2xs group-hover:bg-emerald-50 group-hover:translate-x-0.5 transition-all">
                                                 <ChevronRight className="w-4 h-4" />
@@ -3597,82 +3892,84 @@ export default function AndroidKoiApp({
                                     </div>
                                 </div>
 
-                                {/* Section: Toko & Farm Mitra Resmi (10 Toko) */}
+                                {/* Section: Galeri & Farm Resmi (Single Owner Showroom) */}
                                 <div>
                                     <div className="flex justify-between items-center mb-2.5">
                                         <div>
                                             <div className="flex items-center gap-1.5">
-                                                <h3 className="font-bold text-sm text-slate-900">Farm & Toko Mitra</h3>
-                                                <span className="text-[10px] font-bold px-2 py-0.5 bg-red-100 text-red-700 rounded-full">
-                                                    10 Toko
+                                                <h3 className="font-bold text-sm text-slate-900">Galeri & Farm Resmi Kami</h3>
+                                                <span className="text-[10px] font-bold px-2 py-0.5 bg-red-100 text-red-700 rounded-full flex items-center gap-1">
+                                                    <Crown className="w-2.5 h-2.5" />
+                                                    Official Owner
                                                 </span>
                                             </div>
-                                            <p className="text-[10px] text-slate-500 mt-0.5">Penjual terverifikasi & bergaransi karantina</p>
+                                            <p className="text-[10px] text-slate-500 mt-0.5">Koleksi Eksklusif Satu Pemilik • Show Grade & Bloodline Jepang</p>
                                         </div>
-                                        {selectedStoreFilter !== 'Semua' && (
-                                            <button
-                                                onClick={() => {
-                                                    setSelectedStoreFilter('Semua');
-                                                    triggerToast('Menampilkan semua toko');
-                                                }}
-                                                className="text-[11px] font-semibold text-red-600 hover:text-red-700"
-                                            >
-                                                Reset
-                                            </button>
-                                        )}
+                                        <button
+                                            onClick={() => {
+                                                setSelectedStore(OFFICIAL_KOI_GALLERY);
+                                                setStoreActiveTab('gallery');
+                                                navigateTo('store_gallery');
+                                            }}
+                                            className="text-[11px] font-bold text-red-600 hover:text-red-700 flex items-center gap-0.5"
+                                        >
+                                            <span>Fasilitas Farm</span>
+                                            <ChevronRight className="w-3.5 h-3.5" />
+                                        </button>
                                     </div>
 
-                                    {/* Horizontal Scroll of 10 Stores */}
-                                    <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-none -mx-1 px-1">
-                                        {INITIAL_STORES.map((st) => (
-                                            <div
-                                                key={st.id}
-                                                onClick={() => {
-                                                    setSelectedStore(st);
-                                                    setStoreActiveTab('gallery');
-                                                    navigateTo('store_gallery');
-                                                }}
-                                                className="w-[205px] shrink-0 rounded-2xl p-3 border transition-all cursor-pointer flex flex-col justify-between group bg-white border-slate-100 shadow-xs hover:border-red-300 hover:shadow-md active:scale-98"
-                                            >
-                                                <div>
-                                                    <div className="flex items-center gap-2.5">
-                                                        <img
-                                                            src={st.image}
-                                                            alt={st.name}
-                                                            className="w-10 h-10 rounded-xl object-cover border border-slate-100 shadow-2xs shrink-0 group-hover:scale-105 transition-transform"
-                                                        />
-                                                        <div className="min-w-0 flex-1">
-                                                            <div className="flex items-center gap-1">
-                                                                <h4 className="font-bold text-xs text-slate-900 truncate group-hover:text-red-600 transition-colors">{st.name}</h4>
-                                                                {st.isVerified && (
-                                                                    <CheckCircle2 className="w-3.5 h-3.5 text-blue-500 fill-blue-50 shrink-0" />
-                                                                )}
-                                                            </div>
-                                                            <div className="flex items-center gap-1 text-[10px] text-slate-500 truncate mt-0.5">
-                                                                <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
-                                                                <span className="truncate">{st.city}</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    <p className="text-[10px] text-slate-500 mt-2 line-clamp-2 leading-relaxed">
-                                                        {st.description}
-                                                    </p>
+                                    {/* Exclusive Single Gallery Card */}
+                                    <div
+                                        onClick={() => {
+                                            setSelectedStore(OFFICIAL_KOI_GALLERY);
+                                            setStoreActiveTab('gallery');
+                                            navigateTo('store_gallery');
+                                        }}
+                                        className="rounded-2xl p-3.5 border transition-all cursor-pointer bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white shadow-md hover:shadow-lg border-slate-700 active:scale-99"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <img
+                                                src={OFFICIAL_KOI_GALLERY.image}
+                                                alt={OFFICIAL_KOI_GALLERY.name}
+                                                className="w-14 h-14 rounded-2xl object-cover border-2 border-red-500/50 shadow-md shrink-0"
+                                            />
+                                            <div className="min-w-0 flex-1">
+                                                <div className="flex items-center gap-1.5">
+                                                    <h4 className="font-bold text-sm text-white truncate">{OFFICIAL_KOI_GALLERY.name}</h4>
+                                                    <CheckCircle2 className="w-4 h-4 text-emerald-400 fill-emerald-950 shrink-0" />
                                                 </div>
-
-                                                <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-[10px]">
-                                                    <div className="flex items-center gap-1 text-amber-500 font-bold">
+                                                <p className="text-[11px] text-slate-300 line-clamp-1 mt-0.5">
+                                                    {OFFICIAL_KOI_GALLERY.speciality}
+                                                </p>
+                                                <div className="flex items-center gap-3 text-[10px] text-slate-400 mt-1">
+                                                    <span className="flex items-center gap-1">
+                                                        <MapPin className="w-3 h-3 text-red-400 shrink-0" />
+                                                        {OFFICIAL_KOI_GALLERY.city}
+                                                    </span>
+                                                    <span className="flex items-center gap-1 text-amber-400 font-bold">
                                                         <Star className="w-3 h-3 fill-amber-400" />
-                                                        <span>{st.rating}</span>
-                                                        <span className="text-slate-400 font-normal">({st.reviewsCount})</span>
-                                                    </div>
-                                                    <span className="px-2 py-0.5 rounded-full font-semibold text-[9px] bg-red-50 text-red-600 border border-red-200 group-hover:bg-red-600 group-hover:text-white transition-colors flex items-center gap-1">
-                                                        <Camera className="w-2.5 h-2.5" />
-                                                        <span>Buka Galeri</span>
+                                                        5.0 (480+ Ulasan)
                                                     </span>
                                                 </div>
                                             </div>
-                                        ))}
+                                        </div>
+
+                                        <div className="mt-3 pt-2.5 border-t border-slate-700/80 flex items-center justify-between text-[11px]">
+                                            <div className="flex items-center gap-1.5 text-emerald-400 font-medium text-[10px]">
+                                                <ShieldCheck className="w-3.5 h-3.5" />
+                                                <span>Sertifikat ZNA & APKI Resmi</span>
+                                            </div>
+                                            <a
+                                                href="https://wa.me/6281288881001?text=Halo%20Owner%20Koki%20Nishikigoi,%20saya%20tertarik%20dengan%20koleksi%20ikan%20koi%20Anda."
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                onClick={(e) => e.stopPropagation()}
+                                                className="px-3 py-1 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[10px] shadow-sm flex items-center gap-1 transition"
+                                            >
+                                                <MessageCircle className="w-3 h-3" />
+                                                <span>WhatsApp Owner</span>
+                                            </a>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -3786,7 +4083,7 @@ export default function AndroidKoiApp({
                     {/* SCREEN: KERANJANG BELANJA (CART & UNPAID ITEMS)                          */}
                     {/* ========================================================================= */}
                     {currentScreen === 'cart' && (
-                        <div className="flex-1 flex flex-col bg-slate-50 relative pb-28">
+                        <div className="flex-1 flex flex-col bg-slate-50 relative pb-[140px]">
                             {/* Top Bar Header */}
                             <div className="px-4 py-3 bg-white border-b border-slate-100 flex items-center justify-between sticky top-0 z-20 shadow-2xs">
                                 <div className="flex items-center gap-3">
@@ -3951,7 +4248,7 @@ export default function AndroidKoiApp({
 
                             {/* Bottom Fixed Checkout Bar (if cart has items) */}
                             {cartItems.length > 0 && (
-                                <div className="absolute bottom-0 left-0 right-0 p-3.5 bg-white border-t border-slate-200/90 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] flex items-center justify-between z-30">
+                                <div className="absolute bottom-[70px] left-0 right-0 p-3.5 bg-white border-t border-slate-200/90 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] flex items-center justify-between z-30">
                                     <div className="flex items-center gap-2">
                                         <button
                                             onClick={handleToggleSelectAllCart}
@@ -4135,7 +4432,7 @@ export default function AndroidKoiApp({
                                         <Heart className="w-4 h-4 text-red-400 fill-red-400" />
                                     </div>
                                     <img
-                                        src="https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=400&auto=format&fit=crop"
+                                        src="/images/koi/kohaku.jpg"
                                         alt="Koi"
                                         className="absolute -right-4 -bottom-4 w-28 h-28 object-cover rounded-full opacity-80"
                                     />
@@ -4262,7 +4559,7 @@ export default function AndroidKoiApp({
                                             <Heart className="w-4 h-4 text-white fill-white" />
                                         </div>
                                         <img
-                                            src="https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=400&auto=format&fit=crop"
+                                            src="/images/koi/kohaku.jpg"
                                             alt="Koi Banner"
                                             className="absolute -right-4 -bottom-4 w-28 h-28 object-cover rounded-full opacity-60 pointer-events-none"
                                         />
@@ -4311,7 +4608,7 @@ export default function AndroidKoiApp({
                                                         {/* Thumbnail with tags */}
                                                         <div className="relative aspect-[4/3] bg-slate-900 overflow-hidden">
                                                             <img
-                                                                src={prod.images?.[0] || 'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=500&auto=format&fit=crop'}
+                                                                src={prod.images?.[0] || '/images/koi/kohaku.jpg'}
                                                                 alt={prod.name}
                                                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                                             />
@@ -4508,7 +4805,7 @@ export default function AndroidKoiApp({
                     {/* SCREEN 6: DETAIL PRODUK KOI (DIRECT BUY)                                 */}
                     {/* ========================================================================= */}
                     {currentScreen === 'product_detail' && (
-                        <div className="flex-1 flex flex-col bg-white h-full relative">
+                        <div className="flex-1 flex flex-col bg-white h-full relative pb-[70px]">
                             {/* Floating Top Bar (Back, Title, Favorite, Share) */}
                             <div className="shrink-0 px-4 py-3 flex items-center justify-between bg-white border-b border-slate-100 z-20">
                                 <div className="flex items-center gap-2.5">
@@ -4851,7 +5148,7 @@ export default function AndroidKoiApp({
                                                     {/* Horizontal Scroll Koleksi Ikan Toko */}
                                                     <div className="flex gap-2.5 overflow-x-auto pb-1 no-scrollbar -mx-1 px-1">
                                                         {displayStoreProducts.map((p) => {
-                                                            const firstImg = p.images?.[0] || 'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=500&auto=format&fit=crop';
+                                                            const firstImg = p.images?.[0] || '/images/koi/kohaku.jpg';
                                                             return (
                                                                 <div
                                                                     key={`store-prod-${p.id}`}
@@ -4921,32 +5218,44 @@ export default function AndroidKoiApp({
                                 </div>
                             </div>
 
-                            {/* Bottom Fixed Action Bar - Rapi, Seimbang & Tanpa Tombol Chat */}
-                            <div className="shrink-0 p-3 bg-white border-t border-slate-100 shadow-[0_-4px_24px_rgba(0,0,0,0.06)] flex items-center gap-2.5 z-30">
+                            {/* Bottom Fixed Action Bar - Rapi dengan Integrasi WhatsApp Diler Resmi */}
+                            <div className="shrink-0 p-3 bg-white border-t border-slate-100 shadow-[0_-4px_24px_rgba(0,0,0,0.06)] flex items-center gap-2 z-30">
                                 <button
                                     onClick={() => toggleFavoriteProduct(selectedProduct.id)}
-                                    className={`w-11 h-11 shrink-0 rounded-xl border flex items-center justify-center transition active:scale-95 shadow-2xs ${favoritesList.includes(selectedProduct.id)
+                                    className={`w-10 h-10 shrink-0 rounded-xl border flex items-center justify-center transition active:scale-95 shadow-2xs ${favoritesList.includes(selectedProduct.id)
                                             ? 'border-red-400 bg-red-50 text-red-600 shadow-red-100'
                                             : 'border-slate-200 bg-slate-50/70 hover:bg-slate-100 text-slate-600'
                                         }`}
                                     title={favoritesList.includes(selectedProduct.id) ? 'Disimpan di Favorit' : 'Simpan ke Favorit'}
                                 >
-                                    <Heart className={`w-5 h-5 ${favoritesList.includes(selectedProduct.id) ? 'fill-red-500 text-red-500' : 'text-slate-500'}`} />
+                                    <Heart className={`w-4 h-4 ${favoritesList.includes(selectedProduct.id) ? 'fill-red-500 text-red-500' : 'text-slate-500'}`} />
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        const storePhone = INITIAL_STORES.find(s => s.name === selectedProduct.store)?.phone || '+62 812-8888-1001';
+                                        const msg = `Halo *${selectedProduct.store}*, saya melihat penawaran Ikan Koi Premium *${selectedProduct.name}* (${selectedProduct.size}) seharga Rp ${Number(selectedProduct.price).toLocaleString('id-ID')} di aplikasi KoiMart. Apakah ketersediaan dan sertifikat karantinanya siap dikirim?`;
+                                        openWhatsApp(storePhone, msg);
+                                    }}
+                                    className="py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold text-[11px] flex items-center justify-center gap-1.5 transition shadow-sm shadow-emerald-600/20 whitespace-nowrap cursor-pointer"
+                                    title="Hubungi Diler via WhatsApp"
+                                >
+                                    <MessageCircle className="w-4 h-4 shrink-0" />
+                                    <span>Chat WA</span>
                                 </button>
                                 <button
                                     onClick={() => handleAddToCart(selectedProduct)}
-                                    className="flex-1 py-3 px-3 rounded-xl border-2 border-red-500 bg-red-50/80 hover:bg-red-100 text-red-600 font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95 shadow-xs whitespace-nowrap"
+                                    className="flex-1 py-2.5 px-2.5 rounded-xl border-2 border-red-500 bg-red-50/80 hover:bg-red-100 text-red-600 font-bold text-[11px] flex items-center justify-center gap-1 transition active:scale-95 shadow-xs whitespace-nowrap cursor-pointer"
                                     title="Tambah ke Keranjang"
                                 >
-                                    <ShoppingCart className="w-4 h-4 text-red-600 shrink-0" />
+                                    <ShoppingCart className="w-3.5 h-3.5 text-red-600 shrink-0" />
                                     <span>+ Keranjang</span>
                                 </button>
                                 <button
                                     onClick={() => handleBuyNow(selectedProduct)}
-                                    className="flex-1 py-3 px-3 rounded-xl bg-gradient-to-r from-red-600 via-rose-600 to-red-600 hover:from-red-700 hover:to-rose-700 active:scale-95 text-white font-bold text-xs shadow-md shadow-red-500/25 flex items-center justify-center gap-1 transition whitespace-nowrap"
+                                    className="flex-1 py-2.5 px-2.5 rounded-xl bg-gradient-to-r from-red-600 via-rose-600 to-red-600 hover:from-red-700 hover:to-rose-700 active:scale-95 text-white font-bold text-[11px] shadow-md shadow-red-500/25 flex items-center justify-center gap-1 transition whitespace-nowrap cursor-pointer"
                                 >
-                                    <span>Beli Sekarang</span>
-                                    <ChevronRight className="w-4 h-4 shrink-0" />
+                                    <span>Beli</span>
+                                    <ChevronRight className="w-3.5 h-3.5 shrink-0" />
                                 </button>
                             </div>
                         </div>
@@ -4956,7 +5265,20 @@ export default function AndroidKoiApp({
                     {/* SCREEN 7: RUANG LELANG KOI LIVE (LIVE AUCTION ROOM)                      */}
                     {/* ========================================================================= */}
                     {currentScreen === 'auction_detail' && (
-                        <div className="flex-1 flex flex-col bg-white pb-6">
+                        !isLoggedIn ? (
+                            <LockedAccessCard
+                                title="Ruang Lelang Memerlukan Login"
+                                description="Untuk mengecek penawaran, riwayat bid penawar lain, dan memasang tawaran lelang, silakan masuk dengan akun Google Anda."
+                                icon={Gavel}
+                                onLoginClick={() => {
+                                    setGoogleLoginReason('tawaran');
+                                    setPendingLoginAction({ type: 'navigate', payload: 'auction_detail' });
+                                    setIsGoogleLoginModalOpen(true);
+                                }}
+                                onBackClick={goBack}
+                            />
+                        ) : (
+                        <div className="flex-1 flex flex-col bg-white pb-24">
                             {/* Header */}
                             <div className="sticky top-0 z-20 px-4 py-3 bg-white/95 backdrop-blur-md border-b border-slate-100 flex items-center justify-between shadow-xs">
                                 <div className="flex items-center gap-3">
@@ -5008,68 +5330,154 @@ export default function AndroidKoiApp({
 
                                 {/* Title & Specs */}
                                 <div>
-                                    <h3 className="text-base font-bold text-slate-900">{liveAuction.name}</h3>
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                                            liveAuction.dealerType === 'import' 
+                                                ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' 
+                                                : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                        }`}>
+                                            <Award className="w-3 h-3" />
+                                            <span>{liveAuction.dealerType === 'import' ? 'Koi Import Terverifikasi' : 'Koi Lokal APKI Terverifikasi'}</span>
+                                        </span>
+                                    </div>
+                                    <h3 className="text-base font-extrabold text-slate-900">{liveAuction.name}</h3>
                                     <p className="text-xs text-slate-500 mt-0.5">{liveAuction.size} | {liveAuction.age} | {liveAuction.gender}</p>
                                 </div>
 
+                                {/* Box Info OB (Ditentukan Seller) & KB (Ditentukan Platform 500rb / 1jt) */}
+                                <div className="grid grid-cols-2 gap-2.5 p-3.5 bg-gradient-to-br from-slate-50 to-slate-100/70 rounded-2xl border border-slate-200/80">
+                                    <div className="bg-white p-2.5 rounded-xl border border-slate-100 shadow-2xs">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Open Bid (OB)</span>
+                                            <span className="text-[9px] font-semibold text-slate-400">Oleh Seller</span>
+                                        </div>
+                                        <p className="text-sm font-black text-slate-900 mt-0.5">
+                                            Rp {(Number(liveAuction.startPrice) || 25000000).toLocaleString('id-ID')}
+                                        </p>
+                                    </div>
+                                    <div className="bg-white p-2.5 rounded-xl border border-red-100 shadow-2xs">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-[10px] font-bold text-red-600 uppercase tracking-wider">Kelipatan Bid (KB)</span>
+                                            <span className="text-[9px] font-semibold text-red-500">Platform</span>
+                                        </div>
+                                        <p className="text-sm font-black text-red-600 mt-0.5">
+                                            +500rb / +1jt
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* Verified Dealer Card & WhatsApp Contact */}
+                                <div className="p-3 bg-white rounded-2xl border border-slate-200 shadow-2xs flex items-center justify-between gap-3">
+                                    <div className="min-w-0">
+                                        <div className="flex items-center gap-1.5">
+                                            <StoreIcon className="w-3.5 h-3.5 text-slate-600 shrink-0" />
+                                            <span className="text-xs font-bold text-slate-900 truncate">{liveAuction.dealerName || 'Daisuke Nishikigoi Farm'}</span>
+                                            <CheckCircle2 className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                                        </div>
+                                        <p className="text-[10px] text-emerald-700 font-semibold truncate mt-0.5">
+                                            {liveAuction.dealerBadge || (liveAuction.dealerType === 'import' ? 'Diler Import Niigata Terverifikasi' : 'Breeder Lokal APKI Terverifikasi')}
+                                        </p>
+                                    </div>
+                                    <button
+                                        onClick={() => {
+                                            const msg = `Halo *${liveAuction.dealerName || 'Diler Koi'}*, saya sedang memantau lelang Koi Premium *${liveAuction.name}* (OB: Rp ${(Number(liveAuction.startPrice) || 25000000).toLocaleString('id-ID')}). Bisakah saya konsultasi sertifikat dan kondisi terkini ikan?`;
+                                            openWhatsApp(liveAuction.dealerPhone, msg);
+                                        }}
+                                        className="py-1.5 px-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 text-[11px] font-bold flex items-center gap-1 shrink-0 transition active:scale-95 cursor-pointer"
+                                        title="Chat WhatsApp Diler"
+                                    >
+                                        <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
+                                        <span>Tanya WA</span>
+                                    </button>
+                                </div>
+
                                 {/* Bidding Summary Box */}
-                                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 grid grid-cols-2 gap-4">
+                                <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white shadow-md border border-slate-700 grid grid-cols-2 gap-4">
                                     <div>
-                                        <p className="text-[10px] text-slate-400 font-medium">Harga Saat Ini</p>
-                                        <p className="text-base font-extrabold text-red-600 mt-0.5">
+                                        <p className="text-[10px] text-slate-300 font-medium uppercase tracking-wider">Harga Tawaran Saat Ini</p>
+                                        <p className="text-lg font-black text-amber-400 mt-0.5">
                                             Rp {(Number(liveAuction.currentBid) || 0).toLocaleString('id-ID')}
                                         </p>
                                     </div>
                                     <div>
-                                        <p className="text-[10px] text-slate-400 font-medium">Penawar Tertinggi</p>
+                                        <p className="text-[10px] text-slate-300 font-medium uppercase tracking-wider">Penawar Tertinggi</p>
                                         <div className="flex items-center gap-1.5 mt-1">
-                                            <div className="w-5 h-5 rounded-full bg-slate-300 flex items-center justify-center text-[10px] font-bold text-slate-700">
+                                            <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center text-[10px] font-bold text-white">
                                                 {(liveAuction.highestBidder || 'K').charAt(0)}
                                             </div>
-                                            <span className="text-xs font-bold text-slate-800 truncate">{liveAuction.highestBidder || 'Kolektor'}</span>
+                                            <span className="text-xs font-bold text-white truncate">{liveAuction.highestBidder || 'Kolektor'}</span>
                                         </div>
                                     </div>
                                 </div>
 
-                                {/* Bidding Controls */}
-                                <div className="space-y-3">
-                                    <p className="text-xs font-bold text-slate-800">Masukkan Tawaran</p>
+                                {/* Status Peserta Lelang / Warning Registrasi */}
+                                {!isRegisteredParticipant && (
+                                    <div className="p-3 bg-amber-50 rounded-2xl border border-amber-200 flex items-center justify-between gap-3 text-xs">
+                                        <div className="flex items-center gap-2">
+                                            <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                                            <div>
+                                                <p className="font-bold text-amber-900 text-[11px]">Belum Terdaftar Peserta Lelang</p>
+                                                <p className="text-[10px] text-amber-700 leading-tight">Bayar biaya pendaftaran Rp 250.000 untuk menawar</p>
+                                            </div>
+                                        </div>
+                                        <button
+                                            onClick={() => setIsTopUpOpen(true)}
+                                            className="px-2.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold text-[10px] rounded-xl shrink-0 shadow-xs cursor-pointer active:scale-95"
+                                        >
+                                            Daftar Sekarang
+                                        </button>
+                                    </div>
+                                )}
 
-                                    {/* Quick Increment Chips */}
-                                    <div className="grid grid-cols-3 gap-2">
+                                {/* Bidding Controls (KB Ditentukan Platform: Kelipatan 500rb dan 1jt) */}
+                                <div className="space-y-3">
+                                    <div className="flex items-center justify-between">
+                                        <p className="text-xs font-bold text-slate-800">Pilih Kelipatan Bid (KB Resmi):</p>
+                                        <span className="text-[10px] text-slate-400 font-medium">Platform Standard</span>
+                                    </div>
+
+                                    {/* Quick Increment Chips: HANYA 500rb dan 1jt */}
+                                    <div className="grid grid-cols-2 gap-2.5">
                                         {[
-                                            { label: '+ 500rb', val: 500000 },
-                                            { label: '+ 1jt', val: 1000000 },
-                                            { label: '+ 2jt', val: 2000000 }
+                                            { label: '+ Rp 500.000', val: 500000, desc: 'Kelipatan Standard' },
+                                            { label: '+ Rp 1.000.000', val: 1000000, desc: 'Kelipatan Jumbo' }
                                         ].map((chip) => (
                                             <button
                                                 key={chip.val}
                                                 onClick={() => handleRequestBid(chip.val)}
-                                                className="py-2 px-3 rounded-full border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs shadow-sm active:scale-95 transition-all text-center cursor-pointer"
+                                                className="py-2.5 px-3 rounded-2xl border-2 border-red-500/80 bg-red-50/50 hover:bg-red-100 text-red-700 font-extrabold text-xs shadow-xs active:scale-95 transition-all text-center cursor-pointer flex flex-col items-center justify-center gap-0.5"
                                             >
-                                                {chip.label}
+                                                <span>{chip.label}</span>
+                                                <span className="text-[9px] font-normal text-red-500/80">{chip.desc}</span>
                                             </button>
                                         ))}
                                     </div>
 
-                                    {/* Custom Bid Input */}
-                                    <div className="relative">
-                                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">Rp</span>
-                                        <input
-                                            type="number"
-                                            placeholder="Masukkan nominal"
-                                            value={customBidInput}
-                                            onChange={(e) => setCustomBidInput(e.target.value)}
-                                            className="w-full pl-11 pr-4 py-2.5 rounded-full border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-red-500"
-                                        />
+                                    {/* Custom Bid Input (Wajib Kelipatan 500.000 / 1.000.000) */}
+                                    <div className="space-y-1">
+                                        <div className="relative">
+                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">Rp</span>
+                                            <input
+                                                type="number"
+                                                step="500000"
+                                                placeholder={`Minimal Rp ${(Number(liveAuction.currentBid) + 500000).toLocaleString('id-ID')} (Kelipatan 500rb)`}
+                                                value={customBidInput}
+                                                onChange={(e) => setCustomBidInput(e.target.value)}
+                                                className="w-full pl-11 pr-4 py-2.5 rounded-full border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-red-500"
+                                            />
+                                        </div>
+                                        <p className="text-[9px] text-slate-400 px-3">
+                                            * Nominal harus lebih tinggi dan merupakan kelipatan Rp 500.000 atau Rp 1.000.000
+                                        </p>
                                     </div>
 
                                     {/* Place Bid Button */}
                                     <button
                                         onClick={() => handleRequestBid()}
-                                        className="w-full py-3 bg-red-600 hover:bg-red-700 active:scale-[0.99] text-white font-bold text-xs rounded-full shadow-lg shadow-red-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                                        className="w-full py-3 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 active:scale-[0.99] text-white font-extrabold text-xs rounded-full shadow-lg shadow-red-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer"
                                     >
-                                        <span>Tawar Sekarang</span>
+                                        <Gavel className="w-4 h-4" />
+                                        <span>Pasang Tawaran Sekarang</span>
                                     </button>
                                 </div>
 
@@ -5182,6 +5590,7 @@ export default function AndroidKoiApp({
                                 })()}
                             </div>
                         </div>
+                        )
                     )}
 
                     {/* ========================================================================= */}
@@ -5266,17 +5675,31 @@ export default function AndroidKoiApp({
                                     </div>
                                 )}
 
-                                {/* Saldo Wallet Card (Navy Blue Gradient) */}
-                                <div className="p-4 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white shadow-xl border border-slate-800 flex items-center justify-between">
+                                {/* Status Pendaftaran Peserta Lelang Card (Pengganti E-Wallet) */}
+                                <div className={`p-4 rounded-2xl shadow-xl border flex items-center justify-between ${
+                                    isRegisteredParticipant 
+                                        ? 'bg-gradient-to-r from-emerald-950 via-slate-900 to-emerald-900 border-emerald-800 text-white' 
+                                        : 'bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 border-slate-800 text-white'
+                                }`}>
                                     <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-blue-400">
-                                            <Wallet className="w-5 h-5" />
+                                        <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${
+                                            isRegisteredParticipant ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-white/10 text-amber-400'
+                                        }`}>
+                                            <ShieldCheck className="w-6 h-6" />
                                         </div>
                                         <div>
-                                            <p className="text-[10px] text-slate-400">Saldo Wallet</p>
-                                            <h4 className="text-base font-extrabold text-white">
-                                                Rp {isLoggedIn ? userWallet.toLocaleString('id-ID') : '0'}
+                                            <div className="flex items-center gap-1.5">
+                                                <p className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Status Peserta Lelang</p>
+                                                {isRegisteredParticipant && (
+                                                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                                                )}
+                                            </div>
+                                            <h4 className="text-sm font-extrabold text-white mt-0.5">
+                                                {isRegisteredParticipant ? 'Terdaftar & Terverifikasi' : 'Belum Terdaftar (Biaya Rp 250.000)'}
                                             </h4>
+                                            <p className="text-[10px] text-slate-400 mt-0.5">
+                                                {isRegisteredParticipant ? 'Hak tawar lelang KOI PREMIUM aktif' : 'Wajib daftar untuk mengikuti tawaran'}
+                                            </p>
                                         </div>
                                     </div>
                                     <button
@@ -5288,9 +5711,13 @@ export default function AndroidKoiApp({
                                             }
                                             setIsTopUpOpen(true);
                                         }}
-                                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white text-xs font-bold rounded-xl shadow-md shadow-blue-600/30 transition-all"
+                                        className={`px-3.5 py-2 active:scale-95 text-xs font-bold rounded-xl transition-all shadow-md shrink-0 ${
+                                            isRegisteredParticipant 
+                                                ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/30' 
+                                                : 'bg-red-600 hover:bg-red-700 text-white shadow-red-600/30'
+                                        }`}
                                     >
-                                        Top Up
+                                        {isRegisteredParticipant ? 'Detail Akses' : 'Daftar Sekarang'}
                                     </button>
                                 </div>
 
@@ -5300,26 +5727,38 @@ export default function AndroidKoiApp({
                                         { 
                                             label: 'Hasil Tawaran Lelang Saya', 
                                             icon: Gavel, 
-                                            badge: `${userBids.length} Lelang`, 
+                                            badge: isLoggedIn ? `${userBids.length} Lelang` : 'Kunci (Login)', 
                                             badgeColor: 'bg-emerald-50 text-emerald-700 border border-emerald-200', 
                                             action: () => navigateTo('my_bids') 
                                         },
                                         { 
-                                            label: 'Ukuran Tulisan (Mode Ramah Lansia)', 
+                                            label: 'Hubungi Customer Care via WhatsApp', 
+                                            icon: MessageCircle, 
+                                            badge: 'Online 24/7',
+                                            badgeColor: 'bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold',
+                                            action: () => openWhatsApp('+6281288881001', 'Halo Customer Care KoiMart Premium, saya membutuhkan bantuan informasi/transaksi lelang.') 
+                                        },
+                                        { 
+                                            label: 'Ukuran Tulisan', 
                                             icon: ZoomIn, 
-                                            badge: fontSizeScale === 'xlarge' ? 'Sangat Besar' : fontSizeScale === 'large' ? 'Besar (Lansia)' : 'Standar',
+                                            badge: fontSizeScale === 'xlarge' ? 'Sangat Besar' : fontSizeScale === 'large' ? 'Besar' : 'Standard',
                                             badgeColor: 'bg-amber-100 text-amber-900 border border-amber-300 font-black',
                                             action: () => setIsFontSizeModalOpen(true) 
                                         },
-                                        { label: 'Pesanan Saya', icon: ReceiptText, action: () => navigateTo('orders') },
+                                        { 
+                                            label: 'Pesanan Saya', 
+                                            icon: ReceiptText, 
+                                            badge: isLoggedIn ? `${ordersList.length} Pesanan` : 'Kunci (Login)',
+                                            badgeColor: 'bg-red-50 text-red-700 border border-red-200',
+                                            action: () => navigateTo('orders') 
+                                        },
                                         { label: 'Favorit Saya', icon: Heart, action: () => isLoggedIn ? navigateTo('favorite') : (setGoogleLoginReason('favorit'), setIsGoogleLoginModalOpen(true)) },
-                                        { label: 'Lapak Mitra Peternak (Input & Kurasi Koi)', icon: StoreIcon, action: () => navigateTo('merchant_add_koi') },
+                                        { label: 'Input Koleksi Koi Baru (Khusus Owner)', icon: StoreIcon, action: () => navigateTo('merchant_add_koi') },
                                         { label: 'Chat Transaksi & Koordinasi', icon: MessageCircle, action: () => isLoggedIn ? openChatThread('thread-2') : (setGoogleLoginReason('chat'), setIsGoogleLoginModalOpen(true)) },
                                         { label: 'Rekor Lelang Tertinggi', icon: Crown, action: () => navigateTo('highest_auction') },
                                         { label: 'Lelang Terpopuler', icon: Flame, action: () => navigateTo('favorite_auction') },
-                                        { label: 'Metode Pembayaran', icon: CreditCard, action: () => triggerToast('Metode pembayaran: BCA Virtual Account, QRIS, & Wallet') },
-                                        { label: 'Bantuan & Pusat Informasi', icon: HelpCircle, action: () => triggerToast('Hubungi Customer Care KoiMart di WhatsApp: +62 812-3456-7890') },
-                                        { label: 'Tentang Aplikasi', icon: Info, action: () => triggerToast('KoiMart Android v2.4.0 (Official Release)') },
+                                        { label: 'Metode Pembayaran', icon: CreditCard, action: () => triggerToast('Metode pembayaran: BCA Virtual Account, Transfer Bank, QRIS Instan') },
+                                        { label: 'Tentang Galeri & Farm', icon: Info, action: () => { setSelectedStore(OFFICIAL_KOI_GALLERY); setStoreActiveTab('gallery'); navigateTo('store_gallery'); } },
                                     ].map((item, idx) => (
                                         <button
                                             key={idx}
@@ -5377,6 +5816,19 @@ export default function AndroidKoiApp({
                     {/* SCREEN: ORDERS LIST (PESANAN SAYA - TAMPILAN BERSIH & SERAGAM)            */}
                     {/* ========================================================================= */}
                     {currentScreen === 'orders' && (
+                        !isLoggedIn ? (
+                            <LockedAccessCard
+                                title="Pesanan Saya Memerlukan Login"
+                                description="Riwayat transaksi dan status pengiriman pesanan ikan koi hanya dapat diakses setelah Anda masuk dengan akun Google Anda."
+                                icon={ReceiptText}
+                                onLoginClick={() => {
+                                    setGoogleLoginReason('pesanan');
+                                    setPendingLoginAction({ type: 'navigate', payload: 'orders' });
+                                    setIsGoogleLoginModalOpen(true);
+                                }}
+                                onBackClick={goBack}
+                            />
+                        ) : (
                         <div className="flex-1 flex flex-col bg-slate-50 pb-20">
                             {/* Header */}
                             <div className="px-4 py-3 bg-white border-b border-slate-100 flex items-center justify-between sticky top-0 z-10 shadow-2xs">
@@ -5479,7 +5931,7 @@ export default function AndroidKoiApp({
                                                     <div className="flex gap-3">
                                                         <div className="relative shrink-0">
                                                             <img
-                                                                src={order.product?.images?.[0] || 'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=200&auto=format&fit=crop'}
+                                                                src={order.product?.images?.[0] || '/images/koi/kohaku.jpg'}
                                                                 className="w-16 h-16 rounded-xl object-cover border border-slate-100 shadow-2xs"
                                                                 alt={order.product?.name}
                                                             />
@@ -5557,6 +6009,7 @@ export default function AndroidKoiApp({
                                 )}
                             </div>
                         </div>
+                        )
                     )}
 
                     {/* ========================================================================= */}
@@ -5730,7 +6183,7 @@ export default function AndroidKoiApp({
                                     </h4>
                                     <div className="flex gap-3">
                                         <img
-                                            src={selectedOrderDetail.product?.images?.[0] || 'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=200&auto=format&fit=crop'}
+                                            src={selectedOrderDetail.product?.images?.[0] || '/images/koi/kohaku.jpg'}
                                             className="w-16 h-16 rounded-xl object-cover border border-slate-100 shrink-0"
                                             alt={selectedOrderDetail.product?.name}
                                         />
@@ -5923,7 +6376,7 @@ export default function AndroidKoiApp({
                                         <span>Rincian Produk Ikan Koi</span>
                                     </h4>
                                     <div className="flex items-center gap-3">
-                                        <img src={activeOrder.product.images?.[0] || 'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=200&auto=format&fit=crop'} alt="Koi" className="w-16 h-16 rounded-xl object-cover bg-slate-950 shrink-0" />
+                                        <img src={activeOrder.product.images?.[0] || '/images/koi/kohaku.jpg'} alt="Koi" className="w-16 h-16 rounded-xl object-cover bg-slate-950 shrink-0" />
                                         <div className="min-w-0">
                                             <h5 className="font-bold text-xs text-slate-900 truncate">{activeOrder.product.name}</h5>
                                             <p className="text-[10px] text-slate-500 mt-0.5">{activeOrder.product.size} | {activeOrder.product.age || 'Nisai'}</p>
@@ -6168,8 +6621,8 @@ export default function AndroidKoiApp({
                                         <ArrowLeft className="w-5 h-5" />
                                     </button>
                                     <div>
-                                        <h3 className="font-bold text-sm text-slate-900">Lapak Mitra Peternak</h3>
-                                        <p className="text-[10px] text-slate-400">Input Data & Kurasi Listing Ikan Koi</p>
+                                        <h3 className="font-bold text-sm text-slate-900">Input Koleksi Koi (Owner)</h3>
+                                        <p className="text-[10px] text-slate-400">Tambah Katalog & Lelang Resmi Farm</p>
                                     </div>
                                 </div>
                                 <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-700">
@@ -6317,6 +6770,19 @@ export default function AndroidKoiApp({
                     {/* SCREEN 13: DAFTAR CHAT & DISKUSI (CHAT LIST)                            */}
                     {/* ========================================================================= */}
                     {currentScreen === 'chat_list' && (
+                        !isLoggedIn ? (
+                            <LockedAccessCard
+                                title="Pesan & Diskusi Memerlukan Login"
+                                description="Diskusi dengan toko, peternak, dan tim karantina privat khusus untuk akun yang telah masuk."
+                                icon={MessageCircle}
+                                onLoginClick={() => {
+                                    setGoogleLoginReason('chat');
+                                    setPendingLoginAction({ type: 'navigate', payload: 'chat_list' });
+                                    setIsGoogleLoginModalOpen(true);
+                                }}
+                                onBackClick={goBack}
+                            />
+                        ) : (
                         <div className="flex-1 flex flex-col bg-slate-50 pb-20">
                             {/* Header */}
                             <div className="bg-white border-b border-slate-100 px-5 pt-4 pb-3">
@@ -6513,7 +6979,7 @@ export default function AndroidKoiApp({
                                                 cs = {
                                                     id: csUserId,
                                                     name: 'Dokter Karantina & Support KoiMart',
-                                                    avatar: 'https://images.unsplash.com/photo-1508873696983-2df5293cb395?w=200&auto=format&fit=crop',
+                                                    avatar: '/images/koi/ritsurin_koi_6.jpg',
                                                     type: 'operator',
                                                     role: 'Layanan Bantuan & Karantina Ikan',
                                                     isOnline: true,
@@ -6534,6 +7000,7 @@ export default function AndroidKoiApp({
                                 </div>
                             </div>
                         </div>
+                        )
                     )}
 
                     {/* ========================================================================= */}
@@ -6561,7 +7028,7 @@ export default function AndroidKoiApp({
                             );
                         }
                         return (
-                            <div className="flex-1 flex flex-col bg-slate-100 h-full relative">
+                            <div className="flex-1 flex flex-col bg-slate-100 h-full relative pb-[70px]">
                                 {/* Header */}
                                 <div className="px-4 py-3 bg-white border-b border-slate-200/80 flex items-center justify-between shadow-sm z-30">
                                     <div className="flex items-center gap-2.5">
@@ -6799,7 +7266,7 @@ export default function AndroidKoiApp({
                                                 handleSendMessage('Halo, ini foto kolam karantina dan parameter air kami di rumah.', {
                                                     mediaType: 'image',
                                                     mediaTitle: 'Foto Kolam Karantina',
-                                                    mediaUrl: 'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=800&auto=format&fit=crop'
+                                                    mediaUrl: '/images/koi/kohaku.jpg'
                                                 });
                                             }}
                                             className="p-2.5 rounded-xl border border-slate-200 hover:border-red-500 flex flex-col items-center gap-1 text-slate-700"
@@ -7036,11 +7503,21 @@ export default function AndroidKoiApp({
                                                 <div className="flex items-center gap-1.5">
                                                     <h2 className="font-extrabold text-base text-slate-900 truncate">{selectedStore.name}</h2>
                                                 </div>
-                                                <div className="flex items-center gap-1 text-[11px] text-slate-500 mt-0.5">
+                                                <div className="flex items-center gap-1.5 mt-1">
+                                                    <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                                                        selectedStore.dealerType === 'import'
+                                                            ? 'bg-indigo-50 text-indigo-700 border border-indigo-200'
+                                                            : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                                    }`}>
+                                                        <Award className="w-3 h-3" />
+                                                        <span>{selectedStore.verifiedBadge || (selectedStore.dealerType === 'import' ? 'Diler Import Jepang' : 'Breeder Lokal APKI')}</span>
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center gap-1 text-[11px] text-slate-500 mt-1">
                                                     <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                                                     <span className="truncate">{selectedStore.city}</span>
                                                 </div>
-                                                <div className="flex items-center gap-3 mt-2 text-xs">
+                                                <div className="flex items-center gap-3 mt-1.5 text-xs">
                                                     <div className="flex items-center gap-1 text-amber-500 font-bold">
                                                         <Star className="w-3.5 h-3.5 fill-amber-400" />
                                                         <span>{selectedStore.rating}</span>
@@ -7056,27 +7533,23 @@ export default function AndroidKoiApp({
                                             {selectedStore.description}
                                         </p>
 
-                                        {/* Quick Store Action Buttons */}
+                                        {/* Quick Store Action Buttons with WhatsApp Integration */}
                                         <div className="grid grid-cols-2 gap-2 mt-3.5">
                                             <button
                                                 onClick={() => {
-                                                    if (!isLoggedIn) {
-                                                        setGoogleLoginReason('chat');
-                                                        setIsGoogleLoginModalOpen(true);
-                                                        return;
-                                                    }
-                                                    openChatThread('thread-2');
+                                                    const msg = `Halo *${selectedStore.name}*, saya tertarik dengan koleksi Ikan Koi Premium di farm Anda dan ingin bertanya mengenai kualitas, sertifikat, dan pengiriman live koi.`;
+                                                    openWhatsApp(selectedStore.phone, msg);
                                                 }}
-                                                className="py-2.5 px-3 bg-red-600 hover:bg-red-700 active:scale-95 text-white font-bold text-xs rounded-xl shadow-md shadow-red-600/30 transition-all flex items-center justify-center gap-2"
+                                                className="py-2.5 px-3 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold text-xs rounded-xl shadow-md shadow-emerald-600/25 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                                             >
                                                 <MessageCircle className="w-4 h-4" />
-                                                <span>Chat Farm / Toko</span>
+                                                <span>Hubungi via WA</span>
                                             </button>
                                             <button
                                                 onClick={() => {
                                                     setStoreActiveTab('catalog');
                                                 }}
-                                                className="py-2.5 px-3 bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-800 font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-2"
+                                                className="py-2.5 px-3 bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-800 font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                                             >
                                                 <StoreIcon className="w-4 h-4 text-red-600" />
                                                 <span>Koleksi Koi ({selectedStore.totalKoi})</span>
@@ -7371,6 +7844,21 @@ export default function AndroidKoiApp({
                     {/* SCREEN: HASIL & STATUS TAWARAN LELANG SAYA (BUYER BID MONITORING)         */}
                     {/* ========================================================================= */}
                     {currentScreen === 'my_bids' && (() => {
+                        if (!isLoggedIn) {
+                            return (
+                                <LockedAccessCard
+                                    title="Hasil Tawaran Memerlukan Login"
+                                    description="Hasil dan status penawaran lelang ikan koi Anda tersimpan aman dan hanya dapat dicek setelah masuk akun."
+                                    icon={Gavel}
+                                    onLoginClick={() => {
+                                        setGoogleLoginReason('tawaran');
+                                        setPendingLoginAction({ type: 'navigate', payload: 'my_bids' });
+                                        setIsGoogleLoginModalOpen(true);
+                                    }}
+                                    onBackClick={goBack}
+                                />
+                            );
+                        }
                         const leadingBids = userBids.filter(b => b.isLeading && !b.isEnded);
                         const outbidBids = userBids.filter(b => b.status === 'outbid' && !b.isEnded);
                         const wonBids = userBids.filter(b => b.status === 'won');
@@ -7670,8 +8158,8 @@ export default function AndroidKoiApp({
 
                 </div>
 
-                {/* 3. ANDROID BOTTOM NAVIGATION BAR (Hanya untuk Layar Menu Utama: Home, Favorit, Chat, Orders, Akun, Kategori) */}
-                {['home', 'favorite', 'chat_list', 'orders', 'profile', 'categories'].includes(currentScreen) && (
+                {/* 3. ANDROID BOTTOM NAVIGATION BAR (Tampil di semua tampilan aplikasi) */}
+                {currentScreen !== 'welcome' && (
                     <div className="absolute bottom-0 left-0 right-0 h-[70px] bg-white border-t border-slate-200/90 px-2 flex items-center justify-around z-40 shadow-lg">
                         {[
                             { id: 'home', label: 'Beranda', icon: Home, screen: 'home' as ScreenType },
@@ -7705,29 +8193,99 @@ export default function AndroidKoiApp({
                     </div>
                 )}
 
-                {/* 4. MODAL: TOP UP WALLET */}
+                {/* 4. MODAL: BIAYA PENDAFTARAN PESERTA LELANG (PENGGANTI E-WALLET) */}
                 {isTopUpOpen && (
-                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end animate-in fade-in duration-200">
-                        <div className="w-full bg-white rounded-t-3xl p-5 space-y-4 animate-in slide-in-from-bottom duration-300">
-                            <div className="flex justify-between items-center">
-                                <h4 className="font-bold text-sm text-slate-900">Top Up Saldo Wallet</h4>
-                                <button onClick={() => setIsTopUpOpen(false)} className="text-slate-400 hover:text-slate-600">
+                    <div className="absolute inset-0 bg-black/65 backdrop-blur-sm z-50 flex items-end animate-in fade-in duration-200">
+                        <div className="w-full bg-white rounded-t-3xl p-5 space-y-4 animate-in slide-in-from-bottom duration-300 max-h-[90vh] overflow-y-auto">
+                            {/* Drag handle */}
+                            <div className="w-10 h-1 bg-slate-200 rounded-full mx-auto" />
+
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 text-[10px] font-bold mb-1 border border-amber-300">
+                                        <Award className="w-3 h-3 text-amber-700" />
+                                        <span>Khusus Koi Premium</span>
+                                    </div>
+                                    <h4 className="font-extrabold text-base text-slate-900">Biaya Pendaftaran Peserta Lelang</h4>
+                                    <p className="text-[11px] text-slate-500 mt-0.5">Komitmen kurasi kolektor & penawar serius</p>
+                                </div>
+                                <button onClick={() => setIsTopUpOpen(false)} className="p-1.5 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100">
                                     <X className="w-5 h-5" />
                                 </button>
                             </div>
-                            <p className="text-xs text-slate-500">Pilih nominal saldo jaminan untuk lelang dan transaksi cepat:</p>
-                            <div className="grid grid-cols-2 gap-2.5">
-                                {[500000, 1000000, 2500000, 5000000].map((amt) => (
-                                    <button
-                                        key={amt}
-                                        onClick={() => handleTopUp(amt)}
-                                        className="py-3 px-3 rounded-xl border border-slate-200 hover:border-red-500 hover:bg-red-50/50 text-slate-800 text-xs font-bold text-center transition-all"
-                                    >
-                                        + Rp {amt.toLocaleString('id-ID')}
-                                    </button>
-                                ))}
+
+                            {/* Card Nominal Biaya Pendaftaran */}
+                            <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white shadow-lg border border-slate-700 space-y-2.5">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-[11px] text-slate-300 font-medium">Biaya Pendaftaran (Sekali Bayar)</span>
+                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                                        Aktif Permanen
+                                    </span>
+                                </div>
+                                <div className="flex items-baseline gap-1">
+                                    <span className="text-sm font-bold text-slate-400">Rp</span>
+                                    <span className="text-2xl font-black text-white">250.000</span>
+                                </div>
+                                <div className="pt-2 border-t border-slate-700/80 space-y-1.5 text-[11px] text-slate-300">
+                                    <div className="flex items-center gap-2">
+                                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                                        <span>Hak memasang penawaran di semua lelang Koi Premium</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                                        <span>Kelipatan bid terstandarisasi Rp 500.000 & Rp 1.000.000</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                                        <span>Akses konsultasi langsung via WhatsApp ke Diler Resmi</span>
+                                    </div>
+                                </div>
                             </div>
-                            <p className="text-[10px] text-slate-400 text-center">Metode instan via BCA, Mandiri, BRI, QRIS, & ShopeePay</p>
+
+                            {/* Info Rekening Transfer & Pembayaran */}
+                            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2 text-xs">
+                                <p className="font-bold text-slate-800 flex items-center gap-1.5">
+                                    <CreditCard className="w-4 h-4 text-slate-600" />
+                                    <span>Rekening Pembayaran Resmi:</span>
+                                </p>
+                                <div className="space-y-1.5 text-[11px] text-slate-700 pl-1">
+                                    <div className="flex justify-between items-center py-1 border-b border-slate-200/60">
+                                        <span>BCA Virtual Account</span>
+                                        <span className="font-mono font-bold text-slate-900">8271 0812 8888 1001</span>
+                                    </div>
+                                    <div className="flex justify-between items-center py-1 border-b border-slate-200/60">
+                                        <span>Bank Mandiri</span>
+                                        <span className="font-mono font-bold text-slate-900">137 00 9876 5432</span>
+                                    </div>
+                                    <div className="flex justify-between items-center py-1">
+                                        <span>Atas Nama</span>
+                                        <span className="font-semibold text-slate-900">PT Koi Premium Indonesia</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Tombol Aksi WhatsApp & Verifikasi */}
+                            <div className="space-y-2 pt-1">
+                                <button
+                                    onClick={() => {
+                                        const msg = `Halo Admin Koi Premium, saya ingin konfirmasi pendaftaran peserta lelang sebesar Rp 250.000 atas nama *${userName}* (${userEmail}). Mohon bantuannya untuk verifikasi akun saya.`;
+                                        openWhatsApp('+6281288881001', msg);
+                                    }}
+                                    className="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-bold text-xs rounded-2xl shadow-md shadow-emerald-600/25 flex items-center justify-center gap-2 transition-all cursor-pointer"
+                                >
+                                    <MessageCircle className="w-4 h-4" />
+                                    <span>Konfirmasi via WhatsApp Admin</span>
+                                </button>
+
+                                <button
+                                    onClick={handleConfirmRegistration}
+                                    className="w-full py-3 px-4 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 active:scale-[0.99] text-white font-bold text-xs rounded-2xl shadow-md shadow-red-600/25 flex items-center justify-center gap-2 transition-all cursor-pointer"
+                                >
+                                    <CheckCircle2 className="w-4 h-4" />
+                                    <span>Verifikasi & Aktifkan Status Peserta (Instan)</span>
+                                </button>
+                            </div>
+                            <p className="text-[10px] text-slate-400 text-center">Kurasi lelang terlindungi demi keamanan kolektor & diler</p>
                         </div>
                     </div>
                 )}
@@ -7774,6 +8332,8 @@ export default function AndroidKoiApp({
                                     {googleLoginReason === 'favorit' && 'Anda harus masuk dengan Google terlebih dahulu untuk melihat dan mengelola Ikan Favorit.'}
                                     {googleLoginReason === 'chat' && 'Anda harus masuk dengan Google terlebih dahulu untuk berkonsultasi dan nego langsung dengan penjual.'}
                                     {googleLoginReason === 'like' && 'Anda harus masuk dengan Google terlebih dahulu untuk menyukai dan menyimpan ikan ke daftar favorit.'}
+                                    {googleLoginReason === 'pesanan' && 'Anda harus masuk dengan Google terlebih dahulu untuk melihat, melacak, dan mengelola Pesanan Saya.'}
+                                    {googleLoginReason === 'tawaran' && 'Anda harus masuk dengan Google terlebih dahulu untuk mengecek dan mengikuti tawaran lelang.'}
                                     {googleLoginReason === 'general' && 'Masuk dengan Google untuk akses fitur transaksi dan interaksi lengkap.'}
                                 </div>
                             </div>
@@ -8133,7 +8693,7 @@ export default function AndroidKoiApp({
                     </div>
                 )}
 
-                {/* 9. MODAL: PENGATUR UKURAN TULISAN (RAMAH LANSIA / AKI-AKI) */}
+                {/* 9. MODAL: PENGATUR UKURAN TULISAN */}
                 {isFontSizeModalOpen && (
                     <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end animate-in fade-in duration-200">
                         <div className="w-full bg-white rounded-t-3xl p-5 space-y-4 animate-in slide-in-from-bottom duration-300 shadow-2xl">
@@ -8144,11 +8704,11 @@ export default function AndroidKoiApp({
                             <div className="flex justify-between items-start">
                                 <div className="flex items-center gap-2.5">
                                     <div className="w-11 h-11 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center font-black text-lg border border-amber-300">
-                                        👓
+                                        Aa
                                     </div>
                                     <div>
                                         <h4 className="font-extrabold text-base text-slate-900">Ukuran Tulisan Aplikasi</h4>
-                                        <p className="text-xs text-slate-600 font-medium">Atur kenyamanan membaca agar tulisan jelas terbaca</p>
+                                        <p className="text-xs text-slate-600 font-medium">Pilih ukuran tulisan yang paling nyaman</p>
                                     </div>
                                 </div>
                                 <button
@@ -8159,32 +8719,32 @@ export default function AndroidKoiApp({
                                 </button>
                             </div>
 
-                            {/* Pilihan 3 Skala Ukuran */}
+                            {/* Pilihan 3 Skala Ukuran: 1. Standard, 2. Besar, 3. Sangat Besar */}
                             <div className="space-y-2.5 pt-1">
                                 {[
                                     {
+                                        id: 'normal' as const,
+                                        title: 'Standard',
+                                        badge: 'Bawaan',
+                                        badgeColor: 'bg-slate-100 text-slate-700 border-slate-200',
+                                        desc: 'Ukuran tulisan standar tampilan ponsel.',
+                                        iconText: 'A',
+                                    },
+                                    {
                                         id: 'large' as const,
-                                        title: 'Besar (Ramah Lansia)',
+                                        title: 'Besar',
                                         badge: 'Rekomendasi',
                                         badgeColor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
-                                        desc: 'Tulisan diperbesar & kontras lebih tajam. Sangat nyaman dibaca tanpa kacamata.',
+                                        desc: 'Tulisan diperbesar & kontras tajam, lebih nyaman dibaca.',
                                         iconText: 'A⁺',
                                     },
                                     {
                                         id: 'xlarge' as const,
-                                        title: 'Sangat Besar (Super Jelas)',
+                                        title: 'Sangat Besar',
                                         badge: 'Ekstra Besar',
                                         badgeColor: 'bg-amber-100 text-amber-900 border-amber-300',
-                                        desc: 'Ukuran tulisan maksimal dan tebal untuk mata yang rabun dekat.',
+                                        desc: 'Ukuran tulisan maksimal dan ekstra tebal.',
                                         iconText: 'A⁺⁺',
-                                    },
-                                    {
-                                        id: 'normal' as const,
-                                        title: 'Standar (Normal)',
-                                        badge: 'Bawaan',
-                                        badgeColor: 'bg-slate-100 text-slate-700 border-slate-200',
-                                        desc: 'Ukuran font standar tampilan ponsel.',
-                                        iconText: 'A',
                                     },
                                 ].map((opt) => {
                                     const isSelected = fontSizeScale === opt.id;
