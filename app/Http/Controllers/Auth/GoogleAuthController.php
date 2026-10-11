@@ -36,10 +36,25 @@ class GoogleAuthController extends Controller
             $request->session()->put('url.intended', $request->query('redirect'));
         }
 
-        $redirectUrl = ($request->getHost() !== 'localhost' && $request->getHost() !== '127.0.0.1')
-            ? secure_url('/auth/google/callback')
-            : url('/auth/google/callback');
+        $redirectUrl = $this->getRedirectUrl($request);
         return Socialite::driver('google')->redirectUrl($redirectUrl)->redirect();
+    }
+
+    /**
+     * Dapatkan callback URL yang sesuai untuk Google OAuth.
+     */
+    protected function getRedirectUrl(Request $request): string
+    {
+        $configured = config('services.google.redirect');
+        if (!empty($configured) && !str_contains($configured, 'localhost:8000')) {
+            return $configured;
+        }
+
+        if ($request->isSecure()) {
+            return secure_url('/auth/google/callback');
+        }
+
+        return url('/auth/google/callback');
     }
 
     /**
@@ -48,9 +63,7 @@ class GoogleAuthController extends Controller
     public function callback(Request $request): RedirectResponse
     {
         try {
-            $redirectUrl = ($request->getHost() !== 'localhost' && $request->getHost() !== '127.0.0.1')
-                ? secure_url('/auth/google/callback')
-                : url('/auth/google/callback');
+            $redirectUrl = $this->getRedirectUrl($request);
 
             try {
                 $googleUser = Socialite::driver('google')->redirectUrl($redirectUrl)->user();
@@ -102,6 +115,11 @@ class GoogleAuthController extends Controller
             Log::error('Google callback error: ' . $e->getMessage(), [
                 'exception' => $e,
             ]);
+
+            $intended = $request->session()->pull('url.intended');
+            if ($intended && !str_contains($intended, '/login') && !str_contains($intended, '/register') && !str_contains($intended, '/auth/google')) {
+                return redirect()->to($intended)->with('error', 'Gagal masuk dengan Google: ' . $e->getMessage());
+            }
 
             return redirect()->route('login')->with('error', 'Gagal masuk dengan Google: ' . $e->getMessage());
         }

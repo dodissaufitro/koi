@@ -44,6 +44,9 @@ export default function Login({ status, canResetPassword, redirect }: LoginProps
     // Dapatkan target redirect dari props atau query string browser
     const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
     const targetRedirect = redirect || urlParams?.get('redirect') || '';
+    const pageProps = usePage().props as any;
+    const flashError = pageProps.flash?.error || pageProps.error;
+    const flashSuccess = pageProps.flash?.success || status;
 
     // Sync theme dengan preferensi landing page
     useEffect(() => {
@@ -118,7 +121,7 @@ export default function Login({ status, canResetPassword, redirect }: LoginProps
     };
 
     const { data, setData, post, processing, errors, reset } = useForm<LoginForm>({
-        email: 'daisukekoi@pasasikan.test', // Default to Toko Koi demo
+        email: 'owner@kokikoi.com', // Default to Koki Koi Owner demo
         password: 'password',
         remember: false,
         redirect: targetRedirect,
@@ -144,26 +147,26 @@ export default function Login({ status, canResetPassword, redirect }: LoginProps
             id: 'admin',
             title: 'Admin',
             subtitle: 'Sistem Master',
-            email: 'admin@pasasikan.test',
+            email: 'admin@koimart.test',
             destination: 'Dashboard SuperAdmin (/admin/dashboard)',
             icon: ShieldCheck,
             color: 'purple',
         },
         {
             id: 'seller',
-            title: 'Toko Koi',
-            subtitle: 'Daisuke Farm',
-            email: 'daisukekoi@pasasikan.test',
-            destination: 'Dashboard Lapak (/seller/dashboard)',
+            title: 'Galeri Koi',
+            subtitle: 'Koki Nishikigoi Owner',
+            email: 'owner@kokikoi.com',
+            destination: 'Dashboard Galeri (/seller/dashboard)',
             icon: Store,
             color: 'emerald',
         },
         {
             id: 'buyer',
-            title: 'Pembeli',
+            title: 'Kolektor / Bidder',
             subtitle: 'Budi Santoso',
-            email: 'budi@pasasikan.test',
-            destination: 'Dashboard Pembeli (/dashboard)',
+            email: 'budi@example.com',
+            destination: 'Beranda & Lelang (/auctions)',
             icon: UserCheck,
             color: 'amber',
         },
@@ -304,9 +307,15 @@ export default function Login({ status, canResetPassword, redirect }: LoginProps
                             </p>
                         </div>
 
-                        {status && (
+                        {flashError && (
+                            <div className="mb-5 rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-xs font-medium text-rose-600 dark:text-rose-400 text-center">
+                                ⚠️ {flashError}
+                            </div>
+                        )}
+
+                        {flashSuccess && (
                             <div className="mb-5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-xs font-medium text-emerald-600 dark:text-emerald-400 text-center">
-                                {status}
+                                {flashSuccess}
                             </div>
                         )}
 
@@ -420,7 +429,7 @@ export default function Login({ status, canResetPassword, redirect }: LoginProps
                                         autoFocus
                                         value={data.email}
                                         onChange={(e) => setData('email', e.target.value)}
-                                        placeholder="nama@pasasikan.test"
+                                        placeholder="owner@kokikoi.com"
                                         className={`pl-10 h-11 text-xs rounded-xl transition ${
                                             isDark
                                                 ? 'bg-[#121824] border-white/10 text-white placeholder:text-slate-500 focus:border-amber-400 focus:ring-amber-400/20'

@@ -2967,6 +2967,39 @@ export default function AndroidKoiApp({
         }
     };
 
+    // Quick Demo Buyer Login - Masuk instan tanpa OAuth untuk pengujian cepat
+    const handleQuickDemoLogin = async (demoRole: 'buyer' | 'seller' | 'admin' = 'buyer') => {
+        try {
+            setGoogleLoginLoading(true);
+            const targetAccount = demoRole === 'admin'
+                ? { email: 'admin@koimart.test', name: 'Super Admin KoiMart', id: 'demo-admin' }
+                : demoRole === 'seller'
+                    ? { email: 'owner@kokikoi.com', name: 'Koki Nishikigoi Owner', id: 'demo-seller' }
+                    : { email: 'budi@example.com', name: 'Budi Santoso', id: 'demo-buyer' };
+
+            const res = await fetch('/auth/google/native', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify(targetAccount),
+            });
+            const data = await res.json();
+            if (data.success) {
+                triggerToast(`✅ Berhasil masuk sebagai ${targetAccount.name}`);
+                setIsGoogleLoginModalOpen(false);
+                window.location.reload();
+            } else {
+                setGoogleLoginLoading(false);
+                triggerToast(data.message || 'Gagal login demo');
+            }
+        } catch (err: any) {
+            setGoogleLoginLoading(false);
+            triggerToast(`⚠️ Gagal login demo: ${err?.message || 'Error'}`);
+        }
+    };
+
     // Logout Handler - Keluar akun melalui Laravel Auth & bersihkan sesi lokal
     const handleLogout = () => {
         setFavoritesList([]);
@@ -8330,7 +8363,7 @@ export default function AndroidKoiApp({
                             <button
                                 onClick={handleGoogleLogin}
                                 disabled={googleLoginLoading}
-                                className="w-full py-3.5 px-4 bg-white hover:bg-slate-50 active:bg-slate-100 border-2 border-slate-200 hover:border-blue-500 text-slate-800 font-bold rounded-2xl text-sm shadow-md flex items-center justify-center gap-3 transition-all active:scale-[0.99]"
+                                className="w-full py-3.5 px-4 bg-white hover:bg-slate-50 active:bg-slate-100 border-2 border-slate-200 hover:border-blue-500 text-slate-800 font-bold rounded-2xl text-sm shadow-md flex items-center justify-center gap-3 transition-all active:scale-[0.99] cursor-pointer"
                             >
                                 {googleLoginLoading ? (
                                     <>
@@ -8351,20 +8384,48 @@ export default function AndroidKoiApp({
                             </button>
 
                             {/* Trust Badge */}
-                            <div className="flex items-center justify-center gap-1.5 text-[11px] text-slate-500 py-1">
+                            <div className="flex items-center justify-center gap-1.5 text-[11px] text-slate-500 py-0.5">
                                 <ShieldCheck className="w-4 h-4 text-emerald-600" />
                                 <span>Terhubung langsung & aman ke server Google</span>
                             </div>
 
+                            {/* Separator / Alternative Access */}
+                            <div className="relative my-1">
+                                <div className="absolute inset-0 flex items-center">
+                                    <div className="w-full border-t border-slate-200"></div>
+                                </div>
+                                <div className="relative flex justify-center text-[10px] uppercase">
+                                    <span className="bg-white px-2 text-slate-400 font-semibold tracking-wider">Atau Masuk Instan Demo</span>
+                                </div>
+                            </div>
+
+                            {/* Quick 1-Click Demo Bidder Login */}
                             <button
-                                onClick={() => {
-                                    setIsGoogleLoginModalOpen(false);
-                                    setPendingLoginAction(null);
-                                }}
-                                className="w-full py-2.5 text-center text-xs text-slate-400 hover:text-slate-600 font-medium transition-colors"
+                                onClick={() => handleQuickDemoLogin('buyer')}
+                                disabled={googleLoginLoading}
+                                className="w-full py-2.5 px-3 bg-amber-50 hover:bg-amber-100 active:bg-amber-200 border border-amber-300 text-amber-900 font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition cursor-pointer"
                             >
-                                Nanti Saja
+                                <UserCheck className="w-4 h-4 text-amber-600" />
+                                <span>1-Klik Masuk sebagai Kolektor / Bidder (Budi Santoso)</span>
                             </button>
+
+                            <div className="flex items-center justify-between pt-1">
+                                <a
+                                    href="/login"
+                                    className="text-[11px] text-slate-500 hover:text-amber-600 underline font-medium"
+                                >
+                                    Masuk lewat Halaman Login Utama →
+                                </a>
+                                <button
+                                    onClick={() => {
+                                        setIsGoogleLoginModalOpen(false);
+                                        setPendingLoginAction(null);
+                                    }}
+                                    className="text-xs text-slate-400 hover:text-slate-600 font-medium py-1 px-2"
+                                >
+                                    Nanti Saja
+                                </button>
+                            </div>
                         </div>
                     </div>
                 )}

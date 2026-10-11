@@ -73,6 +73,6 @@ class RegisteredUserController extends Controller
             }
         }
 
-        return redirect()->intended(route('home', absolute: false));
+        return redirect()->route('home');
     }
 }

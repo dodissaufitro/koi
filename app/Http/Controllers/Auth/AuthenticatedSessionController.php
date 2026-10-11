@@ -18,25 +18,34 @@ class AuthenticatedSessionController extends Controller
      */
     public function create(Request $request): Response
     {
-        // Tangkap halaman asal pengguna jika belum ada url.intended di session
-        if (! $request->session()->has('url.intended')) {
+        $targetRedirect = null;
+        if ($request->filled('redirect')) {
+            $targetRedirect = $request->query('redirect');
+        } elseif ($request->session()->has('url.intended')) {
+            $targetRedirect = $request->session()->get('url.intended');
+        } else {
             $previous = url()->previous();
             $current = url()->current();
-            // Simpan jika halaman asal bukan login, register, atau logout
             if ($previous && $previous !== $current && !str_contains($previous, '/login') && !str_contains($previous, '/register') && !str_contains($previous, '/logout')) {
-                $request->session()->put('url.intended', $previous);
+                $targetRedirect = $previous;
             }
         }
 
-        // Tangkap parameter query ?redirect= jika diberikan
-        if ($request->filled('redirect')) {
-            $request->session()->put('url.intended', $request->query('redirect'));
+        // Pastikan target redirect bukan halaman login/register/logout
+        if ($targetRedirect) {
+            $path = parse_url($targetRedirect, PHP_URL_PATH) ?? '';
+            if (str_contains($path, '/login') || str_contains($path, '/register') || str_contains($path, '/logout')) {
+                $targetRedirect = null;
+                $request->session()->forget('url.intended');
+            } else {
+                $request->session()->put('url.intended', $targetRedirect);
+            }
         }
 
         return Inertia::render('auth/login', [
             'canResetPassword' => Route::has('password.request'),
             'status' => $request->session()->get('status'),
-            'redirect' => $request->query('redirect') ?? $request->session()->get('url.intended'),
+            'redirect' => $targetRedirect,
         ]);
     }
 
@@ -45,12 +54,9 @@ class AuthenticatedSessionController extends Controller
      */
     public function store(LoginRequest $request): RedirectResponse
     {
-        if ($request->filled('redirect')) {
-            $request->session()->put('url.intended', $request->input('redirect'));
-        }
-
-        // Ambil URL tujuan yang sebelumnya di-request sebelum session di-regenerate
-        $intendedUrl = $request->session()->get('url.intended');
+        // Ambil target redirect dari request input atau session
+        $targetRedirect = $request->input('redirect') ?: $request->session()->get('url.intended');
+        $request->session()->forget('url.intended');
 
         $request->authenticate();
 
@@ -58,28 +64,24 @@ class AuthenticatedSessionController extends Controller
 
         $user = $request->user();
 
-        // 1. Jika ada URL tujuan yang sebelumnya di-request, arahkan langsung ke halaman tersebut
-        if ($intendedUrl) {
-            $request->session()->forget('url.intended');
-            $path = parse_url($intendedUrl, PHP_URL_PATH) ?? '';
+        // 1. Jika ada target redirect sebelumnya yang valid, arahkan ke sana
+        if ($targetRedirect) {
+            $path = parse_url($targetRedirect, PHP_URL_PATH) ?? '';
             if (!str_contains($path, '/login') && !str_contains($path, '/register') && !str_contains($path, '/logout')) {
-                return redirect()->to($intendedUrl);
+                return redirect()->to($targetRedirect);
             }
         }
 
-        // 2. Jika tidak ada halaman sebelumnya yang di-request, arahkan sesuai role:
-        // SuperAdmin -> Admin Master Dashboard
+        // 2. Arahkan pasti sesuai peran pengguna (tanpa fallback redirect->intended yang bisa loop)
         if ($user->isAdmin()) {
-            return redirect()->intended(route('admin.dashboard', absolute: false));
+            return redirect()->route('admin.dashboard');
         }
 
-        // Pemilik Toko / Seller -> Seller Dashboard
         if ($user->isSeller() || $user->store) {
-            return redirect()->intended(route('seller.dashboard', absolute: false));
+            return redirect()->route('seller.dashboard');
         }
 
-        // Pembeli / Umum -> Beranda
-        return redirect()->intended(route('home', absolute: false));
+        return redirect()->route('home');
     }
 
     /**

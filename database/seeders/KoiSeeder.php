@@ -84,6 +84,43 @@ class KoiSeeder extends Seeder
             ]
         );
 
+        // Akun Alias untuk Demo Login (agar kompatibel 100% dengan semua tombol demo)
+        User::firstOrCreate(
+            ['email' => 'admin@pasasikan.test'],
+            [
+                'name' => 'Administrator KOKI KOI',
+                'password' => Hash::make('password'),
+                'role' => 'admin',
+                'phone' => '081299990002',
+                'address' => 'Gedung Pusat KOKI KOI, Jakarta',
+                'city' => 'Jakarta Selatan',
+            ]
+        );
+
+        User::firstOrCreate(
+            ['email' => 'daisukekoi@pasasikan.test'],
+            [
+                'name' => 'Koki Nishikigoi Farm',
+                'password' => Hash::make('password'),
+                'role' => 'seller',
+                'phone' => '081288881002',
+                'address' => 'Jl. Nishikigoi Sanctuary No. 88, Blitar',
+                'city' => 'Blitar',
+            ]
+        );
+
+        User::firstOrCreate(
+            ['email' => 'budi@pasasikan.test'],
+            [
+                'name' => 'Budi Santoso (Demo)',
+                'password' => Hash::make('password'),
+                'role' => 'buyer',
+                'phone' => '081234567891',
+                'address' => 'Jl. Kemang Raya No. 45',
+                'city' => 'Jakarta Selatan',
+            ]
+        );
+
         $officialStore = Store::firstOrCreate(
             ['slug' => 'koki-nishikigoi-gallery'],
             [
@@ -96,6 +133,23 @@ class KoiSeeder extends Seeder
                 'is_verified' => true,
             ]
         );
+
+        // Pastikan akun seller alias juga punya akses store
+        $daisukeUser = User::where('email', 'daisukekoi@pasasikan.test')->first();
+        if ($daisukeUser) {
+            Store::firstOrCreate(
+                ['slug' => 'daisuke-koi-farm'],
+                [
+                    'user_id' => $daisukeUser->id,
+                    'name' => 'Daisuke Koi Farm',
+                    'description' => 'Cabang resmi Daisuke Koi Farm Blitar.',
+                    'phone' => '081288881002',
+                    'address' => 'Jl. Nishikigoi Sanctuary No. 88, Blitar',
+                    'city' => 'Blitar',
+                    'is_verified' => true,
+                ]
+            );
+        }
 
         // Alias store tunggal untuk seluruh koleksi produk & lelang
         $storeSejahtera = $officialStore;
