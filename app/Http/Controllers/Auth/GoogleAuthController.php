@@ -22,6 +22,8 @@ class GoogleAuthController extends Controller
      */
     public function redirect(Request $request): RedirectResponse
     {
+        $this->ensureGoogleConfig();
+
         $targetRedirect = null;
         if ($request->filled('redirect')) {
             $targetRedirect = $request->query('redirect');
@@ -88,10 +90,24 @@ class GoogleAuthController extends Controller
     }
 
     /**
+     * Pastikan konfigurasi Google Client ID & Secret tersedia.
+     */
+    protected function ensureGoogleConfig(): void
+    {
+        $clientId = config('services.google.client_id');
+        $clientSecret = config('services.google.client_secret');
+
+        if (empty($clientSecret)) {
+            throw new \Exception('GOOGLE_CLIENT_SECRET belum diatur di file .env server production.');
+        }
+    }
+
+    /**
      * Tangani callback dari Google OAuth.
      */
     public function callback(Request $request): RedirectResponse
     {
+        $this->ensureGoogleConfig();
         $targetRedirect = null;
         $state = $request->query('state');
         if ($state) {
