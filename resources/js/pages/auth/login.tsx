@@ -34,11 +34,16 @@ interface LoginForm {
 interface LoginProps {
     status?: string;
     canResetPassword: boolean;
+    redirect?: string;
 }
 
-export default function Login({ status, canResetPassword }: LoginProps) {
+export default function Login({ status, canResetPassword, redirect }: LoginProps) {
     const [theme, setTheme] = useState<'dark' | 'light'>('light');
     const [showPassword, setShowPassword] = useState(false);
+
+    // Dapatkan target redirect dari props atau query string browser
+    const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+    const targetRedirect = redirect || urlParams?.get('redirect') || '';
 
     // Sync theme dengan preferensi landing page
     useEffect(() => {
@@ -69,11 +74,14 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                         'Content-Type': 'application/json',
                         'Accept': 'application/json',
                     },
-                    body: JSON.stringify(accountData),
+                    body: JSON.stringify({
+                        ...accountData,
+                        redirect: targetRedirect || undefined,
+                    }),
                 });
                 const result = await res.json();
                 if (result.success) {
-                    window.location.href = result.redirect || '/dashboard';
+                    window.location.href = result.redirect || targetRedirect || '/dashboard';
                 } else {
                     setNativeGoogleLoading(false);
                     setNativeGoogleError(result.message || 'Gagal masuk dengan akun Google.');
@@ -113,6 +121,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
         email: 'daisukekoi@pasasikan.test', // Default to Toko Koi demo
         password: 'password',
         remember: false,
+        redirect: targetRedirect,
     });
 
     const submit: FormEventHandler = (e) => {
@@ -514,7 +523,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
 
                             {/* Google Sign In Button */}
                             <a
-                                href="/auth/google"
+                                href={targetRedirect ? `/auth/google?redirect=${encodeURIComponent(targetRedirect)}` : '/auth/google'}
                                 onClick={handleGoogleAuthClick}
                                 className={`w-full h-11 rounded-xl text-xs font-semibold tracking-wide transition border shadow-sm flex items-center justify-center gap-2.5 ${
                                     nativeGoogleLoading ? 'opacity-70 pointer-events-none' : ''

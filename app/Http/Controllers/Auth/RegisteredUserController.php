@@ -20,8 +20,19 @@ class RegisteredUserController extends Controller
     /**
      * Show the registration page.
      */
-    public function create(): Response
+    public function create(Request $request): Response
     {
+        if (! $request->session()->has('url.intended')) {
+            $previous = url()->previous();
+            $current = url()->current();
+            if ($previous && $previous !== $current && !str_contains($previous, '/login') && !str_contains($previous, '/register') && !str_contains($previous, '/logout')) {
+                $request->session()->put('url.intended', $previous);
+            }
+        }
+        if ($request->filled('redirect')) {
+            $request->session()->put('url.intended', $request->query('redirect'));
+        }
+
         return Inertia::render('auth/register');
     }
 
@@ -50,8 +61,18 @@ class RegisteredUserController extends Controller
 
         event(new Registered($user));
 
+        $intendedUrl = $request->session()->get('url.intended');
+
         Auth::login($user);
 
-        return redirect()->intended('/');
+        if ($intendedUrl) {
+            $request->session()->forget('url.intended');
+            $path = parse_url($intendedUrl, PHP_URL_PATH) ?? '';
+            if (!str_contains($path, '/login') && !str_contains($path, '/register') && !str_contains($path, '/logout')) {
+                return redirect()->to($intendedUrl);
+            }
+        }
+
+        return redirect()->intended(route('home', absolute: false));
     }
 }

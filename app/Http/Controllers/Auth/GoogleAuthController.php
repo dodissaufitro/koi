@@ -20,9 +20,23 @@ class GoogleAuthController extends Controller
     /**
      * Redirect ke halaman login Google.
      */
-    public function redirect(): RedirectResponse
+    public function redirect(Request $request): RedirectResponse
     {
-        $redirectUrl = (request()->getHost() !== 'localhost' && request()->getHost() !== '127.0.0.1')
+        // Simpan previous url ke session jika belum ada
+        if (! $request->session()->has('url.intended')) {
+            $previous = url()->previous();
+            $current = url()->current();
+            if ($previous && $previous !== $current && !str_contains($previous, '/login') && !str_contains($previous, '/register') && !str_contains($previous, '/auth/google')) {
+                $request->session()->put('url.intended', $previous);
+            }
+        }
+
+        // Simpan jika ada parameter ?redirect= di URL
+        if ($request->filled('redirect')) {
+            $request->session()->put('url.intended', $request->query('redirect'));
+        }
+
+        $redirectUrl = ($request->getHost() !== 'localhost' && $request->getHost() !== '127.0.0.1')
             ? secure_url('/auth/google/callback')
             : url('/auth/google/callback');
         return Socialite::driver('google')->redirectUrl($redirectUrl)->redirect();
@@ -140,10 +154,16 @@ class GoogleAuthController extends Controller
 
             Auth::login($user, true);
             $request->session()->regenerate();
-            $request->session()->forget(['google_registration', 'url.intended']);
+            $request->session()->forget('google_registration');
 
-            // Pengguna di Android selalu diarahkan langsung ke Beranda ('/')
-            $dashboardRoute = route('home', absolute: false);
+            // Cek jika ada intended URL yang dikirim via body request atau ada di session
+            $intended = $request->input('redirect') ?: $request->session()->pull('url.intended');
+
+            $dashboardRoute = $intended ?: match (true) {
+                $user->isAdmin() => route('admin.dashboard', absolute: false),
+                $user->isSeller() || (bool) $user->store => route('seller.dashboard', absolute: false),
+                default => route('home', absolute: false),
+            };
 
             return response()->json([
                 'success' => true,
@@ -180,22 +200,18 @@ class GoogleAuthController extends Controller
             default => route('home', absolute: false),
         };
 
-        // Cek jika ada intended URL yang valid (bukan halaman auth/login/register atau '/')
-        $intended = session()->get('url.intended');
+        // Cek jika ada intended URL yang valid (bukan halaman auth/login/register)
+        $intended = session()->pull('url.intended');
         if ($intended) {
             $path = parse_url($intended, PHP_URL_PATH) ?? '';
             if (
                 !str_contains($path, '/login') &&
                 !str_contains($path, '/register') &&
-                !str_contains($path, '/auth/google') &&
-                $path !== '/'
+                !str_contains($path, '/auth/google')
             ) {
-                return redirect()->intended($dashboardRoute)->with('success', 'Selamat datang, ' . $user->name . '!');
+                return redirect()->to($intended)->with('success', 'Selamat datang, ' . $user->name . '!');
             }
         }
-
-        // Hapus url.intended agar tidak kembali ke login
-        session()->forget('url.intended');
 
         return redirect($dashboardRoute)->with('success', 'Selamat datang, ' . $user->name . '!');
     }

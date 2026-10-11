@@ -1629,13 +1629,6 @@ export default function AndroidKoiApp({
     // Helper untuk buka ruang lelang sesuai item yang dipilih
     const openAuctionDetail = (aucItem: any) => {
         if (!aucItem) return;
-        if (!isLoggedIn) {
-            setGoogleLoginReason('tawaran');
-            setPendingLoginAction({ type: 'navigate', payload: 'auction_detail' });
-            setIsGoogleLoginModalOpen(true);
-            triggerToast('🔒 Silakan login dengan Google terlebih dahulu untuk mengecek tawaran lelang.');
-            return;
-        }
         const raw = aucItem.auctionRaw;
         const targetAuctionId = raw?.id || aucItem.auctionId || aucItem.id || 7;
         const effectivePrice = Number(aucItem.currentBid ?? aucItem.price ?? raw?.current_bid ?? 25000000);
@@ -1647,9 +1640,11 @@ export default function AndroidKoiApp({
         const effectiveGender = aucItem.gender || 'Female';
         const effectiveImage = aucItem.image || raw?.product?.primary_image?.image_path || '/images/koi/kohaku.jpg';
         const effectiveDealerType: 'import' | 'lokal' = aucItem.dealerType || (raw?.user?.name?.toLowerCase().includes('import') ? 'import' : 'lokal');
-        const effectiveDealerName = aucItem.dealerName || raw?.product?.store || raw?.user?.name || (effectiveDealerType === 'import' ? 'Daisuke Nishikigoi Farm' : 'Toko Koi Sejahtera');
-        const effectiveDealerPhone = aucItem.dealerPhone || raw?.user?.phone || '+62 813-7777-2002';
-        const effectiveDealerBadge = aucItem.dealerBadge || (effectiveDealerType === 'import' ? 'Diler Import Niigata Terverifikasi' : 'Breeder Lokal APKI Terverifikasi');
+        const rawStoreName = raw?.product?.store?.name || (typeof raw?.product?.store === 'string' ? raw.product.store : null);
+        const itemStoreName = typeof aucItem.dealerName === 'string' ? aucItem.dealerName : (typeof aucItem.store === 'string' ? aucItem.store : (aucItem.store?.name || null));
+        const effectiveDealerName = itemStoreName || rawStoreName || raw?.user?.name || (effectiveDealerType === 'import' ? 'Daisuke Nishikigoi Farm' : 'Toko Koi Sejahtera');
+        const effectiveDealerPhone = (typeof aucItem.dealerPhone === 'string' && aucItem.dealerPhone) || raw?.product?.store?.phone || raw?.user?.phone || '+62 813-7777-2002';
+        const effectiveDealerBadge = (typeof aucItem.dealerBadge === 'string' && aucItem.dealerBadge) || (effectiveDealerType === 'import' ? 'Diler Import Niigata Terverifikasi' : 'Breeder Lokal APKI Terverifikasi');
 
         const bidsHistory = raw?.bids && raw.bids.length > 0
             ? raw.bids.map((b: any) => ({
@@ -2925,7 +2920,10 @@ export default function AndroidKoiApp({
                 if (data.success) {
                     triggerToast(`✅ Berhasil masuk sebagai ${data.user?.name || accountData?.name || 'Pengguna'}`);
                     setIsGoogleLoginModalOpen(false);
-                    if (data.redirect) {
+                    if (pendingLoginAction && pendingLoginAction.type === 'navigate' && pendingLoginAction.payload) {
+                        navigateTo(pendingLoginAction.payload as ScreenType);
+                        setPendingLoginAction(null);
+                    } else if (data.redirect && data.redirect !== '/' && !data.redirect.endsWith('/')) {
                         window.location.href = data.redirect;
                     } else {
                         window.location.reload();
@@ -2954,7 +2952,7 @@ export default function AndroidKoiApp({
             delete (window as any).__onNativeGoogleSignInError;
             delete (window as any).__onNativeGoogleSignInCancel;
         };
-    }, []);
+    }, [pendingLoginAction]);
 
     // Google Login Handler - Langsung buka dialog Akun Google Native Android di HP tanpa redirect web
     const handleGoogleLogin = () => {
@@ -2963,7 +2961,9 @@ export default function AndroidKoiApp({
             (window as any).AndroidGoogleBridge.signIn();
         } else {
             setGoogleLoginLoading(true);
-            window.location.href = '/auth/google';
+            const currentUrl = typeof window !== 'undefined' ? window.location.pathname + window.location.search : '';
+            const redirectParam = currentUrl && currentUrl !== '/' ? `?redirect=${encodeURIComponent(currentUrl)}` : '';
+            window.location.href = `/auth/google${redirectParam}`;
         }
     };
 
@@ -4642,7 +4642,7 @@ export default function AndroidKoiApp({
                                                                 </h5>
                                                                 <p className="text-xs font-medium text-slate-600 mt-0.5 truncate flex items-center gap-1">
                                                                     <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
-                                                                    <span className="truncate">{prod.store} • {prod.city}</span>
+                                                                    <span className="truncate">{typeof prod.store === 'object' ? (prod.store as any)?.name : (prod.store || '')} • {prod.city}</span>
                                                                 </p>
                                                             </div>
 
@@ -5266,19 +5266,6 @@ export default function AndroidKoiApp({
                     {/* SCREEN 7: RUANG LELANG KOI LIVE (LIVE AUCTION ROOM)                      */}
                     {/* ========================================================================= */}
                     {currentScreen === 'auction_detail' && (
-                        !isLoggedIn ? (
-                            <LockedAccessCard
-                                title="Ruang Lelang Memerlukan Login"
-                                description="Untuk mengecek penawaran, riwayat bid penawar lain, dan memasang tawaran lelang, silakan masuk dengan akun Google Anda."
-                                icon={Gavel}
-                                onLoginClick={() => {
-                                    setGoogleLoginReason('tawaran');
-                                    setPendingLoginAction({ type: 'navigate', payload: 'auction_detail' });
-                                    setIsGoogleLoginModalOpen(true);
-                                }}
-                                onBackClick={goBack}
-                            />
-                        ) : (
                         <div className="flex-1 flex flex-col bg-white pb-24">
                             {/* Header */}
                             <div className="sticky top-0 z-20 px-4 py-3 bg-white/95 backdrop-blur-md border-b border-slate-100 flex items-center justify-between shadow-xs">
@@ -5372,16 +5359,17 @@ export default function AndroidKoiApp({
                                     <div className="min-w-0">
                                         <div className="flex items-center gap-1.5">
                                             <StoreIcon className="w-3.5 h-3.5 text-slate-600 shrink-0" />
-                                            <span className="text-xs font-bold text-slate-900 truncate">{liveAuction.dealerName || 'Daisuke Nishikigoi Farm'}</span>
+                                            <span className="text-xs font-bold text-slate-900 truncate">{typeof liveAuction.dealerName === 'object' ? (liveAuction.dealerName as any)?.name : (liveAuction.dealerName || 'Daisuke Nishikigoi Farm')}</span>
                                             <CheckCircle2 className="w-3.5 h-3.5 text-blue-500 shrink-0" />
                                         </div>
                                         <p className="text-[10px] text-emerald-700 font-semibold truncate mt-0.5">
-                                            {liveAuction.dealerBadge || (liveAuction.dealerType === 'import' ? 'Diler Import Niigata Terverifikasi' : 'Breeder Lokal APKI Terverifikasi')}
+                                            {typeof liveAuction.dealerBadge === 'object' ? (liveAuction.dealerBadge as any)?.name : (liveAuction.dealerBadge || (liveAuction.dealerType === 'import' ? 'Diler Import Niigata Terverifikasi' : 'Breeder Lokal APKI Terverifikasi'))}
                                         </p>
                                     </div>
                                     <button
                                         onClick={() => {
-                                            const msg = `Halo *${liveAuction.dealerName || 'Diler Koi'}*, saya sedang memantau lelang Koi Premium *${liveAuction.name}* (OB: Rp ${(Number(liveAuction.startPrice) || 25000000).toLocaleString('id-ID')}). Bisakah saya konsultasi sertifikat dan kondisi terkini ikan?`;
+                                            const dealerNameStr = typeof liveAuction.dealerName === 'object' ? (liveAuction.dealerName as any)?.name : (liveAuction.dealerName || 'Diler Koi');
+                                            const msg = `Halo *${dealerNameStr}*, saya sedang memantau lelang Koi Premium *${liveAuction.name}* (OB: Rp ${(Number(liveAuction.startPrice) || 25000000).toLocaleString('id-ID')}). Bisakah saya konsultasi sertifikat dan kondisi terkini ikan?`;
                                             openWhatsApp(liveAuction.dealerPhone, msg);
                                         }}
                                         className="py-1.5 px-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 text-[11px] font-bold flex items-center gap-1 shrink-0 transition active:scale-95 cursor-pointer"
@@ -5591,7 +5579,6 @@ export default function AndroidKoiApp({
                                 })()}
                             </div>
                         </div>
-                        )
                     )}
 
                     {/* ========================================================================= */}
@@ -5946,7 +5933,7 @@ export default function AndroidKoiApp({
                                                             </h4>
                                                             <div className="flex items-center gap-1 text-[11px] text-slate-500 mt-1">
                                                                 <StoreIcon className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                                                                <span className="truncate">{order.product?.store || 'Mitra Peternak Koi'}</span>
+                                                                <span className="truncate">{typeof order.product?.store === 'object' ? (order.product.store as any)?.name : (order.product?.store || 'Mitra Peternak Koi')}</span>
                                                             </div>
                                                             <div className="flex items-center justify-between mt-2">
                                                                 <span className="text-[10px] text-slate-400">Total Tagihan:</span>
@@ -6203,7 +6190,7 @@ export default function AndroidKoiApp({
                                     <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
                                         <div className="flex items-center gap-1.5 text-xs text-slate-700">
                                             <StoreIcon className="w-4 h-4 text-slate-400" />
-                                            <span className="font-semibold text-[11px]">{selectedOrderDetail.product?.store || 'Daisuke Nishikigoi Farm'}</span>
+                                            <span className="font-semibold text-[11px]">{typeof selectedOrderDetail.product?.store === 'object' ? (selectedOrderDetail.product.store as any)?.name : (selectedOrderDetail.product?.store || 'Daisuke Nishikigoi Farm')}</span>
                                         </div>
                                         <button
                                             onClick={() => handleStartChatWithSeller({
@@ -6381,7 +6368,7 @@ export default function AndroidKoiApp({
                                         <div className="min-w-0">
                                             <h5 className="font-bold text-xs text-slate-900 truncate">{activeOrder.product.name}</h5>
                                             <p className="text-[10px] text-slate-500 mt-0.5">{activeOrder.product.size} | {activeOrder.product.age || 'Nisai'}</p>
-                                            <p className="text-[10px] text-slate-400 mt-0.5">{activeOrder.product.store || 'Toko Koi Sejahtera'}</p>
+                                            <p className="text-[10px] text-slate-400 mt-0.5">{typeof activeOrder.product?.store === 'object' ? (activeOrder.product.store as any)?.name : (activeOrder.product?.store || 'Toko Koi Sejahtera')}</p>
                                             <p className="text-xs font-extrabold text-red-600 mt-1">Rp {activeOrder.fishPrice.toLocaleString('id-ID')}</p>
                                         </div>
                                     </div>
@@ -6545,7 +6532,7 @@ export default function AndroidKoiApp({
                                     <div className="bg-white p-3 rounded-2xl rounded-tl-none shadow-xs space-y-1">
                                         <p className="text-[10px] font-bold text-[#075E54]">Operator KoiMart (QC & Escrow)</p>
                                         <p className="text-slate-800">
-                                            Halo Pak <b>{userName}</b> (Customer) & <b>{activeOrder.product.store || 'Toko Koi Sejahtera'}</b> (Breeder).
+                                            Halo Pak <b>{userName}</b> (Customer) & <b>{typeof activeOrder.product?.store === 'object' ? (activeOrder.product.store as any)?.name : (activeOrder.product?.store || 'Toko Koi Sejahtera')}</b> (Breeder).
                                             Pembayaran <b>Rp {activeOrder.grandTotal.toLocaleString('id-ID')}</b> telah lunas via Payment Gateway dan tersinkronisasi ke <b>Odoo ERP ({activeOrder.odooSoNumber})</b>.
                                         </p>
                                         <p className="text-[9px] text-slate-400 text-right">10:14</p>
@@ -6555,7 +6542,7 @@ export default function AndroidKoiApp({
                                 {/* Message 2: Merchant */}
                                 <div className="flex flex-col items-start max-w-[85%]">
                                     <div className="bg-white p-3 rounded-2xl rounded-tl-none shadow-xs space-y-1">
-                                        <p className="text-[10px] font-bold text-amber-700">{activeOrder.product.store || 'Toko Koi Sejahtera'} (Merchant)</p>
+                                        <p className="text-[10px] font-bold text-amber-700">{typeof activeOrder.product?.store === 'object' ? (activeOrder.product.store as any)?.name : (activeOrder.product?.store || 'Toko Koi Sejahtera')} (Merchant)</p>
                                         <p className="text-slate-800">
                                             Siap Pak Operator & Kak {userName}! Ikan koi <b>{activeOrder.product.name}</b> sudah kami puasakan & karantina. Sertifikat original Blitar sudah masuk dalam kantong ganda tabung oksigen murni.
                                         </p>
@@ -8039,7 +8026,7 @@ export default function AndroidKoiApp({
 
                                                                 <div className="flex-1 min-w-0">
                                                                     <h4 className="font-bold text-xs text-slate-900 leading-snug line-clamp-1">{bid.name}</h4>
-                                                                    <p className="text-[11px] text-slate-500 mt-0.5">{bid.size} • {bid.store}</p>
+                                                                    <p className="text-[11px] text-slate-500 mt-0.5">{bid.size} • {typeof bid.store === 'object' ? (bid.store as any)?.name : (bid.store || '')}</p>
                                                                     <div className="flex items-center gap-2 mt-1 text-[10px] text-slate-400">
                                                                         <span>{bid.bidsCount ? `${bid.bidsCount} Total Bid` : '20+ Bid'}</span>
                                                                         <span>•</span>
@@ -8597,7 +8584,7 @@ export default function AndroidKoiApp({
                                         </p>
                                     )}
                                     {shareModalItem.store && (
-                                        <p className="text-[10px] text-slate-500 mt-0.5 truncate">{shareModalItem.store}</p>
+                                        <p className="text-[10px] text-slate-500 mt-0.5 truncate">{typeof shareModalItem.store === 'object' ? (shareModalItem.store as any)?.name : (shareModalItem.store || '')}</p>
                                     )}
                                 </div>
                             </div>

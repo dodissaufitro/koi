@@ -753,7 +753,7 @@ export default function LandingKoi({
                                                     </span>
                                                 </div>
 
-                                                <Link href={`/products/${auction.product?.slug}`} className="block">
+                                                <Link href={`/auctions/${auction.id}`} className="block">
                                                     <h3 className={`line-clamp-2 text-sm font-semibold transition ${isDark ? 'text-slate-100 group-hover:text-amber-200' : 'text-slate-900 group-hover:text-amber-700'}`}>
                                                         {auction.product?.name}
                                                     </h3>
@@ -797,7 +797,7 @@ export default function LandingKoi({
 
                                             <div className="grid grid-cols-2 gap-2">
                                                 <Link
-                                                    href={`/products/${auction.product?.slug}`}
+                                                    href={`/auctions/${auction.id}`}
                                                     className={`flex items-center justify-center gap-1 rounded-xl border py-2 text-xs font-medium transition ${
                                                         isDark
                                                             ? 'border-white/10 bg-[#141B28] text-slate-300 hover:text-white'
