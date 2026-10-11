@@ -8477,27 +8477,7 @@ export default function AndroidKoiApp({
                                 <span>Terhubung langsung & aman ke server Google</span>
                             </div>
 
-                            {/* Separator / Alternative Access */}
-                            <div className="relative my-1">
-                                <div className="absolute inset-0 flex items-center">
-                                    <div className="w-full border-t border-slate-200"></div>
-                                </div>
-                                <div className="relative flex justify-center text-[10px] uppercase">
-                                    <span className="bg-white px-2 text-slate-400 font-semibold tracking-wider">Atau Masuk Instan Demo</span>
-                                </div>
-                            </div>
-
-                            {/* Quick 1-Click Demo Bidder Login */}
-                            <button
-                                onClick={() => handleQuickDemoLogin('buyer')}
-                                disabled={googleLoginLoading}
-                                className="w-full py-2.5 px-3 bg-amber-50 hover:bg-amber-100 active:bg-amber-200 border border-amber-300 text-amber-900 font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition cursor-pointer"
-                            >
-                                <UserCheck className="w-4 h-4 text-amber-600" />
-                                <span>1-Klik Masuk sebagai Kolektor / Bidder (Budi Santoso)</span>
-                            </button>
-
-                            <div className="flex items-center justify-between pt-1">
+                            <div className="flex items-center justify-between pt-2">
                                 <a
                                     href="/login"
                                     className="text-[11px] text-slate-500 hover:text-amber-600 underline font-medium"
