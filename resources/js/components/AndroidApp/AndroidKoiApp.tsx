@@ -2668,6 +2668,16 @@ export default function AndroidKoiApp({
         setTimeout(() => setToastMessage(null), 3500);
     };
 
+    // Tampilkan notifikasi flash dari session Laravel (misal setelah Google Login)
+    useEffect(() => {
+        const flash = (pageProps as any)?.flash;
+        if (flash?.error) {
+            triggerToast(`⚠️ ${flash.error}`);
+        } else if (flash?.success) {
+            triggerToast(`✅ ${flash.success}`);
+        }
+    }, [(pageProps as any)?.flash]);
+
     // Countdown Timer Effect
     useEffect(() => {
         const timer = setInterval(() => {

@@ -22,22 +22,36 @@ class GoogleAuthController extends Controller
      */
     public function redirect(Request $request): RedirectResponse
     {
-        // Simpan previous url ke session jika belum ada
-        if (! $request->session()->has('url.intended')) {
+        $targetRedirect = null;
+        if ($request->filled('redirect')) {
+            $targetRedirect = $request->query('redirect');
+        } elseif ($request->session()->has('url.intended')) {
+            $targetRedirect = $request->session()->get('url.intended');
+        } else {
             $previous = url()->previous();
             $current = url()->current();
             if ($previous && $previous !== $current && !str_contains($previous, '/login') && !str_contains($previous, '/register') && !str_contains($previous, '/auth/google')) {
-                $request->session()->put('url.intended', $previous);
+                $targetRedirect = $previous;
             }
         }
 
-        // Simpan jika ada parameter ?redirect= di URL
-        if ($request->filled('redirect')) {
-            $request->session()->put('url.intended', $request->query('redirect'));
+        if ($targetRedirect) {
+            $request->session()->put('url.intended', $targetRedirect);
         }
 
         $redirectUrl = $this->getRedirectUrl($request);
-        return Socialite::driver('google')->redirectUrl($redirectUrl)->redirect();
+
+        // Bungkus target redirect ke parameter state agar tetap bertahan melewati redirect Google
+        $statePayload = base64_encode(json_encode([
+            'redirect' => $targetRedirect,
+            'nonce' => Str::random(16),
+        ]));
+
+        return Socialite::driver('google')
+            ->stateless()
+            ->redirectUrl($redirectUrl)
+            ->with(['state' => $statePayload])
+            ->redirect();
     }
 
     /**
@@ -50,7 +64,7 @@ class GoogleAuthController extends Controller
             return $configured;
         }
 
-        if ($request->isSecure()) {
+        if ($request->isSecure() || $request->header('X-Forwarded-Proto') === 'https' || str_starts_with(config('app.url'), 'https://')) {
             return secure_url('/auth/google/callback');
         }
 
@@ -62,14 +76,27 @@ class GoogleAuthController extends Controller
      */
     public function callback(Request $request): RedirectResponse
     {
+        $targetRedirect = null;
+        $state = $request->query('state');
+        if ($state) {
+            try {
+                $decoded = json_decode(base64_decode($state), true);
+                if (is_array($decoded) && !empty($decoded['redirect'])) {
+                    $targetRedirect = $decoded['redirect'];
+                }
+            } catch (\Throwable) {}
+        }
+        if (!$targetRedirect) {
+            $targetRedirect = $request->session()->pull('url.intended');
+        }
+
         try {
             $redirectUrl = $this->getRedirectUrl($request);
 
-            try {
-                $googleUser = Socialite::driver('google')->redirectUrl($redirectUrl)->user();
-            } catch (\Throwable $stateException) {
-                $googleUser = Socialite::driver('google')->redirectUrl($redirectUrl)->stateless()->user();
-            }
+            $googleUser = Socialite::driver('google')
+                ->stateless()
+                ->redirectUrl($redirectUrl)
+                ->user();
 
             if (!$googleUser || !$googleUser->getEmail()) {
                 throw new \Exception('Email akun Google tidak terdeteksi.');
@@ -108,7 +135,15 @@ class GoogleAuthController extends Controller
             // Bersihkan sesi pendaftaran jika ada sebelumnya
             $request->session()->forget('google_registration');
 
-            // Redirect langsung ke Dashboard sesuai role pengguna
+            // 1. Jika ada target halaman asal (misal /auctions/1?view=android), kembalikan langsung ke sana
+            if ($targetRedirect) {
+                $path = parse_url($targetRedirect, PHP_URL_PATH) ?? '';
+                if (!str_contains($path, '/login') && !str_contains($path, '/register') && !str_contains($path, '/auth/google')) {
+                    return redirect()->to($targetRedirect)->with('success', 'Selamat datang, ' . $user->name . '!');
+                }
+            }
+
+            // 2. Fallback sesuai role pengguna
             return $this->redirectBasedOnRole($user);
 
         } catch (\Throwable $e) {
@@ -116,9 +151,11 @@ class GoogleAuthController extends Controller
                 'exception' => $e,
             ]);
 
-            $intended = $request->session()->pull('url.intended');
-            if ($intended && !str_contains($intended, '/login') && !str_contains($intended, '/register') && !str_contains($intended, '/auth/google')) {
-                return redirect()->to($intended)->with('error', 'Gagal masuk dengan Google: ' . $e->getMessage());
+            if ($targetRedirect) {
+                $path = parse_url($targetRedirect, PHP_URL_PATH) ?? '';
+                if (!str_contains($path, '/login') && !str_contains($path, '/register') && !str_contains($path, '/auth/google')) {
+                    return redirect()->to($targetRedirect)->with('error', 'Gagal masuk dengan Google: ' . $e->getMessage());
+                }
             }
 
             return redirect()->route('login')->with('error', 'Gagal masuk dengan Google: ' . $e->getMessage());
