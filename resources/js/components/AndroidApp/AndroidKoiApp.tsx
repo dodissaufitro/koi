@@ -8472,27 +8472,9 @@ export default function AndroidKoiApp({
                             </button>
 
                             {/* Trust Badge */}
-                            <div className="flex items-center justify-center gap-1.5 text-[11px] text-slate-500 py-0.5">
+                            <div className="flex items-center justify-center gap-1.5 text-[11px] text-slate-500 pt-1 pb-2">
                                 <ShieldCheck className="w-4 h-4 text-emerald-600" />
                                 <span>Terhubung langsung & aman ke server Google</span>
-                            </div>
-
-                            <div className="flex items-center justify-between pt-2">
-                                <a
-                                    href="/login"
-                                    className="text-[11px] text-slate-500 hover:text-amber-600 underline font-medium"
-                                >
-                                    Masuk lewat Halaman Login Utama →
-                                </a>
-                                <button
-                                    onClick={() => {
-                                        setIsGoogleLoginModalOpen(false);
-                                        setPendingLoginAction(null);
-                                    }}
-                                    className="text-xs text-slate-400 hover:text-slate-600 font-medium py-1 px-2"
-                                >
-                                    Nanti Saja
-                                </button>
                             </div>
                         </div>
                     </div>
