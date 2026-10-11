@@ -2751,6 +2751,42 @@ export default function AndroidKoiApp({
         }
     };
 
+    // Pulihkan layar terakhir yang diminta (misal 'favorite', 'orders', 'chat_list', dll.) setelah login berhasil
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlScreen = urlParams.get('screen') as ScreenType | null;
+        let savedScreen: ScreenType | null = null;
+        try {
+            savedScreen = localStorage.getItem('koki_last_screen') as ScreenType | null;
+        } catch {}
+
+        const targetScreenToRestore = urlScreen || savedScreen;
+
+        if (targetScreenToRestore && targetScreenToRestore !== 'welcome') {
+            try {
+                localStorage.removeItem('koki_last_screen');
+            } catch {}
+
+            // Bersihkan parameter ?screen dari URL bar tanpa reload agar URL bersih
+            if (urlScreen) {
+                urlParams.delete('screen');
+                const newQuery = urlParams.toString();
+                const newUrl = window.location.pathname + (newQuery ? `?${newQuery}` : '');
+                window.history.replaceState({}, '', newUrl);
+            }
+
+            // Langsung arahkan ke layar yang diminta pengguna
+            setCurrentScreen(targetScreenToRestore);
+            syncTabForScreen(targetScreenToRestore);
+            setScreenStack(targetScreenToRestore === 'home' ? ['home'] : ['home', targetScreenToRestore]);
+
+            const routerEl = document.getElementById('main-screen-router');
+            if (routerEl) routerEl.scrollTop = 0;
+        }
+    }, []);
+
     // Fungsi untuk menutup modal / popup jika sedang terbuka
     const closeAnyOpenModal = (): boolean => {
         if (isFontSizeModalOpen) {
@@ -2931,9 +2967,21 @@ export default function AndroidKoiApp({
                 if (data.success) {
                     triggerToast(`✅ Berhasil masuk sebagai ${data.user?.name || accountData?.name || 'Pengguna'}`);
                     setIsGoogleLoginModalOpen(false);
-                    if (pendingLoginAction && pendingLoginAction.type === 'navigate' && pendingLoginAction.payload) {
-                        navigateTo(pendingLoginAction.payload as ScreenType);
+
+                    const targetScreen = (pendingLoginAction && pendingLoginAction.type === 'navigate' && pendingLoginAction.payload)
+                        ? (pendingLoginAction.payload as ScreenType)
+                        : currentScreen;
+
+                    if (typeof window !== 'undefined') {
+                        try {
+                            localStorage.setItem('koki_last_screen', targetScreen);
+                        } catch {}
+                    }
+
+                    if (targetScreen && targetScreen !== 'home') {
+                        navigateTo(targetScreen);
                         setPendingLoginAction(null);
+                        setGoogleLoginLoading(false);
                     } else if (data.redirect && data.redirect !== '/' && !data.redirect.endsWith('/')) {
                         window.location.href = data.redirect;
                     } else {
@@ -2963,16 +3011,35 @@ export default function AndroidKoiApp({
             delete (window as any).__onNativeGoogleSignInError;
             delete (window as any).__onNativeGoogleSignInCancel;
         };
-    }, [pendingLoginAction]);
+    }, [pendingLoginAction, currentScreen]);
 
     // Google Login Handler - Langsung buka dialog Akun Google Native Android di HP tanpa redirect web
     const handleGoogleLogin = () => {
+        // Tentukan layar target yang ingin dituju (favorit, pesanan, chat, beranda, dll.)
+        const targetScreen = (pendingLoginAction && pendingLoginAction.type === 'navigate' && pendingLoginAction.payload)
+            ? (pendingLoginAction.payload as ScreenType)
+            : currentScreen;
+
+        if (typeof window !== 'undefined') {
+            try {
+                localStorage.setItem('koki_last_screen', targetScreen);
+            } catch {}
+        }
+
         if ((window as any).AndroidGoogleBridge?.signIn) {
             setGoogleLoginLoading(true);
             (window as any).AndroidGoogleBridge.signIn();
         } else {
             setGoogleLoginLoading(true);
-            const currentUrl = typeof window !== 'undefined' ? window.location.pathname + window.location.search : '';
+            const pathname = typeof window !== 'undefined' ? window.location.pathname : '/';
+            const searchParams = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
+
+            // Sisipkan target screen ke URL query parameter agar redirect Google membawa kembali tujuannya
+            if (targetScreen && targetScreen !== 'home') {
+                searchParams.set('screen', targetScreen);
+            }
+
+            const currentUrl = `${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
             const redirectParam = currentUrl && currentUrl !== '/' ? `?redirect=${encodeURIComponent(currentUrl)}` : '';
             window.location.href = `/auth/google${redirectParam}`;
         }
@@ -2982,6 +3049,16 @@ export default function AndroidKoiApp({
     const handleQuickDemoLogin = async (demoRole: 'buyer' | 'seller' | 'admin' = 'buyer') => {
         try {
             setGoogleLoginLoading(true);
+            const targetScreen = (pendingLoginAction && pendingLoginAction.type === 'navigate' && pendingLoginAction.payload)
+                ? (pendingLoginAction.payload as ScreenType)
+                : currentScreen;
+
+            if (typeof window !== 'undefined') {
+                try {
+                    localStorage.setItem('koki_last_screen', targetScreen);
+                } catch {}
+            }
+
             const targetAccount = demoRole === 'admin'
                 ? { email: 'admin@koimart.test', name: 'Super Admin KoiMart', id: 'demo-admin' }
                 : demoRole === 'seller'
@@ -5784,9 +5861,9 @@ export default function AndroidKoiApp({
                                             badgeColor: 'bg-red-50 text-red-700 border border-red-200',
                                             action: () => navigateTo('orders') 
                                         },
-                                        { label: 'Favorit Saya', icon: Heart, action: () => isLoggedIn ? navigateTo('favorite') : (setGoogleLoginReason('favorit'), setIsGoogleLoginModalOpen(true)) },
+                                        { label: 'Favorit Saya', icon: Heart, action: () => isLoggedIn ? navigateTo('favorite') : (setGoogleLoginReason('favorit'), setPendingLoginAction({ type: 'navigate', payload: 'favorite' }), setIsGoogleLoginModalOpen(true)) },
                                         { label: 'Input Koleksi Koi Baru (Khusus Owner)', icon: StoreIcon, action: () => navigateTo('merchant_add_koi') },
-                                        { label: 'Chat Transaksi & Koordinasi', icon: MessageCircle, action: () => isLoggedIn ? openChatThread('thread-2') : (setGoogleLoginReason('chat'), setIsGoogleLoginModalOpen(true)) },
+                                        { label: 'Chat Transaksi & Koordinasi', icon: MessageCircle, action: () => isLoggedIn ? openChatThread('thread-2') : (setGoogleLoginReason('chat'), setPendingLoginAction({ type: 'navigate', payload: 'chat_list' }), setIsGoogleLoginModalOpen(true)) },
                                         { label: 'Rekor Lelang Tertinggi', icon: Crown, action: () => navigateTo('highest_auction') },
                                         { label: 'Lelang Terpopuler', icon: Flame, action: () => navigateTo('favorite_auction') },
                                         { label: 'Metode Pembayaran', icon: CreditCard, action: () => triggerToast('Metode pembayaran: BCA Virtual Account, Transfer Bank, QRIS Instan') },
