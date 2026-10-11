@@ -109,5 +109,16 @@ Route::middleware(['auth'])->group(function () {
     });
 });
 
+// Download APK Android Langsung
+Route::get('/download-apk', function () {
+    $apkPath = public_path('Tentengan.apk');
+    if (file_exists($apkPath)) {
+        return response()->download($apkPath, 'KoiMart.apk', [
+            'Content-Type' => 'application/vnd.android.package-archive',
+        ]);
+    }
+    abort(404, 'File APK belum tersedia.');
+})->name('apk.download');
+
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
