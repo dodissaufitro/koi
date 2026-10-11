@@ -33,6 +33,24 @@ class PlaceBidRequest extends FormRequest
         ];
     }
 
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator) {
+            $auction = $this->route('auction');
+            $user = $this->user();
+            if (! $user && $this->filled('user_id')) {
+                $user = \App\Models\User::find($this->input('user_id'));
+            }
+
+            if ($auction && $user && (int) $auction->highest_bidder_id === (int) $user->id) {
+                $validator->errors()->add(
+                    'amount',
+                    'Anda saat ini masih memegang penawaran tertinggi. Anda tidak dapat menawar lagi kecuali penawaran Anda sudah ditimpa oleh orang lain.'
+                );
+            }
+        });
+    }
+
     public function messages(): array
     {
         $auction = $this->route('auction');

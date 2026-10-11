@@ -1220,6 +1220,8 @@ export interface LiveAuctionState {
     dealerBadge?: string;
     currentBid: number;
     highestBidder: string;
+    highestBidderId?: number | string;
+    auctionRaw?: any;
     image: string;
     history: { user: string; amount: number; time: string; }[];
 }
@@ -1661,6 +1663,13 @@ export default function AndroidKoiApp({
                     { user: 'KoiLover', amount: Math.max(0, effectivePrice - 2500000), time: '32 menit lalu' },
                 ];
 
+        const isLeading = Boolean(
+            aucItem.isLeading ||
+            (raw?.highest_bidder_id && authUser?.id && Number(raw.highest_bidder_id) === Number(authUser.id)) ||
+            (userBids.some(b => Number(b.auctionId) === Number(targetAuctionId) && b.isLeading && !b.isEnded))
+        );
+        const effectiveHighestBidderId = raw?.highest_bidder_id || aucItem.highestBidderId || (isLeading ? authUser?.id : undefined);
+
         setLiveAuction({
             id: targetAuctionId,
             auctionId: targetAuctionId,
@@ -1675,7 +1684,9 @@ export default function AndroidKoiApp({
             dealerType: effectiveDealerType,
             dealerBadge: effectiveDealerBadge,
             currentBid: effectivePrice,
-            highestBidder: effectiveBidder,
+            highestBidder: isLeading ? `${userName} (Anda)` : effectiveBidder,
+            highestBidderId: effectiveHighestBidderId,
+            auctionRaw: raw || aucItem.auctionRaw,
             image: effectiveImage,
             history: bidsHistory
         });
@@ -3277,12 +3288,33 @@ export default function AndroidKoiApp({
         triggerToast(`🏷️ Penawaran harga Rp ${amount.toLocaleString('id-ID')} berhasil diajukan ke penjual!`);
     };
 
+    // Cek apakah user yang sedang login saat ini memegang penawaran tertinggi di lelang aktif
+    const currentAuctionId = Number((liveAuction as any).auctionId || (liveAuction as any).id);
+    const isCurrentHighestBidder = Boolean(
+        isLoggedIn && (
+            (liveAuction.highestBidderId && authUser?.id && Number(liveAuction.highestBidderId) === Number(authUser.id)) ||
+            ((liveAuction as any).auctionRaw?.highest_bidder_id && authUser?.id && Number((liveAuction as any).auctionRaw.highest_bidder_id) === Number(authUser.id)) ||
+            (liveAuction.highestBidder && (
+                liveAuction.highestBidder.includes('(Anda)') ||
+                liveAuction.highestBidder === `${userName} (Anda)` ||
+                (authUser?.name && liveAuction.highestBidder === authUser.name)
+            )) ||
+            userBids.some(b => Number(b.auctionId) === currentAuctionId && b.isLeading && !b.isEnded)
+        )
+    );
+
     // Bid Action: Buka Notifikasi / Dialog Konfirmasi untuk Memastikan Pembeli Serius Menawar
     const handleRequestBid = (incrementAmount?: number) => {
         if (!isLoggedIn) {
             setGoogleLoginReason('tawaran');
             setIsGoogleLoginModalOpen(true);
             triggerToast('🔒 Silakan login dengan Google terlebih dahulu untuk memasang tawaran');
+            return;
+        }
+
+        // Cegah penawaran jika user saat ini masih memegang penawaran tertinggi
+        if (isCurrentHighestBidder) {
+            triggerToast('👑 Anda saat ini masih memegang penawaran tertinggi! Anda tidak dapat menawar lagi kecuali penawaran Anda sudah ditimpa oleh orang lain.');
             return;
         }
 
@@ -3335,6 +3367,7 @@ export default function AndroidKoiApp({
             ...prev,
             currentBid: bidToSave,
             highestBidder: bidderName,
+            highestBidderId: authUser?.id,
             history: [
                 { user: bidderName, amount: bidToSave, time: 'Baru saja' },
                 ...(prev.history || [])
@@ -3405,6 +3438,7 @@ export default function AndroidKoiApp({
                         ...prev,
                         currentBid: result.current_bid || bidToSave,
                         highestBidder: result.highest_bidder ? `${result.highest_bidder} (Anda)` : bidderName,
+                        highestBidderId: result.highest_bidder_id || authUser?.id,
                         history: result.history.map((h: any) => ({
                             user: h.user === userName ? `${h.user} (Anda)` : h.user,
                             amount: h.amount,
@@ -3419,6 +3453,7 @@ export default function AndroidKoiApp({
                 const errData = await response.json().catch(() => null);
                 const errMsg = errData?.message || 'Gagal menyimpan penawaran ke database.';
                 triggerToast(`⚠️ ${errMsg}`);
+                fetchUserBids();
             }
         } catch (error) {
             console.error('Error saat menyimpan bid ke database:', error);
@@ -5541,54 +5576,79 @@ export default function AndroidKoiApp({
 
                                 {/* Bidding Controls (KB Ditentukan Platform: Kelipatan 500rb dan 1jt) */}
                                 <div className="space-y-3">
-                                    <div className="flex items-center justify-between">
-                                        <p className="text-xs font-bold text-slate-800">Pilih Kelipatan Bid (KB Resmi):</p>
-                                        <span className="text-[10px] text-slate-400 font-medium">Platform Standard</span>
-                                    </div>
-
-                                    {/* Quick Increment Chips: HANYA 500rb dan 1jt */}
-                                    <div className="grid grid-cols-2 gap-2.5">
-                                        {[
-                                            { label: '+ Rp 500.000', val: 500000, desc: 'Kelipatan Standard' },
-                                            { label: '+ Rp 1.000.000', val: 1000000, desc: 'Kelipatan Jumbo' }
-                                        ].map((chip) => (
+                                    {isCurrentHighestBidder ? (
+                                        <div className="p-4 rounded-2xl bg-amber-50 border-2 border-amber-300 text-amber-950 space-y-2.5 shadow-sm">
+                                            <div className="flex items-center gap-2.5">
+                                                <span className="text-2xl">👑</span>
+                                                <div>
+                                                    <p className="text-xs font-black text-amber-950">Anda Pemegang Tawaran Tertinggi</p>
+                                                    <p className="text-[10px] text-amber-800 font-semibold">
+                                                        Tawaran Anda Rp {Number(liveAuction.currentBid).toLocaleString('id-ID')} sedang memimpin
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="bg-white/90 p-2.5 rounded-xl border border-amber-200 text-[11px] text-amber-900 leading-relaxed">
+                                                🔒 Anda tidak dapat menawar lagi saat ini. Anda baru dapat mengajukan penawaran kembali jika tawaran Anda sudah ditimpa oleh penawar lain.
+                                            </div>
                                             <button
-                                                key={chip.val}
-                                                onClick={() => handleRequestBid(chip.val)}
-                                                className="py-2.5 px-3 rounded-2xl border-2 border-red-500/80 bg-red-50/50 hover:bg-red-100 text-red-700 font-extrabold text-xs shadow-xs active:scale-95 transition-all text-center cursor-pointer flex flex-col items-center justify-center gap-0.5"
+                                                disabled
+                                                className="w-full py-3 bg-amber-200/70 text-amber-900 font-extrabold text-xs rounded-full border border-amber-300 flex items-center justify-center gap-2 cursor-not-allowed shadow-none"
                                             >
-                                                <span>{chip.label}</span>
-                                                <span className="text-[9px] font-normal text-red-500/80">{chip.desc}</span>
+                                                <span>👑 Sedang Memimpin (Menunggu Penawar Lain)</span>
                                             </button>
-                                        ))}
-                                    </div>
-
-                                    {/* Custom Bid Input (Wajib Kelipatan 500.000 / 1.000.000) */}
-                                    <div className="space-y-1">
-                                        <div className="relative">
-                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">Rp</span>
-                                            <input
-                                                type="number"
-                                                step="500000"
-                                                placeholder={`Minimal Rp ${(Number(liveAuction.currentBid) + 500000).toLocaleString('id-ID')} (Kelipatan 500rb)`}
-                                                value={customBidInput}
-                                                onChange={(e) => setCustomBidInput(e.target.value)}
-                                                className="w-full pl-11 pr-4 py-2.5 rounded-full border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-red-500"
-                                            />
                                         </div>
-                                        <p className="text-[9px] text-slate-400 px-3">
-                                            * Nominal harus lebih tinggi dan merupakan kelipatan Rp 500.000 atau Rp 1.000.000
-                                        </p>
-                                    </div>
+                                    ) : (
+                                        <>
+                                            <div className="flex items-center justify-between">
+                                                <p className="text-xs font-bold text-slate-800">Pilih Kelipatan Bid (KB Resmi):</p>
+                                                <span className="text-[10px] text-slate-400 font-medium">Platform Standard</span>
+                                            </div>
 
-                                    {/* Place Bid Button */}
-                                    <button
-                                        onClick={() => handleRequestBid()}
-                                        className="w-full py-3 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 active:scale-[0.99] text-white font-extrabold text-xs rounded-full shadow-lg shadow-red-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer"
-                                    >
-                                        <Gavel className="w-4 h-4" />
-                                        <span>Pasang Tawaran Sekarang</span>
-                                    </button>
+                                            {/* Quick Increment Chips: HANYA 500rb dan 1jt */}
+                                            <div className="grid grid-cols-2 gap-2.5">
+                                                {[
+                                                    { label: '+ Rp 500.000', val: 500000, desc: 'Kelipatan Standard' },
+                                                    { label: '+ Rp 1.000.000', val: 1000000, desc: 'Kelipatan Jumbo' }
+                                                ].map((chip) => (
+                                                    <button
+                                                        key={chip.val}
+                                                        onClick={() => handleRequestBid(chip.val)}
+                                                        className="py-2.5 px-3 rounded-2xl border-2 border-red-500/80 bg-red-50/50 hover:bg-red-100 text-red-700 font-extrabold text-xs shadow-xs active:scale-95 transition-all text-center cursor-pointer flex flex-col items-center justify-center gap-0.5"
+                                                    >
+                                                        <span>{chip.label}</span>
+                                                        <span className="text-[9px] font-normal text-red-500/80">{chip.desc}</span>
+                                                    </button>
+                                                ))}
+                                            </div>
+
+                                            {/* Custom Bid Input (Wajib Kelipatan 500.000 / 1.000.000) */}
+                                            <div className="space-y-1">
+                                                <div className="relative">
+                                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">Rp</span>
+                                                    <input
+                                                        type="number"
+                                                        step="500000"
+                                                        placeholder={`Minimal Rp ${(Number(liveAuction.currentBid) + 500000).toLocaleString('id-ID')} (Kelipatan 500rb)`}
+                                                        value={customBidInput}
+                                                        onChange={(e) => setCustomBidInput(e.target.value)}
+                                                        className="w-full pl-11 pr-4 py-2.5 rounded-full border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-red-500"
+                                                    />
+                                                </div>
+                                                <p className="text-[9px] text-slate-400 px-3">
+                                                    * Nominal harus lebih tinggi dan merupakan kelipatan Rp 500.000 atau Rp 1.000.000
+                                                </p>
+                                            </div>
+
+                                            {/* Place Bid Button */}
+                                            <button
+                                                onClick={() => handleRequestBid()}
+                                                className="w-full py-3 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 active:scale-[0.99] text-white font-extrabold text-xs rounded-full shadow-lg shadow-red-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                                            >
+                                                <Gavel className="w-4 h-4" />
+                                                <span>Pasang Tawaran Sekarang</span>
+                                            </button>
+                                        </>
+                                    )}
                                 </div>
 
                                 {/* Riwayat Penawaran (Bid History) */}

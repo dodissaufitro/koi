@@ -130,6 +130,10 @@ class AuctionController extends Controller
                 // Lock record auction untuk mencegah race condition penawaran bersamaan
                 $lockedAuction = Auction::lockForUpdate()->find($auction->id);
 
+                if ((int) $lockedAuction->highest_bidder_id === (int) $user->id) {
+                    throw new \Exception('Anda saat ini masih memegang penawaran tertinggi. Anda tidak dapat menawar lagi kecuali penawaran Anda sudah ditimpa oleh orang lain.');
+                }
+
                 if ($amount <= $lockedAuction->current_bid) {
                     throw new \Exception('Tawaran Anda harus lebih tinggi dari penawaran tertinggi saat ini.');
                 }
@@ -167,6 +171,7 @@ class AuctionController extends Controller
                 'message' => 'Penawaran bid Anda berhasil masuk dan tersimpan ke database!',
                 'current_bid' => (float) $fresh->current_bid,
                 'highest_bidder' => $fresh->highestBidder?->name ?? $user->name,
+                'highest_bidder_id' => $fresh->highest_bidder_id,
                 'bids_count' => $fresh->bids_count,
                 'history' => $fresh->bids()->with('user')->latest()->get()->map(function ($b) {
                     return [

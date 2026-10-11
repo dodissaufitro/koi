@@ -66,6 +66,9 @@ export default function AuctionShow({ auction, isFavorited = false }: Props) {
     const currentBid = Number(auction.current_bid || auction.start_price);
     const bidIncrement = Number(auction.bid_increment || 500000);
     const minNextBid = currentBid + bidIncrement;
+    const isCurrentHighestBidder = Boolean(
+        user && auction.highest_bidder_id && Number(user.id) === Number(auction.highest_bidder_id)
+    );
 
     const [customBidAmount, setCustomBidAmount] = useState<number>(minNextBid);
     const [isSubmittingBid, setIsSubmittingBid] = useState(false);
@@ -111,6 +114,11 @@ export default function AuctionShow({ auction, isFavorited = false }: Props) {
         if (!user) {
             // Arahkan ke login dengan redirect kembali ke halaman lelang ini
             router.visit(`/login?redirect=${encodeURIComponent(window.location.pathname)}`);
+            return;
+        }
+
+        if (isCurrentHighestBidder) {
+            setBidErrorMessage('Anda saat ini masih memegang penawaran tertinggi. Anda tidak dapat menawar lagi kecuali penawaran Anda sudah ditimpa oleh orang lain.');
             return;
         }
 
@@ -514,102 +522,127 @@ export default function AuctionShow({ auction, isFavorited = false }: Props) {
                                 </div>
                             ) : (
                                 <div className="space-y-4">
-                                    <div className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                                        Pilih Cepat Nilai Penawaran:
-                                    </div>
-
-                                    {/* Preset Quick Bid Buttons */}
-                                    <div className="grid grid-cols-3 gap-2">
-                                        <button
-                                            type="button"
-                                            onClick={() => setCustomBidAmount(currentBid + bidIncrement)}
-                                            className={`py-2.5 px-2 rounded-xl text-xs font-bold border transition ${
-                                                customBidAmount === currentBid + bidIncrement
-                                                    ? 'border-amber-500 bg-amber-500/20 text-amber-500 dark:text-amber-300'
-                                                    : isDark
-                                                    ? 'border-white/10 bg-white/5 hover:bg-white/10 text-slate-300'
-                                                    : 'border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700'
-                                            }`}
-                                        >
-                                            +{(bidIncrement / 1000).toLocaleString('id-ID')} rb
-                                        </button>
-
-                                        <button
-                                            type="button"
-                                            onClick={() => setCustomBidAmount(currentBid + 1000000)}
-                                            className={`py-2.5 px-2 rounded-xl text-xs font-bold border transition ${
-                                                customBidAmount === currentBid + 1000000
-                                                    ? 'border-amber-500 bg-amber-500/20 text-amber-500 dark:text-amber-300'
-                                                    : isDark
-                                                    ? 'border-white/10 bg-white/5 hover:bg-white/10 text-slate-300'
-                                                    : 'border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700'
-                                            }`}
-                                        >
-                                            +1.000 rb
-                                        </button>
-
-                                        <button
-                                            type="button"
-                                            onClick={() => setCustomBidAmount(currentBid + 2000000)}
-                                            className={`py-2.5 px-2 rounded-xl text-xs font-bold border transition ${
-                                                customBidAmount === currentBid + 2000000
-                                                    ? 'border-amber-500 bg-amber-500/20 text-amber-500 dark:text-amber-300'
-                                                    : isDark
-                                                    ? 'border-white/10 bg-white/5 hover:bg-white/10 text-slate-300'
-                                                    : 'border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700'
-                                            }`}
-                                        >
-                                            +2.000 rb
-                                        </button>
-                                    </div>
-
-                                    {/* Custom Bid Input */}
-                                    <div>
-                                        <label className="text-[11px] font-semibold text-slate-500 block mb-1">
-                                            Nominal Tawaran Anda (Rp):
-                                        </label>
-                                        <div className="relative">
-                                            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400">
-                                                Rp
-                                            </span>
-                                            <input
-                                                type="number"
-                                                min={minNextBid}
-                                                step={bidIncrement}
-                                                value={customBidAmount}
-                                                onChange={(e) => setCustomBidAmount(Number(e.target.value))}
-                                                className={`w-full pl-11 pr-4 py-2.5 rounded-xl border text-base font-bold transition focus:outline-none focus:ring-2 focus:ring-amber-500 ${
-                                                    isDark
-                                                        ? 'bg-[#141C2B] border-white/10 text-white'
-                                                        : 'bg-white border-slate-300 text-slate-900'
-                                                }`}
-                                            />
+                                    {isCurrentHighestBidder ? (
+                                        <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-500 space-y-3">
+                                            <div className="flex items-center gap-2">
+                                                <Award className="h-5 w-5 text-amber-500 shrink-0" />
+                                                <div>
+                                                    <p className="text-xs font-bold text-amber-400">Anda Memegang Penawaran Tertinggi</p>
+                                                    <p className="text-[11px] text-slate-400">Tawaran Anda sebesar Rp {currentBid.toLocaleString('id-ID')} sedang memimpin lelang ini.</p>
+                                                </div>
+                                            </div>
+                                            <p className="text-[11px] text-slate-400 leading-relaxed bg-black/20 p-2.5 rounded-xl border border-white/5">
+                                                🔒 Anda tidak dapat menawar lagi saat ini. Anda baru dapat memasang tawaran kembali apabila ada peserta lain yang menimpa penawaran Anda.
+                                            </p>
+                                            <button
+                                                type="button"
+                                                disabled
+                                                className="w-full py-3 px-4 rounded-xl font-bold text-xs bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center gap-2 cursor-not-allowed"
+                                            >
+                                                <Award className="h-4 w-4" />
+                                                <span>👑 Sedang Memimpin (Menunggu Penawar Lain)</span>
+                                            </button>
                                         </div>
-                                        <span className="text-[10px] text-slate-500 mt-1 block">
-                                            Minimal penawaran berikutnya: Rp {minNextBid.toLocaleString('id-ID')}
-                                        </span>
-                                    </div>
+                                    ) : (
+                                        <>
+                                            <div className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                                                Pilih Cepat Nilai Penawaran:
+                                            </div>
 
-                                    {/* Place Bid Submit Button */}
-                                    <button
-                                        type="button"
-                                        disabled={isSubmittingBid}
-                                        onClick={() => handlePlaceBid(customBidAmount)}
-                                        className={`w-full py-3 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-md transition active:scale-98 ${
-                                            isSubmittingBid
-                                                ? 'bg-amber-600/50 cursor-not-allowed text-white'
-                                                : 'bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 hover:from-amber-500 hover:to-amber-500 text-white shadow-amber-600/20'
-                                        }`}
-                                    >
-                                        <Gavel className="h-4 w-4" />
-                                        <span>
-                                            {isSubmittingBid
-                                                ? 'Memproses Tawaran...'
-                                                : user
-                                                ? `Pasang Tawaran Rp ${customBidAmount.toLocaleString('id-ID')}`
-                                                : 'Masuk Akun untuk Memasang Bid'}
-                                        </span>
-                                    </button>
+                                            {/* Preset Quick Bid Buttons */}
+                                            <div className="grid grid-cols-3 gap-2">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setCustomBidAmount(currentBid + bidIncrement)}
+                                                    className={`py-2.5 px-2 rounded-xl text-xs font-bold border transition ${
+                                                        customBidAmount === currentBid + bidIncrement
+                                                            ? 'border-amber-500 bg-amber-500/20 text-amber-500 dark:text-amber-300'
+                                                            : isDark
+                                                            ? 'border-white/10 bg-white/5 hover:bg-white/10 text-slate-300'
+                                                            : 'border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700'
+                                                    }`}
+                                                >
+                                                    +{(bidIncrement / 1000).toLocaleString('id-ID')} rb
+                                                </button>
+
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setCustomBidAmount(currentBid + 1000000)}
+                                                    className={`py-2.5 px-2 rounded-xl text-xs font-bold border transition ${
+                                                        customBidAmount === currentBid + 1000000
+                                                            ? 'border-amber-500 bg-amber-500/20 text-amber-500 dark:text-amber-300'
+                                                            : isDark
+                                                            ? 'border-white/10 bg-white/5 hover:bg-white/10 text-slate-300'
+                                                            : 'border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700'
+                                                    }`}
+                                                >
+                                                    +1.000 rb
+                                                </button>
+
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setCustomBidAmount(currentBid + 2000000)}
+                                                    className={`py-2.5 px-2 rounded-xl text-xs font-bold border transition ${
+                                                        customBidAmount === currentBid + 2000000
+                                                            ? 'border-amber-500 bg-amber-500/20 text-amber-500 dark:text-amber-300'
+                                                            : isDark
+                                                            ? 'border-white/10 bg-white/5 hover:bg-white/10 text-slate-300'
+                                                            : 'border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700'
+                                                    }`}
+                                                >
+                                                    +2.000 rb
+                                                </button>
+                                            </div>
+
+                                            {/* Custom Bid Input */}
+                                            <div>
+                                                <label className="text-[11px] font-semibold text-slate-500 block mb-1">
+                                                    Nominal Tawaran Anda (Rp):
+                                                </label>
+                                                <div className="relative">
+                                                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400">
+                                                        Rp
+                                                    </span>
+                                                    <input
+                                                        type="number"
+                                                        min={minNextBid}
+                                                        step={bidIncrement}
+                                                        value={customBidAmount}
+                                                        onChange={(e) => setCustomBidAmount(Number(e.target.value))}
+                                                        className={`w-full pl-11 pr-4 py-2.5 rounded-xl border text-base font-bold transition focus:outline-none focus:ring-2 focus:ring-amber-500 ${
+                                                            isDark
+                                                                ? 'bg-[#141C2B] border-white/10 text-white'
+                                                                : 'bg-white border-slate-300 text-slate-900'
+                                                        }`}
+                                                    />
+                                                </div>
+                                                <span className="text-[10px] text-slate-500 mt-1 block">
+                                                    Minimal penawaran berikutnya: Rp {minNextBid.toLocaleString('id-ID')}
+                                                </span>
+                                            </div>
+
+                                            {/* Place Bid Submit Button */}
+                                            <button
+                                                type="button"
+                                                disabled={isSubmittingBid}
+                                                onClick={() => handlePlaceBid(customBidAmount)}
+                                                className={`w-full py-3 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-md transition active:scale-98 ${
+                                                    isSubmittingBid
+                                                        ? 'bg-amber-600/50 cursor-not-allowed text-white'
+                                                        : 'bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 hover:from-amber-500 hover:to-amber-500 text-white shadow-amber-600/20'
+                                                }`}
+                                            >
+                                                <Gavel className="h-4 w-4" />
+                                                <span>
+                                                    {isSubmittingBid
+                                                        ? 'Memproses Tawaran...'
+                                                        : user
+                                                        ? `Pasang Tawaran Rp ${customBidAmount.toLocaleString('id-ID')}`
+                                                        : 'Masuk Akun untuk Memasang Bid'}
+                                                </span>
+                                            </button>
+                                        </>
+                                    )}
                                 </div>
                             )}
 
