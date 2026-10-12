@@ -13,7 +13,7 @@ class CategoryController extends Controller
     /**
      * Menampilkan semua kategori ikan (Ikan Air Tawar, Ikan Laut, Ikan Hias, Olahan, Bibit).
      */
-    public function index(Request $request): InertiaResponse|JsonResponse
+    public function index(Request $request): InertiaResponse|JsonResponse|\Illuminate\Http\RedirectResponse
     {
         $categories = Category::active()
             ->withCount(['products' => function ($q) {
@@ -25,15 +25,13 @@ class CategoryController extends Controller
             return response()->json($categories);
         }
 
-        return Inertia::render('Categories/Index', [
-            'categories' => $categories,
-        ]);
+        return redirect()->route('products.index');
     }
 
     /**
      * Menampilkan detail kategori beserta produk ikan di dalamnya.
      */
-    public function show(Request $request, Category $category): InertiaResponse|JsonResponse
+    public function show(Request $request, Category $category): InertiaResponse|JsonResponse|\Illuminate\Http\RedirectResponse
     {
         $products = $category->products()
             ->active()
@@ -48,9 +46,6 @@ class CategoryController extends Controller
             ]);
         }
 
-        return Inertia::render('Categories/Show', [
-            'category' => $category,
-            'products' => $products,
-        ]);
+        return redirect()->route('products.index', ['category' => $category->slug]);
     }
 }
