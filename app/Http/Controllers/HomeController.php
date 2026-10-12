@@ -22,24 +22,24 @@ class HomeController extends Controller
     {
         // 1. Lelang Tertinggi (Urut berdasarkan penawaran tertinggi saat ini)
         $highestBidAuctions = Auction::active()
-            ->with(['product.primaryImage', 'product.images', 'product.store', 'product.category', 'highestBidder', 'bids.user'])
+            ->with(['product.primaryImage', 'product.store:id,name,city', 'product.category:id,name', 'highestBidder:id,name'])
             ->highestBid()
-            ->limit(10)
+            ->limit(8)
             ->get();
 
         // 2. Lelang Favorit (Urut berdasarkan jumlah difavoritkan terbanyak oleh kolektor)
         $favoriteAuctions = Auction::active()
-            ->with(['product.primaryImage', 'product.images', 'product.store', 'product.category', 'highestBidder', 'bids.user'])
+            ->with(['product.primaryImage', 'product.store:id,name,city', 'product.category:id,name', 'highestBidder:id,name'])
             ->mostFavorited()
-            ->limit(10)
+            ->limit(8)
             ->get();
 
-        // 3. Produk Koi Siap Kirim (Katalog)
+        // 3. Produk Koi Siap Kirim (Katalog Unggulan)
         $featuredKoi = Product::query()
-            ->with(['store', 'primaryImage', 'images', 'category', 'reviews.user'])
+            ->with(['store:id,name,city', 'primaryImage', 'category:id,name'])
             ->active()
             ->latest()
-            ->limit(30)
+            ->limit(12)
             ->get();
 
         // 4. Kategori Database
@@ -106,10 +106,10 @@ class HomeController extends Controller
         ];
 
         // 5. Data Artikel, Event Announcement & Banner Iklan
-        $pinnedAnnouncements = Article::pinnedTop()->get();
+        $pinnedAnnouncements = Article::pinnedTop()->take(3)->get();
         $tipsArticles = Article::active()->tips()->orderBy('order_priority')->latest()->take(6)->get();
-        $bannerAds = Article::active()->banners()->orderBy('order_priority')->latest()->take(4)->get();
-        $allArticles = Article::active()->orderBy('order_priority')->latest()->take(12)->get();
+        $bannerAds = Article::active()->banners()->orderBy('order_priority')->latest()->take(3)->get();
+        $allArticles = Article::active()->orderBy('order_priority')->latest()->take(6)->get();
 
         if ($request->wantsJson()) {
             return response()->json([
