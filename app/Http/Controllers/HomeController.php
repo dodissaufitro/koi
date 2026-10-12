@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Article;
 use App\Models\Auction;
 use App\Models\Category;
 use App\Models\Product;
@@ -104,6 +105,12 @@ class HomeController extends Controller
             'show_champion_awards' => '65+',
         ];
 
+        // 5. Data Artikel, Event Announcement & Banner Iklan
+        $pinnedAnnouncements = Article::pinnedTop()->get();
+        $tipsArticles = Article::active()->tips()->orderBy('order_priority')->latest()->take(6)->get();
+        $bannerAds = Article::active()->banners()->orderBy('order_priority')->latest()->take(4)->get();
+        $allArticles = Article::active()->orderBy('order_priority')->latest()->take(12)->get();
+
         if ($request->wantsJson()) {
             return response()->json([
                 'highest_bid_auctions' => $highestBidAuctions,
@@ -113,6 +120,10 @@ class HomeController extends Controller
                 'varieties' => $koiVarieties,
                 'reviews' => $reviews,
                 'stats' => $stats,
+                'pinned_announcements' => $pinnedAnnouncements,
+                'tips_articles' => $tipsArticles,
+                'banner_ads' => $bannerAds,
+                'articles' => $allArticles,
             ]);
         }
 
@@ -124,6 +135,10 @@ class HomeController extends Controller
             'varieties' => $koiVarieties,
             'reviews' => $reviews,
             'stats' => $stats,
+            'pinnedAnnouncements' => $pinnedAnnouncements,
+            'tipsArticles' => $tipsArticles,
+            'bannerAds' => $bannerAds,
+            'articles' => $allArticles,
         ]);
     }
 }

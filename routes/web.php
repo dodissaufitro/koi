@@ -106,6 +106,16 @@ Route::middleware(['auth'])->group(function () {
 
         // Reviews Management
         Route::delete('/reviews/{review}', [AdminDashboardController::class, 'deleteReview'])->name('reviews.destroy');
+
+        // WhatsApp CS & Blast Management
+        Route::post('/whatsapp/settings', [AdminDashboardController::class, 'updateWhatsAppSettings'])->name('whatsapp.settings');
+        Route::post('/whatsapp/blast', [AdminDashboardController::class, 'sendWhatsAppBlast'])->name('whatsapp.blast');
+        Route::delete('/whatsapp/blast/{id}', [AdminDashboardController::class, 'deleteWhatsAppBlast'])->name('whatsapp.blast.destroy');
+
+        // CRUD Articles & Banners
+        Route::post('/articles', [AdminDashboardController::class, 'storeArticle'])->name('articles.store');
+        Route::put('/articles/{article}', [AdminDashboardController::class, 'updateArticle'])->name('articles.update');
+        Route::delete('/articles/{article}', [AdminDashboardController::class, 'deleteArticle'])->name('articles.destroy');
     });
 });
 

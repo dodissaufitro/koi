@@ -23,8 +23,10 @@ import {
     Lightbulb,
     LogOut,
     Menu,
+    MessageCircle,
     MessageSquare,
     Moon,
+    Newspaper,
     Package,
     Plus,
     Search,
@@ -48,7 +50,9 @@ import {
     X,
 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
+import ArticleManagement from '../../components/Admin/ArticleManagement';
 import BackOfficeReports from '../../components/Admin/BackOfficeReports';
+import WhatsAppManagement from '../../components/Admin/WhatsAppManagement';
 
 interface PaginatedData<T> {
     data: T[];
@@ -58,6 +62,19 @@ interface PaginatedData<T> {
     total: number;
     links: { url: string | null; label: string; active: boolean }[];
 }
+
+const formatAgeInYears = (age?: string | null) => {
+    if (!age) return '2 Tahun';
+    if (/tahun/i.test(age)) return age;
+    if (!isNaN(Number(age))) return `${age} Tahun`;
+    const lower = age.toLowerCase();
+    if (lower.includes('tosai')) return '1 Tahun';
+    if (lower.includes('nisai')) return '2 Tahun';
+    if (lower.includes('sansai')) return '3 Tahun';
+    if (lower.includes('yonsai')) return '4 Tahun';
+    if (lower.includes('gosai')) return '5 Tahun';
+    return `${age} Tahun`;
+};
 
 interface Props {
     stats: {
@@ -74,6 +91,7 @@ interface Props {
         total_orders: number;
         total_revenue: number;
         total_reviews: number;
+        total_articles?: number;
     };
     tab: string;
     search: string;
@@ -152,6 +170,8 @@ export default function AdminDashboard({ stats, tab = 'dashboard', search: initi
     // Model Navigation tabs matching mockup
     const navItems = [
         { id: 'dashboard', label: 'Dashboard', icon: Home, count: null },
+        { id: 'whatsapp', label: 'WhatsApp CS & Blast', icon: MessageCircle, count: null, badgeColor: 'bg-emerald-500' },
+        { id: 'articles', label: 'Artikel & Banner', icon: Newspaper, count: stats.total_articles ?? null, badgeColor: 'bg-amber-500' },
         { id: 'products', label: 'Produk', icon: Package, count: stats.total_products },
         { id: 'orders', label: 'Pesanan', icon: ShoppingCart, count: 3, badgeColor: 'bg-rose-500' },
         { id: 'users', label: 'Pelanggan', icon: Users, count: stats.total_users },
@@ -193,7 +213,8 @@ export default function AdminDashboard({ stats, tab = 'dashboard', search: initi
                 name: '',
                 variety: 'Kohaku',
                 size_cm: 45,
-                age_stage: 'Nisai',
+                age: '2 Tahun',
+                age_stage: '2 Tahun',
                 price: 1500000,
                 stock: 1,
                 is_active: true,
@@ -201,7 +222,15 @@ export default function AdminDashboard({ stats, tab = 'dashboard', search: initi
                 image_url: '/images/koi-card.jpg',
             });
         } else if (tab === 'auctions') {
-            setFormData({ product_id: helpers.products[0]?.id || '', start_price: 1000000, min_bid_increment: 50000, start_time: new Date().toISOString().slice(0, 16), end_time: new Date(Date.now() + 86400000 * 2).toISOString().slice(0, 16), status: 'active' });
+            setFormData({
+                product_id: helpers.products[0]?.id || '',
+                start_price: 1000000,
+                bid_increment: 500000,
+                min_bid_increment: 500000,
+                start_time: new Date().toISOString().slice(0, 16),
+                end_time: new Date(Date.now() + 86400000 * 2).toISOString().slice(0, 16),
+                status: 'active'
+            });
         }
         setModalOpen(true);
     };
@@ -220,7 +249,8 @@ export default function AdminDashboard({ stats, tab = 'dashboard', search: initi
                 name: item.name,
                 variety: item.variety || '',
                 size_cm: item.size_cm || '',
-                age_stage: item.age_stage || '',
+                age: item.age || item.age_stage || '2 Tahun',
+                age_stage: item.age || item.age_stage || '2 Tahun',
                 price: item.price,
                 stock: item.stock,
                 is_active: item.is_active ?? (item.status === 'active'),
@@ -228,7 +258,15 @@ export default function AdminDashboard({ stats, tab = 'dashboard', search: initi
                 image_url: item.primary_image?.image_path || item.primaryImage?.image_path || (item.images && item.images[0]?.image_path) || '',
             });
         } else if (tab === 'auctions') {
-            setFormData({ start_price: item.start_price, min_bid_increment: item.min_bid_increment, start_time: item.start_time?.slice(0, 16), end_time: item.end_time?.slice(0, 16), status: item.status });
+            setFormData({
+                start_price: item.start_price,
+                bid_increment: item.bid_increment ?? item.min_bid_increment ?? 500000,
+                min_bid_increment: item.bid_increment ?? item.min_bid_increment ?? 500000,
+                current_bid: item.current_bid ?? item.current_highest_bid ?? item.start_price,
+                start_time: item.start_time?.slice(0, 16),
+                end_time: item.end_time?.slice(0, 16),
+                status: item.status
+            });
         } else if (tab === 'orders') {
             setFormData({ order_status: item.order_status, payment_status: item.payment_status });
         }
@@ -1481,6 +1519,12 @@ export default function AdminDashboard({ stats, tab = 'dashboard', search: initi
                                 )}
                             </div>
                         </div>
+                    ) : tab === 'whatsapp' ? (
+                        /* WHATSAPP CS CONNECTION & BLAST SYSTEM VIEW */
+                        <WhatsAppManagement data={data as any} isDark={isDark} />
+                    ) : tab === 'articles' ? (
+                        /* ARTIKEL & BANNER IKLAN / EVENT MANAGEMENT */
+                        <ArticleManagement articles={data as any} isDark={isDark} />
                     ) : (
                         /* CRUD MANAGEMENT VIEWS FOR OTHER TABS */
                         <div className="space-y-4">
@@ -1559,6 +1603,7 @@ export default function AdminDashboard({ stats, tab = 'dashboard', search: initi
                                                     <th className="px-4 py-3">Nama Produk Koi</th>
                                                     <th className="px-4 py-3">Toko</th>
                                                     <th className="px-4 py-3">Varietas & Ukuran</th>
+                                                    <th className="px-4 py-3">Umur Ikan</th>
                                                     <th className="px-4 py-3">Harga</th>
                                                     <th className="px-4 py-3">Stok & Status</th>
                                                     <th className="px-4 py-3 text-right">Aksi</th>
@@ -1567,9 +1612,11 @@ export default function AdminDashboard({ stats, tab = 'dashboard', search: initi
                                             {tab === 'auctions' && (
                                                 <tr>
                                                     <th className="px-4 py-3">ID</th>
-                                                    <th className="px-4 py-3">Produk Lelang</th>
-                                                    <th className="px-4 py-3">Harga Awal & Min Kelipatan</th>
+                                                    <th className="px-4 py-3">Produk Lelang & Umur</th>
+                                                    <th className="px-4 py-3">OB (Harga Awal)</th>
+                                                    <th className="px-4 py-3">KB (Kelipatan)</th>
                                                     <th className="px-4 py-3">Bid Tertinggi</th>
+                                                    <th className="px-4 py-3">Frekuensi Bid</th>
                                                     <th className="px-4 py-3">Status</th>
                                                     <th className="px-4 py-3 text-right">Aksi</th>
                                                 </tr>
@@ -1731,6 +1778,11 @@ export default function AdminDashboard({ stats, tab = 'dashboard', search: initi
                                                                     <span className="font-semibold text-slate-800 dark:text-slate-200">{row.variety || 'Nishikigoi'}</span>
                                                                     <p className="text-[10px] text-slate-400">{row.size_cm ? `${row.size_cm} cm` : '-'}</p>
                                                                 </td>
+                                                                <td className="px-4 py-3">
+                                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-300 font-bold text-[11px] border border-amber-500/20">
+                                                                        {formatAgeInYears(row.age)}
+                                                                    </span>
+                                                                </td>
                                                                 <td className="px-4 py-3 font-extrabold text-[#C09B6C] text-xs">
                                                                     Rp {Number(row.price).toLocaleString('id-ID')}
                                                                 </td>
@@ -1761,19 +1813,43 @@ export default function AdminDashboard({ stats, tab = 'dashboard', search: initi
                                                                         </div>
                                                                         <div>
                                                                             <p className="font-semibold text-xs text-slate-900 dark:text-white leading-tight">{row.product?.name}</p>
-                                                                            <p className="text-[10px] text-slate-400">{row.product?.store?.name}</p>
+                                                                            <div className="flex items-center gap-1.5 mt-0.5">
+                                                                                <span className="text-[10px] text-slate-400">{row.product?.store?.name}</span>
+                                                                                <span className="text-[10px] px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-700 dark:text-amber-300 font-bold border border-amber-500/20">
+                                                                                    {formatAgeInYears(row.product?.age || row.age)}
+                                                                                </span>
+                                                                            </div>
                                                                         </div>
                                                                     </div>
                                                                 </td>
-                                                                <td className="px-4 py-3 text-slate-500">
-                                                                    Rp {Number(row.start_price).toLocaleString('id-ID')}
-                                                                    <p className="text-[10px] text-slate-400">+Rp {Number(row.min_bid_increment).toLocaleString('id-ID')}</p>
-                                                                </td>
-                                                                <td className="px-4 py-3 font-bold text-amber-600">
-                                                                    {row.current_highest_bid ? `Rp ${Number(row.current_highest_bid).toLocaleString('id-ID')}` : '-'}
+                                                                <td className="px-4 py-3">
+                                                                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">OB</span>
+                                                                    <span className="font-semibold text-slate-800 dark:text-slate-200 text-xs">
+                                                                        Rp {Number(row.start_price).toLocaleString('id-ID')}
+                                                                    </span>
                                                                 </td>
                                                                 <td className="px-4 py-3">
-                                                                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${row.status === 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
+                                                                    <span className="text-[9px] font-bold text-red-500 uppercase tracking-wider block">KB</span>
+                                                                    <span className="font-semibold text-red-600 dark:text-red-400 text-xs">
+                                                                        +Rp {Number(row.bid_increment ?? row.min_bid_increment ?? 500000).toLocaleString('id-ID')}
+                                                                    </span>
+                                                                </td>
+                                                                <td className="px-4 py-3">
+                                                                    <span className="font-black text-amber-600 dark:text-amber-400 text-xs">
+                                                                        Rp {Number(row.current_bid ?? row.current_highest_bid ?? row.start_price).toLocaleString('id-ID')}
+                                                                    </span>
+                                                                    {row.highest_bidder && (
+                                                                        <p className="text-[10px] text-slate-400 truncate max-w-[120px]">{row.highest_bidder.name}</p>
+                                                                    )}
+                                                                </td>
+                                                                <td className="px-4 py-3">
+                                                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 font-extrabold text-xs">
+                                                                        <Gavel className="w-3 h-3 text-blue-500" />
+                                                                        {row.bids_count ?? 0}x Bid
+                                                                    </span>
+                                                                </td>
+                                                                <td className="px-4 py-3">
+                                                                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${row.status === 'active' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'}`}>
                                                                         {row.status}
                                                                     </span>
                                                                 </td>
@@ -2160,14 +2236,14 @@ export default function AdminDashboard({ stats, tab = 'dashboard', search: initi
                                             className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent"
                                         />
                                     </div>
-                                    <div className="grid grid-cols-3 gap-2">
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                                         <div>
                                             <label className="block mb-1 font-semibold text-slate-600 dark:text-slate-300">Varietas</label>
                                             <input
                                                 type="text"
                                                 value={formData.variety || ''}
                                                 onChange={(e) => setFormData({ ...formData, variety: e.target.value })}
-                                                className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent"
+                                                className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent text-sm"
                                             />
                                         </div>
                                         <div>
@@ -2176,8 +2252,30 @@ export default function AdminDashboard({ stats, tab = 'dashboard', search: initi
                                                 type="number"
                                                 value={formData.size_cm || ''}
                                                 onChange={(e) => setFormData({ ...formData, size_cm: e.target.value })}
-                                                className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent"
+                                                className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent text-sm"
                                             />
+                                        </div>
+                                        <div>
+                                            <label className="block mb-1 font-semibold text-slate-600 dark:text-slate-300">Umur Ikan (Tahun)</label>
+                                            <input
+                                                type="text"
+                                                value={formData.age || ''}
+                                                onChange={(e) => setFormData({ ...formData, age: e.target.value, age_stage: e.target.value })}
+                                                placeholder="Contoh: 2 Tahun"
+                                                className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent text-sm"
+                                            />
+                                            <div className="flex flex-wrap gap-1 mt-1">
+                                                {['1 Tahun', '2 Tahun', '3 Tahun', '4 Tahun', '5 Tahun+'].map((yr) => (
+                                                    <button
+                                                        key={yr}
+                                                        type="button"
+                                                        onClick={() => setFormData({ ...formData, age: yr, age_stage: yr })}
+                                                        className="text-[9px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-amber-500 cursor-pointer"
+                                                    >
+                                                        {yr}
+                                                    </button>
+                                                ))}
+                                            </div>
                                         </div>
                                         <div>
                                             <label className="block mb-1 font-semibold text-slate-600 dark:text-slate-300">Harga (Rp)</label>
@@ -2186,7 +2284,7 @@ export default function AdminDashboard({ stats, tab = 'dashboard', search: initi
                                                 required
                                                 value={formData.price || ''}
                                                 onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                                                className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent"
+                                                className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent text-sm"
                                             />
                                         </div>
                                     </div>
@@ -2277,22 +2375,22 @@ export default function AdminDashboard({ stats, tab = 'dashboard', search: initi
                                     )}
                                     <div className="grid grid-cols-2 gap-2">
                                         <div>
-                                            <label className="block mb-1 font-semibold text-slate-600 dark:text-slate-300">Harga Awal (Open Bid)</label>
+                                            <label className="block mb-1 font-semibold text-slate-600 dark:text-slate-300">OB - Open Bid (Harga Awal)</label>
                                             <input
                                                 type="number"
                                                 required
                                                 value={formData.start_price || ''}
-                                                onChange={(e) => setFormData({ ...formData, start_price: e.target.value })}
+                                                onChange={(e) => setFormData({ ...formData, start_price: e.target.value, current_bid: formData.current_bid || e.target.value })}
                                                 className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent"
                                             />
                                         </div>
                                         <div>
-                                            <label className="block mb-1 font-semibold text-slate-600 dark:text-slate-300">Min. Kelipatan Bid</label>
+                                            <label className="block mb-1 font-semibold text-slate-600 dark:text-slate-300">KB - Kelipatan Bid (Min. Kenaikan)</label>
                                             <input
                                                 type="number"
                                                 required
-                                                value={formData.min_bid_increment || ''}
-                                                onChange={(e) => setFormData({ ...formData, min_bid_increment: e.target.value })}
+                                                value={formData.bid_increment ?? formData.min_bid_increment ?? ''}
+                                                onChange={(e) => setFormData({ ...formData, bid_increment: e.target.value, min_bid_increment: e.target.value })}
                                                 className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent"
                                             />
                                         </div>

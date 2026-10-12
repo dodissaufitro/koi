@@ -1,4 +1,4 @@
-import { Auction } from '@/types/fish';
+import { Auction, formatAgeInYears } from '@/types/fish';
 import { SharedData } from '@/types';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import {
@@ -30,7 +30,7 @@ interface Props {
 }
 
 export default function AuctionShow({ auction, isFavorited = false }: Props) {
-    const { auth } = usePage<SharedData>().props;
+    const { auth, whatsapp_cs } = usePage<any>().props;
     const user = auth?.user;
 
     // Theme state (sinkron dengan preferensi landing page)
@@ -189,7 +189,7 @@ export default function AuctionShow({ auction, isFavorited = false }: Props) {
 
     // WhatsApp Contact
     const handleWhatsApp = () => {
-        const phone = product?.store?.phone || '081288881001';
+        const phone = product?.store?.phone || whatsapp_cs?.phone || '081188990011';
         const formattedPhone = phone.replace(/^0/, '62').replace(/\D/g, '');
         const message = encodeURIComponent(
             `Halo KOKI KOI, saya sedang memantau lelang "${product?.name}" (ID Lelang: #${auction.id}) dengan tawaran saat ini Rp ${currentBid.toLocaleString('id-ID')}. Bisakah saya konsultasi detail sertifikat & video renang terbarunya?`
@@ -411,9 +411,9 @@ export default function AuctionShow({ auction, isFavorited = false }: Props) {
                                 </div>
 
                                 <div className={`p-3.5 rounded-2xl border ${isDark ? 'border-white/5 bg-[#141C2B]/50' : 'border-slate-100 bg-slate-50'}`}>
-                                    <span className="text-[10px] text-slate-500 uppercase font-semibold block">Usia (Age)</span>
+                                    <span className="text-[10px] text-slate-500 uppercase font-semibold block">Umur Ikan (Age)</span>
                                     <span className="text-sm font-bold text-slate-900 dark:text-slate-100 mt-0.5 block">
-                                        Nisai (2 Tahun)
+                                        {formatAgeInYears(product?.age || auction.age)}
                                     </span>
                                 </div>
 
@@ -486,17 +486,20 @@ export default function AuctionShow({ auction, isFavorited = false }: Props) {
                                     <div className="text-3xl font-serif font-extrabold text-amber-600 dark:text-amber-300 mt-1">
                                         Rp {currentBid.toLocaleString('id-ID')}
                                     </div>
-                                    <span className="text-[11px] text-slate-500 mt-0.5 block">
-                                        Open Bid: Rp {Number(auction.start_price).toLocaleString('id-ID')}
-                                    </span>
+                                    <div className="flex items-center gap-2 mt-1">
+                                        <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+                                            <strong className="text-slate-900 dark:text-white font-bold">OB (Open Bid):</strong> Rp {Number(auction.start_price).toLocaleString('id-ID')}
+                                        </span>
+                                    </div>
                                 </div>
 
-                                <div className="text-right">
+                                <div className="text-right space-y-1.5">
                                     <span className="rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-300 border border-amber-500/30 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider inline-block">
-                                        +KB: Rp {bidIncrement.toLocaleString('id-ID')}
+                                        KB: +Rp {bidIncrement.toLocaleString('id-ID')}
                                     </span>
-                                    <span className="text-[11px] text-slate-500 block mt-1">
-                                        {auction.bids_count} Total Tawaran
+                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-300 border border-blue-500/20 text-[10px] font-bold block">
+                                        <Gavel className="w-3 h-3" />
+                                        {auction.bids_count}x Total Tawaran
                                     </span>
                                 </div>
                             </div>

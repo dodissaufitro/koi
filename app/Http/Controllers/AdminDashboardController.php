@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Article;
 use App\Models\Auction;
 use App\Models\Category;
 use App\Models\Order;
@@ -10,6 +11,8 @@ use App\Models\ProductImage;
 use App\Models\Review;
 use App\Models\Store;
 use App\Models\User;
+use App\Models\WhatsAppBlast;
+use App\Services\WhatsAppGatewayService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -54,6 +57,7 @@ class AdminDashboardController extends Controller
             'total_orders' => Order::count(),
             'total_revenue' => (float) Order::where('payment_status', 'paid')->sum('grand_total'),
             'total_reviews' => Review::count(),
+            'total_articles' => Article::count(),
         ];
 
         // Pengambilan data sesuai Tab yang aktif
@@ -100,6 +104,28 @@ class AdminDashboardController extends Controller
                 ->latest()
                 ->paginate(10)
                 ->withQueryString(),
+
+            'articles' => Article::with('author')
+                ->when($search, fn($q) => $q->where('title', 'like', "%{$search}%")->orWhere('content', 'like', "%{$search}%")->orWhere('category', 'like', "%{$search}%"))
+                ->orderBy('order_priority', 'asc')
+                ->latest()
+                ->paginate(10)
+                ->withQueryString(),
+
+            'whatsapp' => [
+                'config' => WhatsAppGatewayService::getCsConfig(),
+                'blasts' => WhatsAppBlast::when($search, fn($q) => $q->where('title', 'like', "%{$search}%")->orWhere('message', 'like', "%{$search}%"))
+                    ->latest()
+                    ->paginate(10)
+                    ->withQueryString(),
+                'stats' => [
+                    'total_blasts' => WhatsAppBlast::count(),
+                    'total_recipients' => (int) WhatsAppBlast::sum('recipients_count'),
+                    'total_contacts' => User::whereNotNull('phone')->where('phone', '!=', '')->count(),
+                    'total_buyers' => User::where('role', 'buyer')->whereNotNull('phone')->where('phone', '!=', '')->count(),
+                    'total_sellers' => User::where('role', 'seller')->whereNotNull('phone')->where('phone', '!=', '')->count(),
+                ],
+            ],
 
             default => null,
         };
@@ -442,6 +468,7 @@ class AdminDashboardController extends Controller
             'description' => 'nullable|string',
             'status' => 'required|in:active,inactive,draft',
             'origin' => 'nullable|string|max:100',
+            'age' => 'nullable|string|max:50',
             'image_url' => 'nullable|string',
         ]);
 
@@ -477,6 +504,7 @@ class AdminDashboardController extends Controller
             'description' => 'nullable|string',
             'status' => 'required|in:active,inactive,draft',
             'origin' => 'nullable|string|max:100',
+            'age' => 'nullable|string|max:50',
             'image_url' => 'nullable|string',
         ]);
 
@@ -512,6 +540,10 @@ class AdminDashboardController extends Controller
     {
         $this->authorizeAdmin($request);
 
+        if ($request->has('min_bid_increment') && !$request->filled('bid_increment')) {
+            $request->merge(['bid_increment' => $request->input('min_bid_increment')]);
+        }
+
         $validated = $request->validate([
             'product_id' => 'required|exists:products,id',
             'start_price' => 'required|numeric|min:0',
@@ -532,6 +564,13 @@ class AdminDashboardController extends Controller
     public function updateAuction(Request $request, Auction $auction): RedirectResponse
     {
         $this->authorizeAdmin($request);
+
+        if ($request->has('min_bid_increment') && !$request->filled('bid_increment')) {
+            $request->merge(['bid_increment' => $request->input('min_bid_increment')]);
+        }
+        if (!$request->filled('current_bid')) {
+            $request->merge(['current_bid' => $auction->current_bid]);
+        }
 
         $validated = $request->validate([
             'start_price' => 'required|numeric|min:0',
@@ -595,5 +634,151 @@ class AdminDashboardController extends Controller
         $review->delete();
 
         return back()->with('success', 'Ulasan berhasil dihapus.');
+    }
+
+    /* =========================================================================
+     * WHATSAPP CS & BLAST BROADCAST
+     * ========================================================================= */
+    public function updateWhatsAppSettings(Request $request): RedirectResponse
+    {
+        $this->authorizeAdmin($request);
+
+        $validated = $request->validate([
+            'phone' => 'required|string|max:30',
+            'name' => 'required|string|max:100',
+            'greeting' => 'required|string|max:1000',
+            'gateway_provider' => 'nullable|string|max:50',
+            'api_key' => 'nullable|string|max:255',
+            'default_group' => 'nullable|string|max:255',
+            'is_connected' => 'nullable|boolean',
+        ]);
+
+        WhatsAppGatewayService::saveCsConfig($validated);
+
+        return back()->with('success', 'Pengaturan WhatsApp CS & Gateway berhasil diperbarui.');
+    }
+
+    public function sendWhatsAppBlast(Request $request): RedirectResponse
+    {
+        $this->authorizeAdmin($request);
+
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'target_type' => 'required|in:all_users,buyers,sellers,group,custom',
+            'target_destination' => 'nullable|string',
+            'message' => 'required|string|max:4000',
+            'media_url' => 'nullable|string|max:500',
+        ]);
+
+        $blast = WhatsAppGatewayService::dispatchBlast($validated);
+
+        return back()->with('success', "Pesan Blast '{$blast->title}' berhasil dikirim ke {$blast->recipients_count} penerima.");
+    }
+
+    public function deleteWhatsAppBlast(Request $request, int $id): RedirectResponse
+    {
+        $this->authorizeAdmin($request);
+
+        $blast = WhatsAppBlast::findOrFail($id);
+        $title = $blast->title;
+        $blast->delete();
+
+        return back()->with('success', "Riwayat blast '{$title}' berhasil dihapus.");
+    }
+
+    /* =========================================================================
+     * ARTIKEL, EVENT ANNOUNCEMENT & BANNER ADS
+     * ========================================================================= */
+    public function storeArticle(Request $request): RedirectResponse
+    {
+        $this->authorizeAdmin($request);
+
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'category' => 'required|in:event_announcement,tips_care,banner_ads,news',
+            'summary' => 'nullable|string|max:1000',
+            'content' => 'nullable|string',
+            'media_type' => 'required|in:image,youtube,none',
+            'banner_image' => 'nullable|string|max:500',
+            'banner_file' => 'nullable|image|max:5120',
+            'youtube_url' => 'nullable|string|max:500',
+            'custom_url' => 'nullable|string|max:500',
+            'target_type' => 'nullable|in:_blank,_self',
+            'is_active' => 'nullable|boolean',
+            'is_pinned_top' => 'nullable|boolean',
+            'badge_text' => 'nullable|string|max:50',
+            'order_priority' => 'nullable|integer',
+        ]);
+
+        $slug = Str::slug($validated['title']) . '-' . Str::random(5);
+
+        // Upload banner file jika ada
+        if ($request->hasFile('banner_file')) {
+            $file = $request->file('banner_file');
+            $fileName = 'art_' . time() . '_' . Str::random(6) . '.' . $file->getClientOriginalExtension();
+            $file->move(public_path('images/articles'), $fileName);
+            $validated['banner_image'] = '/images/articles/' . $fileName;
+        }
+
+        unset($validated['banner_file']);
+
+        Article::create([
+            ...$validated,
+            'slug' => $slug,
+            'is_active' => $request->boolean('is_active', true),
+            'is_pinned_top' => $request->boolean('is_pinned_top', false),
+            'published_at' => now(),
+            'author_id' => $request->user()->id,
+        ]);
+
+        return back()->with('success', 'Artikel / Banner berhasil ditambahkan.');
+    }
+
+    public function updateArticle(Request $request, Article $article): RedirectResponse
+    {
+        $this->authorizeAdmin($request);
+
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'category' => 'required|in:event_announcement,tips_care,banner_ads,news',
+            'summary' => 'nullable|string|max:1000',
+            'content' => 'nullable|string',
+            'media_type' => 'required|in:image,youtube,none',
+            'banner_image' => 'nullable|string|max:500',
+            'banner_file' => 'nullable|image|max:5120',
+            'youtube_url' => 'nullable|string|max:500',
+            'custom_url' => 'nullable|string|max:500',
+            'target_type' => 'nullable|in:_blank,_self',
+            'is_active' => 'nullable|boolean',
+            'is_pinned_top' => 'nullable|boolean',
+            'badge_text' => 'nullable|string|max:50',
+            'order_priority' => 'nullable|integer',
+        ]);
+
+        if ($request->hasFile('banner_file')) {
+            $file = $request->file('banner_file');
+            $fileName = 'art_' . time() . '_' . Str::random(6) . '.' . $file->getClientOriginalExtension();
+            $file->move(public_path('images/articles'), $fileName);
+            $validated['banner_image'] = '/images/articles/' . $fileName;
+        }
+
+        unset($validated['banner_file']);
+
+        $article->update([
+            ...$validated,
+            'is_active' => $request->boolean('is_active', true),
+            'is_pinned_top' => $request->boolean('is_pinned_top', false),
+        ]);
+
+        return back()->with('success', 'Artikel / Banner berhasil diperbarui.');
+    }
+
+    public function deleteArticle(Request $request, Article $article): RedirectResponse
+    {
+        $this->authorizeAdmin($request);
+
+        $article->delete();
+
+        return back()->with('success', 'Artikel / Banner berhasil dihapus.');
     }
 }

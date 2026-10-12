@@ -26,6 +26,7 @@ class Product extends Model
         'condition',
         'catch_type',
         'origin',
+        'age',
         'status',
         'views_count',
     ];
@@ -76,6 +77,20 @@ class Product extends Model
     public function getFormattedPriceAttribute(): string
     {
         return 'Rp ' . number_format($this->price, 0, ',', '.');
+    }
+
+    public function getAgeAttribute($value): string
+    {
+        if (!$value) return '2 Tahun';
+        if (preg_match('/(\d+)\s*tahun/i', $value, $m)) return "{$m[1]} Tahun";
+        if (is_numeric($value)) return "{$value} Tahun";
+        $lower = strtolower($value);
+        if (str_contains($lower, 'tosai')) return '1 Tahun';
+        if (str_contains($lower, 'nisai')) return '2 Tahun';
+        if (str_contains($lower, 'sansai')) return '3 Tahun';
+        if (str_contains($lower, 'yonsai')) return '4 Tahun';
+        if (str_contains($lower, 'gosai')) return '5 Tahun';
+        return str_ends_with($lower, 'tahun') ? $value : "{$value} Tahun";
     }
 
     public function getAverageRatingAttribute(): float

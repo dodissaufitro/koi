@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { usePage, router } from '@inertiajs/react';
 import { SharedData } from '@/types';
-import { Auction, Category, Product } from '@/types/fish';
+import { Auction, Category, Product, formatAgeInYears } from '@/types/fish';
 import {
     Home,
     LayoutGrid,
@@ -34,6 +34,7 @@ import {
     Flame,
     Sparkles,
     FileText,
+    Newspaper,
     MessageCircle,
     QrCode,
     Building2,
@@ -143,7 +144,7 @@ const INITIAL_PRODUCTS = [
         name: 'Kohaku Jumbo Dainichi 70 cm',
         category: 'Kohaku',
         size: '70 cm',
-        age: 'Nisai',
+        age: '2 Tahun',
         gender: 'Female',
         price: 12500000,
         city: 'Blitar & Jakarta',
@@ -168,7 +169,7 @@ const INITIAL_PRODUCTS = [
         name: 'Showa Sanshoku Isa Bloodline 68 cm',
         category: 'Showa',
         size: '68 cm',
-        age: 'Nisai',
+        age: '2 Tahun',
         gender: 'Male',
         price: 13500000,
         city: 'Blitar & Jakarta',
@@ -193,7 +194,7 @@ const INITIAL_PRODUCTS = [
         name: 'Taisho Sanke Sakai 65 cm',
         category: 'Sanke',
         size: '65 cm',
-        age: 'Nisai',
+        age: '2 Tahun',
         gender: 'Female',
         price: 11000000,
         city: 'Blitar & Jakarta',
@@ -218,7 +219,7 @@ const INITIAL_PRODUCTS = [
         name: 'Kohaku Maruten Super Blitar 60 cm',
         category: 'Kohaku',
         size: '60 cm',
-        age: 'Nisai',
+        age: '2 Tahun',
         gender: 'Female',
         price: 8500000,
         city: 'Blitar & Jakarta',
@@ -243,7 +244,7 @@ const INITIAL_PRODUCTS = [
         name: 'Showa Grand Champion Show 72 cm',
         category: 'Showa',
         size: '72 cm',
-        age: 'Sansai',
+        age: '3 Tahun',
         gender: 'Male',
         price: 15000000,
         city: 'Blitar & Jakarta',
@@ -268,7 +269,7 @@ const INITIAL_PRODUCTS = [
         name: 'Tancho Kohaku Purity 55 cm',
         category: 'Kohaku',
         size: '55 cm',
-        age: 'Nisai',
+        age: '2 Tahun',
         gender: 'Female',
         price: 9000000,
         city: 'Blitar & Jakarta',
@@ -292,7 +293,7 @@ const INITIAL_PRODUCTS = [
         name: 'Goshiki Five Colors 58 cm',
         category: 'Goshiki',
         size: '58 cm',
-        age: 'Nisai',
+        age: '2 Tahun',
         gender: 'Female',
         price: 9500000,
         city: 'Blitar & Jakarta',
@@ -316,7 +317,7 @@ const INITIAL_PRODUCTS = [
         name: 'Shiro Utsuri Omosako Line 62 cm',
         category: 'Utsuri',
         size: '62 cm',
-        age: 'Nisai',
+        age: '2 Tahun',
         gender: 'Female',
         price: 10500000,
         city: 'Blitar & Jakarta',
@@ -340,7 +341,7 @@ const INITIAL_PRODUCTS = [
         name: 'Kujaku Metallic Gold 56 cm',
         category: 'Kujaku',
         size: '56 cm',
-        age: 'Nisai',
+        age: '2 Tahun',
         gender: 'Male',
         price: 7800000,
         city: 'Blitar & Jakarta',
@@ -364,7 +365,7 @@ const INITIAL_PRODUCTS = [
         name: 'Asagi Indigo Blue Scale 64 cm',
         category: 'Goshiki',
         size: '64 cm',
-        age: 'Nisai',
+        age: '2 Tahun',
         gender: 'Female',
         price: 8900000,
         city: 'Blitar & Jakarta',
@@ -389,7 +390,7 @@ const INITIAL_PRODUCTS = [
         name: 'Showa Sanshoku Maruten Nisai 68 cm',
         category: 'Showa',
         size: '68 cm',
-        age: 'Nisai',
+        age: '2 Tahun',
         gender: 'Male',
         price: 15000000,
         city: 'Blitar & Jakarta',
@@ -414,7 +415,7 @@ const INITIAL_PRODUCTS = [
         name: 'Ginrin Kohaku Show Quality 58 cm',
         category: 'Kohaku',
         size: '58 cm',
-        age: 'Nisai',
+        age: '2 Tahun',
         gender: 'Female',
         price: 9800000,
         city: 'Blitar & Jakarta',
@@ -438,7 +439,7 @@ const INITIAL_PRODUCTS = [
         name: 'Chagoi Jumbo Friendly Giant 65 cm',
         category: 'Goshiki',
         size: '65 cm',
-        age: 'Nisai',
+        age: '2 Tahun',
         gender: 'Female',
         price: 8500000,
         city: 'Blitar & Jakarta',
@@ -463,7 +464,7 @@ const INITIAL_PRODUCTS = [
         name: 'Taisho Sanke Sakai Fish Farm 76 cm',
         category: 'Sanke',
         size: '76 cm',
-        age: 'Nisai',
+        age: '2 Tahun',
         gender: 'Female',
         price: 26000000,
         city: 'Blitar & Jakarta',
@@ -488,7 +489,7 @@ const INITIAL_PRODUCTS = [
         name: 'Shiro Utsuri Omosako Pristine 60 cm',
         category: 'Showa',
         size: '60 cm',
-        age: 'Nisai',
+        age: '2 Tahun',
         gender: 'Male',
         price: 16500000,
         city: 'Blitar & Jakarta',
@@ -512,7 +513,7 @@ const INITIAL_PRODUCTS = [
         name: 'Kohaku Dainichi Female Jumbo 72 cm',
         category: 'Kohaku',
         size: '72 cm',
-        age: 'Nisai',
+        age: '2 Tahun',
         gender: 'Female',
         price: 21000000,
         city: 'Blitar & Jakarta',
@@ -538,7 +539,7 @@ const INITIAL_PRODUCTS = [
         name: 'Showa Sanshoku Isa Niigata 70 cm',
         category: 'Showa',
         size: '70 cm',
-        age: 'Nisai',
+        age: '2 Tahun',
         gender: 'Female',
         price: 18000000,
         city: 'Blitar & Jakarta',
@@ -563,7 +564,7 @@ const INITIAL_PRODUCTS = [
         name: 'Ginrin Showa Sparkle Grade 55 cm',
         category: 'Showa',
         size: '55 cm',
-        age: 'Tosai',
+        age: '1 Tahun',
         gender: 'Male',
         price: 11500000,
         city: 'Blitar & Jakarta',
@@ -587,7 +588,7 @@ const INITIAL_PRODUCTS = [
         name: 'Kujaku Metallic Flash 58 cm',
         category: 'Kujaku',
         size: '58 cm',
-        age: 'Nisai',
+        age: '2 Tahun',
         gender: 'Female',
         price: 10200000,
         city: 'Blitar & Jakarta',
@@ -612,7 +613,7 @@ const INITIAL_PRODUCTS = [
         name: 'Showa Sanshoku Dainichi 75 cm',
         category: 'Showa',
         size: '75 cm',
-        age: 'Nisai',
+        age: '2 Tahun',
         gender: 'Female',
         price: 33000000,
         city: 'Blitar & Jakarta',
@@ -637,7 +638,7 @@ const INITIAL_PRODUCTS = [
         name: 'Kohaku Sandan 3-Step Blitar 66 cm',
         category: 'Kohaku',
         size: '66 cm',
-        age: 'Nisai',
+        age: '2 Tahun',
         gender: 'Female',
         price: 14500000,
         city: 'Blitar & Jakarta',
@@ -662,7 +663,7 @@ const INITIAL_PRODUCTS = [
         name: 'Sanke Jinbei Line Champion 64 cm',
         category: 'Sanke',
         size: '64 cm',
-        age: 'Nisai',
+        age: '2 Tahun',
         gender: 'Male',
         price: 12800000,
         city: 'Blitar & Jakarta',
@@ -688,7 +689,7 @@ const INITIAL_PRODUCTS = [
         name: 'Kohaku Torazo Grand Champion 74 cm',
         category: 'Kohaku',
         size: '74 cm',
-        age: 'Nisai',
+        age: '2 Tahun',
         gender: 'Female',
         price: 28000000,
         city: 'Blitar & Jakarta',
@@ -713,7 +714,7 @@ const INITIAL_PRODUCTS = [
         name: 'Showa Sekiguchi Pearl 62 cm',
         category: 'Showa',
         size: '62 cm',
-        age: 'Nisai',
+        age: '2 Tahun',
         gender: 'Male',
         price: 13900000,
         city: 'Blitar & Jakarta',
@@ -738,7 +739,7 @@ const INITIAL_PRODUCTS = [
         name: 'Taisho Sanke Nogami Line 67 cm',
         category: 'Sanke',
         size: '67 cm',
-        age: 'Nisai',
+        age: '2 Tahun',
         gender: 'Female',
         price: 17500000,
         city: 'Blitar & Jakarta',
@@ -764,7 +765,7 @@ const INITIAL_PRODUCTS = [
         name: 'Tancho Kohaku Perfect Circle 45 cm',
         category: 'Kohaku',
         size: '45 cm',
-        age: 'Nisai',
+        age: '2 Tahun',
         gender: 'Female',
         price: 14000000,
         city: 'Blitar & Jakarta',
@@ -788,7 +789,7 @@ const INITIAL_PRODUCTS = [
         name: 'Tancho Sanke Crown Jewel 48 cm',
         category: 'Sanke',
         size: '48 cm',
-        age: 'Nisai',
+        age: '2 Tahun',
         gender: 'Male',
         price: 15500000,
         city: 'Blitar & Jakarta',
@@ -812,7 +813,7 @@ const INITIAL_PRODUCTS = [
         name: 'Goshiki Kuro Kanno Bloodline 50 cm',
         category: 'Goshiki',
         size: '50 cm',
-        age: 'Tosai',
+        age: '1 Tahun',
         gender: 'Male',
         price: 9500000,
         city: 'Blitar & Jakarta',
@@ -837,7 +838,7 @@ const INITIAL_PRODUCTS = [
         name: 'Kujaku Ginrin Metallic 52 cm',
         category: 'Kujaku',
         size: '52 cm',
-        age: 'Nisai',
+        age: '2 Tahun',
         gender: 'Male',
         price: 8800000,
         city: 'Blitar & Jakarta',
@@ -861,7 +862,7 @@ const INITIAL_PRODUCTS = [
         name: 'Kohaku Mountain Springs 62 cm',
         category: 'Kohaku',
         size: '62 cm',
-        age: 'Nisai',
+        age: '2 Tahun',
         gender: 'Female',
         price: 11200000,
         city: 'Blitar & Jakarta',
@@ -886,7 +887,7 @@ const INITIAL_PRODUCTS = [
         name: 'Shusui Blue Sky Mountain 56 cm',
         category: 'Goshiki',
         size: '56 cm',
-        age: 'Nisai',
+        age: '2 Tahun',
         gender: 'Male',
         price: 7900000,
         city: 'Blitar & Jakarta',
@@ -911,7 +912,7 @@ const INITIAL_PRODUCTS = [
         name: 'Hi Utsuri Omosako Red Fire 54 cm',
         category: 'Showa',
         size: '54 cm',
-        age: 'Nisai',
+        age: '2 Tahun',
         gender: 'Female',
         price: 11500000,
         city: 'Blitar & Jakarta',
@@ -935,7 +936,7 @@ const INITIAL_PRODUCTS = [
         name: 'Ki Utsuri Rare Yellow Tiger 50 cm',
         category: 'Showa',
         size: '50 cm',
-        age: 'Nisai',
+        age: '2 Tahun',
         gender: 'Male',
         price: 10500000,
         city: 'Blitar & Jakarta',
@@ -959,7 +960,7 @@ const INITIAL_PRODUCTS = [
         name: 'Showa Black Diamond IKN 63 cm',
         category: 'Showa',
         size: '63 cm',
-        age: 'Nisai',
+        age: '2 Tahun',
         gender: 'Female',
         price: 13000000,
         city: 'Blitar & Jakarta',
@@ -985,7 +986,7 @@ const INITIAL_PRODUCTS = [
         name: 'Beni Kumonryu Dragon Scales 46 cm',
         category: 'Kujaku',
         size: '46 cm',
-        age: 'Nisai',
+        age: '2 Tahun',
         gender: 'Male',
         price: 7800000,
         city: 'Blitar & Jakarta',
@@ -1009,7 +1010,7 @@ const INITIAL_PRODUCTS = [
         name: 'Doitsu Sanke Resort Collection 58 cm',
         category: 'Sanke',
         size: '58 cm',
-        age: 'Nisai',
+        age: '2 Tahun',
         gender: 'Female',
         price: 9000000,
         city: 'Blitar & Jakarta',
@@ -1033,7 +1034,7 @@ const INITIAL_PRODUCTS = [
         name: 'Ginrin Chagoi Golden Sunshine 60 cm',
         category: 'Goshiki',
         size: '60 cm',
-        age: 'Nisai',
+        age: '2 Tahun',
         gender: 'Female',
         price: 8200000,
         city: 'Blitar & Jakarta',
@@ -1058,7 +1059,7 @@ const INITIAL_PRODUCTS = [
         name: 'Yamabuki Ogon Solid Golden 55 cm',
         category: 'Kujaku',
         size: '55 cm',
-        age: 'Nisai',
+        age: '2 Tahun',
         gender: 'Female',
         price: 9200000,
         city: 'Blitar & Jakarta',
@@ -1082,7 +1083,7 @@ const INITIAL_PRODUCTS = [
         name: 'Kohaku Niigata Direct Import 65 cm',
         category: 'Kohaku',
         size: '65 cm',
-        age: 'Nisai',
+        age: '2 Tahun',
         gender: 'Female',
         price: 13200000,
         city: 'Blitar & Jakarta',
@@ -1107,7 +1108,7 @@ const INITIAL_PRODUCTS = [
         name: 'Shiro Utsuri Zebra Pattern 57 cm',
         category: 'Showa',
         size: '57 cm',
-        age: 'Nisai',
+        age: '2 Tahun',
         gender: 'Male',
         price: 10800000,
         city: 'Blitar & Jakarta',
@@ -1129,19 +1130,19 @@ const INITIAL_PRODUCTS = [
 ];
 
 const INITIAL_TOP_AUCTIONS = [
-    { id: 2, rank: 1, name: 'Showa Jumbo', size: '85 cm', age: 'Nisai', price: 48500000, startPrice: 35000000, bidIncrement: 500000, dealerName: 'Koki Nishikigoi Official Gallery', dealerPhone: '+62 812-8888-1001', dealerType: 'import' as const, dealerBadge: 'Diler Import Niigata Terverifikasi', status: 'Lelang selesai', isRecord: true, image: '/images/koi/showa.jpg' },
-    { id: 3, rank: 2, name: 'Kohaku Jumbo', size: '88 cm', age: 'Sansai', price: 42000000, startPrice: 30000000, bidIncrement: 500000, dealerName: 'Koki Nishikigoi Official Gallery', dealerPhone: '+62 812-8888-1001', dealerType: 'lokal' as const, dealerBadge: 'Breeder Lokal ZNA Terverifikasi', status: 'Lelang selesai', image: '/images/koi/kohaku.jpg' },
-    { id: 4, rank: 3, name: 'Sanke Jumbo', size: '80 cm', age: 'Nisai', price: 37500000, startPrice: 25000000, bidIncrement: 500000, dealerName: 'Koki Nishikigoi Official Gallery', dealerPhone: '+62 812-8888-1001', dealerType: 'lokal' as const, dealerBadge: 'Breeder Lokal Lembang Terverifikasi', status: 'Lelang selesai', image: '/images/koi/sanke.jpg' },
-    { id: 5, rank: 4, name: 'Showa', size: '75 cm', age: 'Nisai', price: 33000000, startPrice: 22000000, bidIncrement: 500000, dealerName: 'Koki Nishikigoi Official Gallery', dealerPhone: '+62 812-8888-1001', dealerType: 'import' as const, dealerBadge: 'Diler Import Gosanke Terverifikasi', status: 'Lelang selesai', image: '/images/koi/ritsurin_koi_1.jpg' },
-    { id: 6, rank: 5, name: 'Kohaku', size: '72 cm', age: 'Nisai', price: 28000000, startPrice: 18000000, bidIncrement: 500000, dealerName: 'Koki Nishikigoi Official Gallery', dealerPhone: '+62 812-8888-1001', dealerType: 'lokal' as const, dealerBadge: 'Breeder Lokal APKI Terverifikasi', status: 'Lelang selesai', image: '/images/koi/kohaku_pond.jpg' }
+    { id: 2, rank: 1, name: 'Showa Jumbo', size: '85 cm', age: '2 Tahun', price: 48500000, startPrice: 35000000, bidIncrement: 500000, dealerName: 'Koki Nishikigoi Official Gallery', dealerPhone: '+62 812-8888-1001', dealerType: 'import' as const, dealerBadge: 'Diler Import Niigata Terverifikasi', status: 'Lelang selesai', isRecord: true, image: '/images/koi/showa.jpg' },
+    { id: 3, rank: 2, name: 'Kohaku Jumbo', size: '88 cm', age: '3 Tahun', price: 42000000, startPrice: 30000000, bidIncrement: 500000, dealerName: 'Koki Nishikigoi Official Gallery', dealerPhone: '+62 812-8888-1001', dealerType: 'lokal' as const, dealerBadge: 'Breeder Lokal ZNA Terverifikasi', status: 'Lelang selesai', image: '/images/koi/kohaku.jpg' },
+    { id: 4, rank: 3, name: 'Sanke Jumbo', size: '80 cm', age: '2 Tahun', price: 37500000, startPrice: 25000000, bidIncrement: 500000, dealerName: 'Koki Nishikigoi Official Gallery', dealerPhone: '+62 812-8888-1001', dealerType: 'lokal' as const, dealerBadge: 'Breeder Lokal Lembang Terverifikasi', status: 'Lelang selesai', image: '/images/koi/sanke.jpg' },
+    { id: 5, rank: 4, name: 'Showa', size: '75 cm', age: '2 Tahun', price: 33000000, startPrice: 22000000, bidIncrement: 500000, dealerName: 'Koki Nishikigoi Official Gallery', dealerPhone: '+62 812-8888-1001', dealerType: 'import' as const, dealerBadge: 'Diler Import Gosanke Terverifikasi', status: 'Lelang selesai', image: '/images/koi/ritsurin_koi_1.jpg' },
+    { id: 6, rank: 5, name: 'Kohaku', size: '72 cm', age: '2 Tahun', price: 28000000, startPrice: 18000000, bidIncrement: 500000, dealerName: 'Koki Nishikigoi Official Gallery', dealerPhone: '+62 812-8888-1001', dealerType: 'lokal' as const, dealerBadge: 'Breeder Lokal APKI Terverifikasi', status: 'Lelang selesai', image: '/images/koi/kohaku_pond.jpg' }
 ];
 
 const INITIAL_FAVORITE_AUCTIONS = [
-    { id: 7, rank: 1, name: 'Kohaku Jumbo', size: '75 cm', startPrice: 18000000, bidIncrement: 500000, dealerName: 'Koki Nishikigoi Official Gallery', dealerPhone: '+62 812-8888-1001', dealerType: 'import' as const, dealerBadge: 'Diler Import Niigata Terverifikasi', timeLeft: 'Lelang berakhir 2 hari lagi', price: 25500000, isFavorite: true, image: '/images/koi/kohaku.jpg' },
-    { id: 8, rank: 2, name: 'Showa', size: '70 cm', startPrice: 16000000, bidIncrement: 500000, dealerName: 'Koki Nishikigoi Official Gallery', dealerPhone: '+62 812-8888-1001', dealerType: 'lokal' as const, dealerBadge: 'Breeder Lokal APKI Terverifikasi', timeLeft: 'Lelang berakhir 1 hari lagi', price: 22000000, isFavorite: true, image: '/images/koi/showa.jpg' },
-    { id: 9, rank: 3, name: 'Sanke', size: '68 cm', startPrice: 14000000, bidIncrement: 500000, dealerName: 'Koki Nishikigoi Official Gallery', dealerPhone: '+62 812-8888-1001', dealerType: 'lokal' as const, dealerBadge: 'Breeder Lokal Lembang Terverifikasi', timeLeft: 'Lelang berakhir 3 hari lagi', price: 19500000, isFavorite: true, image: '/images/koi/sanke.jpg' },
-    { id: 10, rank: 4, name: 'Goshiki', size: '65 cm', startPrice: 12000000, bidIncrement: 500000, dealerName: 'Koki Nishikigoi Official Gallery', dealerPhone: '+62 812-8888-1001', dealerType: 'lokal' as const, dealerBadge: 'Breeder Lokal Sukabumi Terverifikasi', timeLeft: 'Lelang berakhir 2 hari lagi', price: 18000000, isFavorite: true, image: '/images/koi/ritsurin_koi_6.jpg' },
-    { id: 11, rank: 5, name: 'Utsuri', size: '60 cm', startPrice: 10000000, bidIncrement: 500000, dealerName: 'Koki Nishikigoi Official Gallery', dealerPhone: '+62 812-8888-1001', dealerType: 'import' as const, dealerBadge: 'Diler Import Omosako Terverifikasi', timeLeft: 'Lelang berakhir 4 hari lagi', price: 15500000, isFavorite: true, image: '/images/koi/ritsurin_koi_7.jpg' }
+    { id: 7, rank: 1, name: 'Kohaku Jumbo', size: '75 cm', age: '2 Tahun', startPrice: 18000000, bidIncrement: 500000, dealerName: 'Koki Nishikigoi Official Gallery', dealerPhone: '+62 812-8888-1001', dealerType: 'import' as const, dealerBadge: 'Diler Import Niigata Terverifikasi', timeLeft: 'Lelang berakhir 2 hari lagi', price: 25500000, isFavorite: true, image: '/images/koi/kohaku.jpg' },
+    { id: 8, rank: 2, name: 'Showa', size: '70 cm', age: '2 Tahun', startPrice: 16000000, bidIncrement: 500000, dealerName: 'Koki Nishikigoi Official Gallery', dealerPhone: '+62 812-8888-1001', dealerType: 'lokal' as const, dealerBadge: 'Breeder Lokal APKI Terverifikasi', timeLeft: 'Lelang berakhir 1 hari lagi', price: 22000000, isFavorite: true, image: '/images/koi/showa.jpg' },
+    { id: 9, rank: 3, name: 'Sanke', size: '68 cm', age: '2 Tahun', startPrice: 14000000, bidIncrement: 500000, dealerName: 'Koki Nishikigoi Official Gallery', dealerPhone: '+62 812-8888-1001', dealerType: 'lokal' as const, dealerBadge: 'Breeder Lokal Lembang Terverifikasi', timeLeft: 'Lelang berakhir 3 hari lagi', price: 19500000, isFavorite: true, image: '/images/koi/sanke.jpg' },
+    { id: 10, rank: 4, name: 'Goshiki', size: '65 cm', age: '2 Tahun', startPrice: 12000000, bidIncrement: 500000, dealerName: 'Koki Nishikigoi Official Gallery', dealerPhone: '+62 812-8888-1001', dealerType: 'lokal' as const, dealerBadge: 'Breeder Lokal Sukabumi Terverifikasi', timeLeft: 'Lelang berakhir 2 hari lagi', price: 18000000, isFavorite: true, image: '/images/koi/ritsurin_koi_6.jpg' },
+    { id: 11, rank: 5, name: 'Utsuri', size: '60 cm', age: '2 Tahun', startPrice: 10000000, bidIncrement: 500000, dealerName: 'Koki Nishikigoi Official Gallery', dealerPhone: '+62 812-8888-1001', dealerType: 'import' as const, dealerBadge: 'Diler Import Omosako Terverifikasi', timeLeft: 'Lelang berakhir 4 hari lagi', price: 15500000, isFavorite: true, image: '/images/koi/ritsurin_koi_7.jpg' }
 ];
 
 export type ScreenType =
@@ -1163,6 +1164,7 @@ export type ScreenType =
     | 'chat_list'
     | 'chat_room'
     | 'store_gallery'
+    | 'articles_list'
     | 'my_bids';
 
 export interface UserBidItem {
@@ -1214,6 +1216,7 @@ export interface LiveAuctionState {
     gender: string;
     startPrice?: number; // Open Bid (OB) ditentukan oleh Seller
     bidIncrement?: number; // Kelipatan Bid (KB) resmi platform: 500.000 / 1.000.000
+    bidsCount?: number;
     dealerName?: string;
     dealerPhone?: string;
     dealerType?: 'import' | 'lokal';
@@ -1359,7 +1362,7 @@ const INITIAL_SAMPLE_ORDERS: any[] = [
             sellerUserId: 1,
             city: 'Blitar & Jakarta',
             size: '88 cm',
-            age: 'Sansai',
+            age: '3 Tahun',
             gender: 'Female',
             price: 12500000,
             images: [
@@ -1423,7 +1426,7 @@ const INITIAL_SAMPLE_ORDERS: any[] = [
             sellerUserId: 1,
             city: 'Blitar & Jakarta',
             size: '70 cm',
-            age: 'Nisai',
+            age: '2 Tahun',
             gender: 'Female',
             price: 12500000,
             images: [
@@ -1540,6 +1543,10 @@ interface Props {
     highestBidAuctions?: Auction[];
     favoriteAuctions?: Auction[];
     categories?: Category[];
+    pinnedAnnouncements?: any[];
+    tipsArticles?: any[];
+    bannerAds?: any[];
+    articles?: any[];
 }
 
 export default function AndroidKoiApp({
@@ -1548,6 +1555,10 @@ export default function AndroidKoiApp({
     highestBidAuctions = [],
     favoriteAuctions = [],
     categories = [],
+    pinnedAnnouncements = [],
+    tipsArticles = [],
+    bannerAds = [],
+    articles = [],
 }: Props) {
     // User & Autentikasi Laravel / Google
     const pageProps = usePage<SharedData>().props;
@@ -1567,7 +1578,7 @@ export default function AndroidKoiApp({
             name: p.name,
             category: p.category?.name || 'Kohaku',
             size: extractedSize,
-            age: 'Nisai',
+            age: '2 Tahun',
             gender: 'Female',
             price: Number(p.price),
             city: p.store?.city || 'Jakarta',
@@ -1602,7 +1613,7 @@ export default function AndroidKoiApp({
             rank: idx + 1,
             name: prod?.name || 'Koi Show Champion',
             size: extractedSize,
-            age: 'Nisai',
+            age: '2 Tahun',
             price: Number(auc.current_bid),
             status: 'Lelang selesai',
             isRecord: idx === 0,
@@ -1629,6 +1640,27 @@ export default function AndroidKoiApp({
         };
     }) : INITIAL_FAVORITE_AUCTIONS;
 
+    // Artikel, Pengumuman Event & Banner Iklan
+    const [selectedMobileArticle, setSelectedMobileArticle] = useState<any | null>(null);
+
+    const dynamicAnnouncements = (pinnedAnnouncements && pinnedAnnouncements.length > 0)
+        ? pinnedAnnouncements
+        : (articles && articles.filter((a: any) => a.category === 'event_announcement' && a.is_pinned_top).length > 0)
+            ? articles.filter((a: any) => a.category === 'event_announcement' && a.is_pinned_top)
+            : [];
+
+    const dynamicTips = (tipsArticles && tipsArticles.length > 0)
+        ? tipsArticles
+        : (articles && articles.filter((a: any) => a.category === 'tips_care').length > 0)
+            ? articles.filter((a: any) => a.category === 'tips_care')
+            : [];
+
+    const dynamicBanners = (bannerAds && bannerAds.length > 0)
+        ? bannerAds
+        : (articles && articles.filter((a: any) => a.category === 'banner_ads').length > 0)
+            ? articles.filter((a: any) => a.category === 'banner_ads')
+            : [];
+
     // Helper untuk buka ruang lelang sesuai item yang dipilih
     const openAuctionDetail = (aucItem: any) => {
         if (!aucItem) return;
@@ -1639,7 +1671,7 @@ export default function AndroidKoiApp({
         const effectiveBidder = aucItem.highestBidder || raw?.highest_bidder?.name || 'KolektorKoi';
         const effectiveName = aucItem.name || raw?.product?.name || 'Ikan Lelang Koi';
         const effectiveSize = aucItem.size || '75 cm';
-        const effectiveAge = aucItem.age || 'Nisai';
+        const effectiveAge = formatAgeInYears(aucItem.age || raw?.product?.age || raw?.age);
         const effectiveGender = aucItem.gender || 'Female';
         const effectiveImage = aucItem.image || raw?.product?.primary_image?.image_path || '/images/koi/kohaku.jpg';
         const effectiveDealerType: 'import' | 'lokal' = aucItem.dealerType || (raw?.user?.name?.toLowerCase().includes('import') ? 'import' : 'lokal');
@@ -1678,7 +1710,8 @@ export default function AndroidKoiApp({
             age: effectiveAge,
             gender: effectiveGender,
             startPrice: effectiveStartPrice,
-            bidIncrement: 500000,
+            bidIncrement: Number(raw?.bid_increment || aucItem.bidIncrement || 500000),
+            bidsCount: Number(raw?.bids_count ?? aucItem.bidsCount ?? bidsHistory.length),
             dealerName: effectiveDealerName,
             dealerPhone: effectiveDealerPhone,
             dealerType: effectiveDealerType,
@@ -1718,12 +1751,14 @@ export default function AndroidKoiApp({
     const [screenStack, setScreenStack] = useState<ScreenType[]>(['home']);
 
     // Bottom Tab State
-    const [activeTab, setActiveTab] = useState<'home' | 'categories' | 'chat' | 'favorite' | 'orders' | 'profile'>('home');
+    const [activeTab, setActiveTab] = useState<'home' | 'categories' | 'chat' | 'articles' | 'favorite' | 'orders' | 'profile'>('home');
 
     // Filter & Search
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategoryPill, setSelectedCategoryPill] = useState('Semua');
     const [selectedStoreFilter, setSelectedStoreFilter] = useState('Semua');
+    const [articleCategoryFilter, setArticleCategoryFilter] = useState<'all' | 'tips_care' | 'event_announcement' | 'banner_ads'>('all');
+    const [articleSearchQuery, setArticleSearchQuery] = useState('');
 
     // Selected Details
     const [selectedProduct, setSelectedProduct] = useState(dynamicProducts[0]);
@@ -1737,7 +1772,8 @@ export default function AndroidKoiApp({
 
     // Helper Integrasi WhatsApp Resmi Platform
     const openWhatsApp = (phone?: string, customText?: string) => {
-        const cleanPhone = (phone || '+6281288881001').replace(/[^0-9]/g, '');
+        const csFallback = (pageProps as any)?.whatsapp_cs?.phone || '081188990011';
+        const cleanPhone = (phone || csFallback).replace(/[^0-9]/g, '');
         const formattedPhone = cleanPhone.startsWith('0') ? '62' + cleanPhone.slice(1) : cleanPhone;
         const defaultMsg = 'Halo Diler Koi, saya melihat ikan koi premium Anda di aplikasi KoiMart dan ingin berkonsultasi mengenai spesifikasi & sertifikatnya.';
         const encodedText = encodeURIComponent(customText || defaultMsg);
@@ -1757,7 +1793,7 @@ export default function AndroidKoiApp({
         auctionId: 7,
         name: 'Showa Jumbo',
         size: '75 cm',
-        age: 'Nisai',
+        age: '2 Tahun',
         gender: 'Male',
         startPrice: 25000000,
         bidIncrement: 500000,
@@ -2209,7 +2245,7 @@ export default function AndroidKoiApp({
                 name: 'Showa Sanshoku Nisai 65 cm',
                 category: 'Showa',
                 size: '65 cm',
-                age: 'Nisai',
+                age: '2 Tahun',
                 gender: 'Male',
                 price: 10000000,
                 store: 'Nusantara Koi Center',
@@ -2252,7 +2288,7 @@ export default function AndroidKoiApp({
             name: prod.name,
             category: prod.category || 'Koi',
             size: prod.size || '55 cm',
-            age: prod.age || 'Nisai',
+            age: formatAgeInYears(prod.age),
             gender: prod.gender || 'Male',
             price: prod.price || 0,
             store: prod.store || 'Mitra Koi Farm',
@@ -2368,7 +2404,7 @@ export default function AndroidKoiApp({
         name: 'Kohaku Champion Maruten Nisai',
         category: 'Kohaku',
         size: '68 cm',
-        age: 'Nisai',
+        age: '2 Tahun',
         price: '14500000',
         certificate: true,
         origin: 'Blitar Farm Heritage',
@@ -2710,6 +2746,7 @@ export default function AndroidKoiApp({
     const syncTabForScreen = (screen: ScreenType) => {
         if (screen === 'home') setActiveTab('home');
         else if (screen === 'categories') setActiveTab('categories');
+        else if (screen === 'articles_list') setActiveTab('articles');
         else if (screen === 'chat_list' || screen === 'chat_room') setActiveTab('chat');
         else if (screen === 'favorite' || screen === 'favorite_auction') setActiveTab('favorite');
         else if (screen === 'orders' || screen === 'checkout_invoice' || screen === 'wag_tracking' || screen === 'order_detail') setActiveTab('orders');
@@ -2925,7 +2962,7 @@ export default function AndroidKoiApp({
         return () => window.removeEventListener('popstate', handlePopState);
     }, [currentScreen]);
 
-    const handleTabClick = (tab: 'home' | 'categories' | 'chat' | 'favorite' | 'orders' | 'profile') => {
+    const handleTabClick = (tab: 'home' | 'categories' | 'chat' | 'articles' | 'favorite' | 'orders' | 'profile') => {
         // Intercept jika belum login dengan Google untuk tab Favorit, Chat, & Pesanan
         if (tab === 'favorite' && !isLoggedIn) {
             setGoogleLoginReason('favorit');
@@ -2952,6 +2989,7 @@ export default function AndroidKoiApp({
         setActiveTab(tab);
         if (tab === 'home') navigateTo('home');
         else if (tab === 'categories') navigateTo('categories');
+        else if (tab === 'articles') navigateTo('articles_list');
         else if (tab === 'chat') {
             refreshChatThreads();
             navigateTo('chat_list');
@@ -3755,9 +3793,33 @@ export default function AndroidKoiApp({
                                         <span className="text-[11px] font-extrabold text-amber-900">Huruf</span>
                                     </button>
 
+                                    {/* Tombol Chat di samping Keranjang */}
+                                    <button
+                                        onClick={() => {
+                                            if (!isLoggedIn) {
+                                                setGoogleLoginReason('chat');
+                                                setPendingLoginAction({ type: 'navigate', payload: 'chat_list' });
+                                                setIsGoogleLoginModalOpen(true);
+                                                triggerToast('🔒 Silakan login dengan Google terlebih dahulu untuk mengakses Chat');
+                                                return;
+                                            }
+                                            refreshChatThreads();
+                                            navigateTo('chat_list');
+                                        }}
+                                        className="relative p-2 text-slate-700 hover:bg-slate-100 rounded-full transition-colors active:scale-95"
+                                        title="Pesan & Chat"
+                                    >
+                                        <MessageCircle className="w-5 h-5" />
+                                        {totalUnreadChatCount > 0 && (
+                                            <span className="absolute top-1 right-1 min-w-3.5 h-3.5 px-1 bg-red-600 rounded-full ring-2 ring-white text-[8px] font-bold text-white flex items-center justify-center">
+                                                {totalUnreadChatCount}
+                                            </span>
+                                        )}
+                                    </button>
+
                                     <button
                                         onClick={() => navigateTo('cart')}
-                                        className="relative p-2 text-slate-700 hover:bg-slate-100 rounded-full transition-colors"
+                                        className="relative p-2 text-slate-700 hover:bg-slate-100 rounded-full transition-colors active:scale-95"
                                         title="Keranjang Belanja"
                                     >
                                         <ShoppingCart className="w-5 h-5" />
@@ -3799,6 +3861,70 @@ export default function AndroidKoiApp({
 
                             {/* Main Scroll Content */}
                             <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
+
+                                {/* ========================================================= */}
+                                {/* 1. EVENT ANNOUNCEMENT (TOP BANNER & TEXT PADA MOBILE)    */}
+                                {/* ========================================================= */}
+                                {dynamicAnnouncements.length > 0 && (
+                                    <div className="space-y-2">
+                                        {dynamicAnnouncements.map((eventItem: any) => (
+                                            <div
+                                                key={eventItem.id}
+                                                className="rounded-2xl overflow-hidden bg-gradient-to-r from-stone-900 via-slate-900 to-stone-900 border border-amber-500/40 shadow-lg text-white group"
+                                            >
+                                                {/* Mini Banner Image */}
+                                                {eventItem.banner_image && (
+                                                    <div className="relative aspect-[21/9] w-full overflow-hidden bg-black">
+                                                        <img
+                                                            src={eventItem.banner_image}
+                                                            alt={eventItem.title}
+                                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                                        />
+                                                        <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-transparent to-transparent" />
+                                                        <div className="absolute top-2 left-2">
+                                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500 text-stone-950 font-black text-[9px] uppercase shadow">
+                                                                <Sparkles className="w-2.5 h-2.5 text-stone-950" />
+                                                                <span>{eventItem.badge_text || 'EVENT RESMI'}</span>
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                <div className="p-3.5 space-y-2">
+                                                    <div>
+                                                        <h4 className="text-xs font-bold text-amber-300 leading-snug line-clamp-1">
+                                                            {eventItem.title}
+                                                        </h4>
+                                                        <p className="text-[11px] text-slate-300 line-clamp-2 mt-0.5 leading-relaxed font-light">
+                                                            {eventItem.summary || eventItem.content}
+                                                        </p>
+                                                    </div>
+
+                                                    <div className="flex items-center justify-between pt-1 border-t border-white/10 text-[10px]">
+                                                        <button
+                                                            onClick={() => setSelectedMobileArticle(eventItem)}
+                                                            className="text-amber-400 font-bold hover:underline"
+                                                        >
+                                                            Lihat Rincian →
+                                                        </button>
+
+                                                        {eventItem.custom_url && (
+                                                            <a
+                                                                href={eventItem.custom_url}
+                                                                target={eventItem.target_type || '_blank'}
+                                                                rel="noopener noreferrer"
+                                                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-500 hover:bg-amber-400 text-stone-950 font-black text-[10px] shadow"
+                                                            >
+                                                                <span>Buka Link Event</span>
+                                                                <ExternalLink className="w-2.5 h-2.5" />
+                                                            </a>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
 
                                 {/* Hero Banner (KOI PREMIUM) */}
                                 <div className="relative rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-slate-800 p-5 text-white overflow-hidden shadow-lg border border-slate-800">
@@ -4020,28 +4146,42 @@ export default function AndroidKoiApp({
                                                 <div className="p-3 flex-1 flex flex-col justify-between">
                                                     <div>
                                                         <div className="flex items-center justify-between text-xs font-semibold text-slate-600 mb-1">
-                                                            <span>{auc.size}</span>
+                                                            <div className="flex items-center gap-1.5 flex-wrap">
+                                                                <span>{auc.size}</span>
+                                                                <span className="text-[10px] px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-700 font-bold border border-amber-500/20">
+                                                                    {formatAgeInYears(auc.age || (auc as any).auctionRaw?.product?.age)}
+                                                                </span>
+                                                            </div>
                                                             <span className="text-amber-600 font-bold">{auc.isRecord ? 'Rekor #1' : `Rank #${auc.rank}`}</span>
                                                         </div>
                                                         <h4 className="font-bold text-sm text-slate-900 line-clamp-1 leading-snug">{auc.name}</h4>
                                                     </div>
 
-                                                    <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between gap-1.5">
-                                                        <div className="min-w-0 flex-1">
-                                                            <span className="text-[11px] font-bold text-slate-500 block leading-tight">Tawaran Tertinggi</span>
-                                                            <span className="text-sm sm:text-[15px] font-black text-red-600 tracking-tight leading-tight block mt-0.5 truncate">
-                                                                Rp {auc.price.toLocaleString('id-ID')}
+                                                    <div className="mt-2.5 pt-2 border-t border-slate-100 space-y-1.5">
+                                                        <div className="flex items-center justify-between">
+                                                            <span className="text-[10px] font-bold text-slate-500 uppercase">Tawaran Tertinggi</span>
+                                                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200">
+                                                                {(auc as any).bidsCount || (auc as any).auctionRaw?.bids_count || 14}x bid
                                                             </span>
                                                         </div>
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                openAuctionDetail(auc);
-                                                            }}
-                                                            className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl shadow-sm shadow-red-600/30 flex items-center gap-1 active:scale-95 transition-all shrink-0"
-                                                        >
-                                                            <span>Tawar</span>
-                                                        </button>
+                                                        <div className="flex items-center justify-between">
+                                                            <span className="text-sm sm:text-[15px] font-black text-red-600 tracking-tight leading-tight block truncate">
+                                                                Rp {auc.price.toLocaleString('id-ID')}
+                                                            </span>
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    openAuctionDetail(auc);
+                                                                }}
+                                                                className="px-2.5 py-1 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl shadow-xs shadow-red-600/30 active:scale-95 transition-all shrink-0 cursor-pointer"
+                                                            >
+                                                                <span>Tawar</span>
+                                                            </button>
+                                                        </div>
+                                                        <div className="flex items-center justify-between text-[10px] text-slate-500 pt-1 border-t border-slate-50">
+                                                            <span><strong>OB:</strong> Rp {(Number((auc as any).startPrice || (auc as any).auctionRaw?.start_price || Math.round(auc.price * 0.75))).toLocaleString('id-ID')}</span>
+                                                            <span className="text-amber-700 font-semibold"><strong>KB:</strong> +Rp {(Number((auc as any).bidIncrement || (auc as any).auctionRaw?.bid_increment || 500000)).toLocaleString('id-ID')}</span>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -4232,6 +4372,135 @@ export default function AndroidKoiApp({
                                         </div>
                                     )}
                                 </div>
+
+                                {/* ========================================================= */}
+                                {/* 3. MODUL BANNER IKLAN (IMAGES/YOUTUBE DG CUSTOM URL)     */}
+                                {/* ========================================================= */}
+                                {dynamicBanners.length > 0 && (
+                                    <div className="space-y-3 pt-2">
+                                        <div className="flex justify-between items-center">
+                                            <div className="flex items-center gap-1.5">
+                                                <Sparkles className="w-4 h-4 text-amber-500" />
+                                                <h3 className="font-bold text-sm text-slate-900">Partner & Sponsor Iklan</h3>
+                                            </div>
+                                            <span className="text-[10px] text-slate-400 font-medium">Official Media</span>
+                                        </div>
+
+                                        <div className="space-y-3">
+                                            {dynamicBanners.map((ad: any) => {
+                                                const isYt = ad.media_type === 'youtube' && ad.youtube_embed_url;
+                                                return (
+                                                    <div
+                                                        key={ad.id}
+                                                        className="bg-white rounded-2xl overflow-hidden border border-slate-200/80 shadow-sm"
+                                                    >
+                                                        {isYt ? (
+                                                            <div className="relative aspect-video w-full bg-black">
+                                                                <iframe
+                                                                    src={ad.youtube_embed_url}
+                                                                    title={ad.title}
+                                                                    className="w-full h-full border-0"
+                                                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                                    allowFullScreen
+                                                                />
+                                                            </div>
+                                                        ) : (
+                                                            <div className="relative aspect-[16/9] w-full overflow-hidden bg-slate-900">
+                                                                <img
+                                                                    src={ad.banner_image || '/images/koi/koi_pond_group.jpg'}
+                                                                    alt={ad.title}
+                                                                    className="w-full h-full object-cover"
+                                                                />
+                                                                <div className="absolute top-2 left-2">
+                                                                    <span className="px-2 py-0.5 rounded-full bg-amber-500 text-stone-950 font-bold text-[9px] uppercase shadow">
+                                                                        {ad.badge_text || 'IKLAN RESMI'}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        )}
+
+                                                        <div className="p-3.5 space-y-2">
+                                                            <div>
+                                                                <h4 className="font-bold text-xs text-slate-900 line-clamp-1">
+                                                                    {ad.title}
+                                                                </h4>
+                                                                <p className="text-[11px] text-slate-500 line-clamp-2 mt-0.5 leading-relaxed font-light">
+                                                                    {ad.summary || ad.content}
+                                                                </p>
+                                                            </div>
+
+                                                            <div className="flex items-center justify-between pt-1 border-t border-slate-100">
+                                                                <button
+                                                                    onClick={() => setSelectedMobileArticle(ad)}
+                                                                    className="text-[11px] font-semibold text-slate-600 hover:text-slate-900"
+                                                                >
+                                                                    Detail Informasi →
+                                                                </button>
+
+                                                                {ad.custom_url && (
+                                                                    <a
+                                                                        href={ad.custom_url}
+                                                                        target={ad.target_type || '_blank'}
+                                                                        rel="noopener noreferrer"
+                                                                        className="inline-flex items-center gap-1 px-3 py-1 bg-amber-500 hover:bg-amber-600 text-stone-950 font-bold text-[10px] rounded-full shadow-xs"
+                                                                    >
+                                                                        <span>Kunjungi Link</span>
+                                                                        <ExternalLink className="w-2.5 h-2.5" />
+                                                                    </a>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* ========================================================= */}
+                                {/* 2. KUMPULAN ARTIKEL TIPS PEMELIHARAAN KOI                */}
+                                {/* ========================================================= */}
+                                {dynamicTips.length > 0 && (
+                                    <div className="space-y-3 pt-2">
+                                        <div className="flex justify-between items-center">
+                                            <div className="flex items-center gap-1.5">
+                                                <FileText className="w-4 h-4 text-emerald-600" />
+                                                <h3 className="font-bold text-sm text-slate-900">Tips Pemeliharaan Koi</h3>
+                                            </div>
+                                            <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                                                Edukasi Koi
+                                            </span>
+                                        </div>
+
+                                        <div className="space-y-2.5">
+                                            {dynamicTips.map((tip: any) => (
+                                                <div
+                                                    key={tip.id}
+                                                    onClick={() => setSelectedMobileArticle(tip)}
+                                                    className="bg-white rounded-2xl p-3 border border-slate-100 shadow-sm flex items-center gap-3 active:scale-99 transition-transform cursor-pointer"
+                                                >
+                                                    <img
+                                                        src={tip.banner_image || '/images/koi/kohaku.jpg'}
+                                                        alt={tip.title}
+                                                        className="w-16 h-16 rounded-xl object-cover shrink-0 border border-slate-200"
+                                                    />
+                                                    <div className="flex-1 min-w-0">
+                                                        <span className="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded uppercase">
+                                                            {tip.badge_text || 'TIPS'}
+                                                        </span>
+                                                        <h4 className="font-bold text-xs text-slate-900 line-clamp-1 mt-1 leading-snug">
+                                                            {tip.title}
+                                                        </h4>
+                                                        <p className="text-[10px] text-slate-500 line-clamp-1 mt-0.5">
+                                                            {tip.summary || tip.content}
+                                                        </p>
+                                                    </div>
+                                                    <ChevronRight className="w-4 h-4 text-slate-400 shrink-0" />
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     )}
@@ -4496,13 +4765,19 @@ export default function AndroidKoiApp({
 
                                     <div>
                                         <h4 className="text-base font-bold">{dynamicTopAuctions[0].name}</h4>
-                                        <p className="text-xs text-slate-400 mt-0.5">{dynamicTopAuctions[0].size} | {dynamicTopAuctions[0].age}</p>
-                                        <div className="text-lg font-black text-white mt-1">
+                                        <div className="flex items-center gap-2 text-xs text-slate-300 mt-1 flex-wrap">
+                                            <span>{dynamicTopAuctions[0].size}</span>
+                                            <span>•</span>
+                                            <span className="text-amber-300 font-bold">Umur: {formatAgeInYears(dynamicTopAuctions[0].age)}</span>
+                                            <span>•</span>
+                                            <span className="text-blue-300 font-bold">{(dynamicTopAuctions[0] as any).bidsCount || 28}x bid</span>
+                                        </div>
+                                        <div className="text-lg font-black text-white mt-1.5">
                                             Rp {dynamicTopAuctions[0].price.toLocaleString('id-ID')}
                                         </div>
-                                        <div className="flex items-center gap-1.5 text-[10px] text-slate-400 mt-1">
-                                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                            <span>Lelang selesai</span>
+                                        <div className="flex items-center justify-between text-[11px] text-slate-300 mt-1 pt-1 border-t border-slate-800">
+                                            <span>OB: Rp {(Number((dynamicTopAuctions[0] as any).startPrice || Math.round(dynamicTopAuctions[0].price * 0.75))).toLocaleString('id-ID')}</span>
+                                            <span className="text-amber-400 font-semibold">KB: +Rp {(Number((dynamicTopAuctions[0] as any).bidIncrement || 1000000)).toLocaleString('id-ID')}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -4536,16 +4811,25 @@ export default function AndroidKoiApp({
                                                     className="w-12 h-12 rounded-xl object-cover bg-slate-900 shrink-0"
                                                 />
 
-                                                {/* Name & Size */}
+                                                {/* Name, Size, Age & Bids */}
                                                 <div className="flex-1 min-w-0">
                                                     <h5 className="font-bold text-xs text-slate-900 truncate">{auc.name}</h5>
-                                                    <p className="text-[10px] text-slate-500">{auc.size}</p>
+                                                    <div className="flex items-center gap-1.5 text-[10px] text-slate-500 mt-0.5 flex-wrap">
+                                                        <span>{auc.size}</span>
+                                                        <span>•</span>
+                                                        <span className="text-amber-700 font-semibold">{formatAgeInYears(auc.age || (auc as any).auctionRaw?.product?.age)}</span>
+                                                        <span>•</span>
+                                                        <span className="text-blue-600 font-semibold">{(auc as any).bidsCount || (auc as any).auctionRaw?.bids_count || 14}x bid</span>
+                                                    </div>
                                                 </div>
 
-                                                {/* Price */}
+                                                {/* Price & OB */}
                                                 <div className="text-right shrink-0">
-                                                    <span className="text-xs font-bold text-red-600">
+                                                    <span className="text-xs font-bold text-red-600 block">
                                                         Rp {auc.price.toLocaleString('id-ID')}
+                                                    </span>
+                                                    <span className="text-[9px] text-slate-400 block font-medium">
+                                                        OB: Rp {Math.round((auc as any).startPrice || (auc as any).auctionRaw?.start_price || (auc.price * 0.75)).toLocaleString('id-ID')}
                                                     </span>
                                                 </div>
                                             </div>
@@ -4624,15 +4908,21 @@ export default function AndroidKoiApp({
                                                 {/* Info */}
                                                 <div className="flex-1 min-w-0">
                                                     <div className="flex items-center gap-1.5">
-                                                        <h5 className="font-bold text-xs text-slate-900 truncate">{auc.name} {auc.size}</h5>
+                                                        <h5 className="font-bold text-xs text-slate-900 truncate">{auc.name}</h5>
                                                         {auc.isFavorite && (
                                                             <span className="px-1.5 py-0.2 bg-red-600 text-white text-[8px] font-bold rounded">
                                                                 Favorit
                                                             </span>
                                                         )}
                                                     </div>
-                                                    <p className="text-[10px] text-slate-500 mt-0.5">{auc.timeLeft}</p>
-                                                    <div className="text-xs font-extrabold text-red-600 mt-1">
+                                                    <div className="flex items-center gap-1.5 text-[10px] text-slate-500 mt-0.5 flex-wrap">
+                                                        <span>{auc.size}</span>
+                                                        <span>•</span>
+                                                        <span className="text-amber-700 font-semibold">{formatAgeInYears((auc as any).age || (auc as any).auctionRaw?.product?.age)}</span>
+                                                        <span>•</span>
+                                                        <span className="text-blue-600 font-semibold">{(auc as any).bidsCount || (auc as any).auctionRaw?.bids_count || 10}x bid</span>
+                                                    </div>
+                                                    <div className="text-xs font-extrabold text-red-600 mt-0.5">
                                                         Rp {auc.price.toLocaleString('id-ID')}
                                                     </div>
                                                 </div>
@@ -4875,6 +5165,283 @@ export default function AndroidKoiApp({
                     })()}
 
                     {/* ========================================================================= */}
+                    {/* SCREEN: ARTIKEL & WAWASAN KOI (ARTICLES LIST)                            */}
+                    {/* ========================================================================= */}
+                    {currentScreen === 'articles_list' && (() => {
+                        // Gabungkan seluruh artikel yang tersedia dari props
+                        const fallbackArticles = [
+                            {
+                                id: 'fallback-art-1',
+                                title: 'Panduan Kualitas Air Kolam Koi: Parameter pH, TDS & DO Optimal',
+                                category: 'tips_care',
+                                category_label: 'Tips Pemeliharaan',
+                                badge_text: 'Tips Air Kolam',
+                                summary: 'Kunci kesehatan, nafsu makan dan kilau warna koi terletak pada stabilitas parameter air. Pelajari cara menjaga pH stabil di 7.2 - 7.8 dan aerasi dissolved oxygen > 6.0 mg/L.',
+                                content: `Kualitas air kolam adalah pondasi utama kesuksesan memelihara ikan koi Jepang maupun lokal.\n\n1. Derajat Keasaman (pH):\nKoi membutuhkan pH air antara 7.2 - 7.8 dengan fluktuasi harian maksimal 0.3. Gunakan kalsium karbonat atau oyster shell pada chamber biologis untuk menjaga buffer KH.\n\n2. Suhu Kolam:\nSuhu ideal 22°C - 26°C. Pada musim hujan atau cuaca dingin ekstrem, pakan dikurangi dan ganti ke jenis wheat germ agar sistem pencernaan koi tidak kembung.\n\n3. Filtrasi Biologis & Oksigen Terlarut:\nPastikan pompa filter bersirkulasi minimal 1 - 1.5 kali total volume air kolam per jam. Aerasi yang melimpah meningkatkan ketajaman warna beni (merah) dan sumi (hitam).`,
+                                banner_image: '/images/koi/koi_pond_group.jpg',
+                                published_at: '2026-10-10',
+                                views_count: 342,
+                            },
+                            {
+                                id: 'fallback-art-2',
+                                title: 'Protokol Karantina Koi Baru: Wajib 14 Hari Bebas Penyakit & KHV',
+                                category: 'tips_care',
+                                category_label: 'Tips Pemeliharaan',
+                                badge_text: 'Karantina Aman',
+                                summary: 'Langkah krusial sebelum memasukkan koi baru ke kolam utama: puasa 24 jam pertama, aplikasi garam ikan 3-5‰, heater 28°C, dan observasi ketat.',
+                                content: `Jangan pernah mencampur koi baru langsung ke kolam utama tanpa karantina minimal 14 hari.\n\nLangkah-langkah Karantina Standar Farm:\n1. Siapkan bak karantina terpisah minimal 500 - 1000 liter dengan filter mat dan aerasi kuat.\n2. Aklimatisasi suhu kantong plastik ikan selama 20-30 menit di permukaan air sebelum kantong dibuka.\n3. Berikan garam ikan non-yodium konsentrasi 3-5 kg per 1.000 liter air (0.3% - 0.5%) untuk menurunkan stres osmotik dan menekan parasit eksternal.\n4. Puasakan ikan pada 2-3 hari pertama, perhatikan gerakan insang dan sirip dorsal.`,
+                                banner_image: '/images/koi/kohaku_pond.jpg',
+                                published_at: '2026-10-08',
+                                views_count: 289,
+                            },
+                            {
+                                id: 'fallback-art-3',
+                                title: 'Jadwal Kontes All Japan Koi Show & Festival Nishikigoi 2026',
+                                category: 'event_announcement',
+                                category_label: 'Event Announcement',
+                                badge_text: 'Event Nasional',
+                                is_pinned_top: true,
+                                summary: 'Rangkaian kontes koi bergengsi tingkat nasional & internasional. Informasi pendaftaran peserta lelang show, benching, dan syarat sertifikasi.',
+                                content: `Kontes Akbar Nishikigoi 2026 akan segera digelar dengan dewan juri bersertifikat Shinkokai Jepang.\n\nKategori Lomba:\n• Gosanke (Kohaku, Taisho Sanke, Showa Sanshoku)\n• Sakura (Shiro Utsuri, Goshiki, Kinginrin)\n• Botan (Asagi, Shusui, Koromo)\n• Kawarimono & Hikarimoyo\n\nUntuk pendaftaran ikan dan penjemputan handling via tim logistik Koki Official, hubungi customer care resmi kami.`,
+                                banner_image: '/images/koi/ritsurin_koi_1.jpg',
+                                published_at: '2026-10-05',
+                                views_count: 512,
+                            },
+                            {
+                                id: 'fallback-art-4',
+                                title: 'Pakan Berprotein Tinggi & Suplemen Spirulina untuk Shiroji & Beni',
+                                category: 'banner_ads',
+                                category_label: 'Iklan & Produk',
+                                badge_text: 'Rekomendasi Pakan',
+                                summary: 'Formulasi pakan koi premium import dengan color enhancer alami dan probiotik pencernaan untuk pertumbuhan jumbo tanpa merusak putih shiroji.',
+                                content: `Nutrisi tepat menghasilkan performa koi juara:\n• Protein 40-42% untuk fase pembentukan bodi (bulky shape).\n• Spirulina murni dengan pigmen karotenoid alami menjaga warna merah tetap tajam tanpa membuat dasar putih ternoda.\n• Dilengkapi vitamin C stabil dan ekstrak ragi untuk meningkatkan imunitas terhadap perubahan cuaca.`,
+                                banner_image: '/images/koi/kohaku.jpg',
+                                published_at: '2026-10-02',
+                                views_count: 198,
+                            }
+                        ];
+
+                        const rawList = [
+                            ...(articles && articles.length > 0 ? articles : []),
+                            ...(dynamicAnnouncements && dynamicAnnouncements.length > 0 ? dynamicAnnouncements : []),
+                            ...(dynamicTips && dynamicTips.length > 0 ? dynamicTips : []),
+                            ...(dynamicBanners && dynamicBanners.length > 0 ? dynamicBanners : [])
+                        ];
+
+                        const sourceList = rawList.length > 0 ? rawList : fallbackArticles;
+
+                        // Deduplikasi berdasarkan ID atau title
+                        const uniqueArticles = sourceList.reduce((acc: any[], item: any) => {
+                            if (!item) return acc;
+                            const key = item.id || item.title;
+                            if (!acc.some(existing => (existing.id || existing.title) === key)) {
+                                acc.push(item);
+                            }
+                            return acc;
+                        }, []);
+
+                        // Filter kategori dan kata kunci pencarian
+                        const filteredList = uniqueArticles.filter((art: any) => {
+                            if (articleCategoryFilter !== 'all') {
+                                if (articleCategoryFilter === 'tips_care' && art.category !== 'tips_care') return false;
+                                if (articleCategoryFilter === 'event_announcement' && art.category !== 'event_announcement') return false;
+                                if (articleCategoryFilter === 'banner_ads' && art.category !== 'banner_ads') return false;
+                            }
+                            if (articleSearchQuery.trim()) {
+                                const q = articleSearchQuery.toLowerCase();
+                                const titleMatch = (art.title || '').toLowerCase().includes(q);
+                                const summaryMatch = (art.summary || '').toLowerCase().includes(q);
+                                const badgeMatch = (art.badge_text || '').toLowerCase().includes(q);
+                                return titleMatch || summaryMatch || badgeMatch;
+                            }
+                            return true;
+                        });
+
+                        return (
+                            <div className="flex-1 flex flex-col bg-slate-50 pb-20">
+                                {/* Top Header Bar */}
+                                <div className="bg-white border-b border-slate-100 px-4 py-3 sticky top-0 z-20 shadow-2xs">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2.5">
+                                            <button
+                                                onClick={() => navigateTo('home')}
+                                                className="p-1 hover:bg-slate-100 rounded-full text-slate-700 transition active:scale-95"
+                                                title="Kembali ke Beranda"
+                                            >
+                                                <ArrowLeft className="w-5 h-5" />
+                                            </button>
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-8 h-8 rounded-full bg-red-50 text-red-600 flex items-center justify-center">
+                                                    <Newspaper className="w-4 h-4 stroke-[2.2]" />
+                                                </div>
+                                                <div>
+                                                    <h3 className="font-bold text-sm text-slate-900 leading-tight">Artikel & Wawasan Koi</h3>
+                                                    <p className="text-[10px] text-slate-500">Tips pemeliharaan, karantina & info event</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <span className="px-2 py-0.5 rounded-full bg-red-50 text-red-600 font-bold text-[10px]">
+                                            {filteredList.length} Artikel
+                                        </span>
+                                    </div>
+
+                                    {/* Search Input Bar */}
+                                    <div className="mt-2.5 relative">
+                                        <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                                        <input
+                                            type="text"
+                                            placeholder="Cari artikel, tips karantina, penyakit, event..."
+                                            value={articleSearchQuery}
+                                            onChange={(e) => setArticleSearchQuery(e.target.value)}
+                                            className="w-full pl-9 pr-8 py-2 bg-slate-100 text-xs font-semibold rounded-full border border-slate-200/80 focus:outline-none focus:ring-2 focus:ring-red-500 text-slate-900 placeholder:text-slate-400 placeholder:font-normal"
+                                        />
+                                        {articleSearchQuery && (
+                                            <button
+                                                onClick={() => setArticleSearchQuery('')}
+                                                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5"
+                                            >
+                                                <X className="w-3.5 h-3.5" />
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    {/* Filter Kategori Chips Horizontal */}
+                                    <div className="mt-2.5 flex items-center gap-1.5 overflow-x-auto scrollbar-none pb-0.5">
+                                        {[
+                                            { id: 'all', label: 'Semua' },
+                                            { id: 'tips_care', label: 'Tips Pemeliharaan' },
+                                            { id: 'event_announcement', label: 'Event & Info' },
+                                            { id: 'banner_ads', label: 'Iklan & Produk' },
+                                        ].map((chip) => {
+                                            const isSelected = articleCategoryFilter === chip.id;
+                                            return (
+                                                <button
+                                                    key={chip.id}
+                                                    onClick={() => setArticleCategoryFilter(chip.id as any)}
+                                                    className={`px-3 py-1 rounded-full text-[11px] font-bold whitespace-nowrap transition-all active:scale-95 ${
+                                                        isSelected
+                                                            ? 'bg-red-600 text-white shadow-xs'
+                                                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                                    }`}
+                                                >
+                                                    {chip.label}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+
+                                {/* Daftar Artikel Content */}
+                                <div className="p-4 space-y-4">
+                                    {filteredList.length === 0 ? (
+                                        <div className="py-12 text-center bg-white rounded-3xl p-6 border border-slate-100 shadow-2xs">
+                                            <div className="w-14 h-14 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3">
+                                                <Newspaper className="w-7 h-7" />
+                                            </div>
+                                            <h4 className="font-bold text-sm text-slate-800">Tidak ada artikel yang cocok</h4>
+                                            <p className="text-xs text-slate-500 mt-1 max-w-xs mx-auto">
+                                                Coba cari dengan kata kunci lain atau pilih kategori "Semua"
+                                            </p>
+                                            <button
+                                                onClick={() => {
+                                                    setArticleSearchQuery('');
+                                                    setArticleCategoryFilter('all');
+                                                }}
+                                                className="mt-4 px-4 py-1.5 bg-red-600 text-white rounded-full text-xs font-bold shadow-xs active:scale-95"
+                                            >
+                                                Reset Pencarian
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        filteredList.map((article: any, index: number) => {
+                                            const isPinned = Boolean(article.is_pinned_top);
+                                            const isVideo = article.media_type === 'youtube' && Boolean(article.youtube_embed_url);
+
+                                            return (
+                                                <div
+                                                    key={article.id || `art-${index}`}
+                                                    onClick={() => setSelectedMobileArticle(article)}
+                                                    className={`bg-white rounded-2xl overflow-hidden border transition-all active:scale-[0.99] cursor-pointer shadow-xs ${
+                                                        isPinned
+                                                            ? 'border-amber-300 ring-2 ring-amber-100'
+                                                            : 'border-slate-100 hover:border-slate-300'
+                                                    }`}
+                                                >
+                                                    {/* Cover Image / Video Banner */}
+                                                    <div className="relative aspect-[16/9] w-full overflow-hidden bg-slate-900">
+                                                        <img
+                                                            src={article.banner_image || '/images/koi/koi_pond_group.jpg'}
+                                                            alt={article.title}
+                                                            className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                                                        />
+                                                        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
+
+                                                        {/* Top Badges */}
+                                                        <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 flex-wrap">
+                                                            {isPinned && (
+                                                                <span className="px-2 py-0.5 rounded-full bg-amber-500 text-stone-950 font-black text-[9px] uppercase shadow-sm">
+                                                                    📌 Pengumuman Utama
+                                                                </span>
+                                                            )}
+                                                            <span className="px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-xs text-amber-300 border border-amber-400/30 font-bold text-[9px] uppercase">
+                                                                {article.badge_text || article.category_label || (article.category === 'tips_care' ? 'Tips Pemeliharaan' : article.category === 'event_announcement' ? 'Event' : 'Produk')}
+                                                            </span>
+                                                        </div>
+
+                                                        {/* Play Button for Video */}
+                                                        {isVideo && (
+                                                            <div className="absolute top-2.5 right-2.5 w-7 h-7 rounded-full bg-red-600/90 text-white flex items-center justify-center shadow-md">
+                                                                <Play className="w-3.5 h-3.5 fill-white ml-0.5" />
+                                                            </div>
+                                                        )}
+
+                                                        {/* Bottom Meta on Image */}
+                                                        <div className="absolute bottom-2 left-3 right-3 flex items-center justify-between text-[10px] text-white/80 font-medium">
+                                                            <span>
+                                                                {article.published_at
+                                                                    ? new Date(article.published_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
+                                                                    : 'Terbaru'}
+                                                            </span>
+                                                            <span>{article.views_count || 120} Pembaca</span>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Card Body */}
+                                                    <div className="p-3.5 space-y-2">
+                                                        <h4 className="font-bold text-sm text-slate-900 leading-snug line-clamp-2">
+                                                            {article.title}
+                                                        </h4>
+
+                                                        {article.summary && (
+                                                            <p className="text-xs text-slate-600 leading-relaxed line-clamp-2 font-normal">
+                                                                {article.summary}
+                                                            </p>
+                                                        )}
+
+                                                        <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+                                                            <span className="text-[11px] font-extrabold text-red-600 flex items-center gap-1">
+                                                                <span>Baca Selengkapnya</span>
+                                                                <ChevronRight className="w-3.5 h-3.5" />
+                                                            </span>
+
+                                                            {article.custom_url && (
+                                                                <span className="text-[10px] text-slate-400 font-medium flex items-center gap-0.5">
+                                                                    <span>Tautan Resmi</span>
+                                                                    <ExternalLink className="w-3 h-3" />
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })
+                                    )}
+                                </div>
+                            </div>
+                        );
+                    })()}
+
+                    {/* ========================================================================= */}
                     {/* SCREEN 5: KATEGORI                                                       */}
                     {/* ========================================================================= */}
                     {currentScreen === 'categories' && (
@@ -4888,6 +5455,28 @@ export default function AndroidKoiApp({
                                     <h3 className="font-bold text-base text-slate-900">Kategori</h3>
                                 </div>
                                 <div className="flex items-center gap-1">
+                                    <button
+                                        onClick={() => {
+                                            if (!isLoggedIn) {
+                                                setGoogleLoginReason('chat');
+                                                setPendingLoginAction({ type: 'navigate', payload: 'chat_list' });
+                                                setIsGoogleLoginModalOpen(true);
+                                                triggerToast('🔒 Silakan login dengan Google terlebih dahulu untuk mengakses Chat');
+                                                return;
+                                            }
+                                            refreshChatThreads();
+                                            navigateTo('chat_list');
+                                        }}
+                                        className="relative p-2 text-slate-700 hover:bg-slate-100 rounded-full transition-colors active:scale-95"
+                                        title="Pesan & Chat"
+                                    >
+                                        <MessageCircle className="w-5 h-5" />
+                                        {totalUnreadChatCount > 0 && (
+                                            <span className="absolute top-1 right-1 min-w-3.5 h-3.5 px-1 bg-red-600 rounded-full ring-2 ring-white text-[8px] font-bold text-white flex items-center justify-center">
+                                                {totalUnreadChatCount}
+                                            </span>
+                                        )}
+                                    </button>
                                     <button
                                         onClick={() => navigateTo('cart')}
                                         className="relative p-2 text-slate-700 hover:bg-slate-100 rounded-full transition-colors"
@@ -5485,27 +6074,27 @@ export default function AndroidKoiApp({
                                         </span>
                                     </div>
                                     <h3 className="text-base font-extrabold text-slate-900">{liveAuction.name}</h3>
-                                    <p className="text-xs text-slate-500 mt-0.5">{liveAuction.size} | {liveAuction.age} | {liveAuction.gender}</p>
+                                    <p className="text-xs text-slate-500 mt-0.5">{liveAuction.size} | Umur: {formatAgeInYears(liveAuction.age)} | {liveAuction.gender}</p>
                                 </div>
 
-                                {/* Box Info OB (Ditentukan Seller) & KB (Ditentukan Platform 500rb / 1jt) */}
-                                <div className="grid grid-cols-2 gap-2.5 p-3.5 bg-gradient-to-br from-slate-50 to-slate-100/70 rounded-2xl border border-slate-200/80">
+                                {/* Box Info OB, KB, & Total Bid */}
+                                <div className="grid grid-cols-3 gap-2 p-3 bg-gradient-to-br from-slate-50 to-slate-100/70 rounded-2xl border border-slate-200/80">
                                     <div className="bg-white p-2.5 rounded-xl border border-slate-100 shadow-2xs">
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Open Bid (OB)</span>
-                                            <span className="text-[9px] font-semibold text-slate-400">Oleh Seller</span>
-                                        </div>
-                                        <p className="text-sm font-black text-slate-900 mt-0.5">
+                                        <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider block">Open Bid (OB)</span>
+                                        <p className="text-xs font-black text-slate-900 mt-0.5 truncate">
                                             Rp {(Number(liveAuction.startPrice) || 25000000).toLocaleString('id-ID')}
                                         </p>
                                     </div>
                                     <div className="bg-white p-2.5 rounded-xl border border-red-100 shadow-2xs">
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-[10px] font-bold text-red-600 uppercase tracking-wider">Kelipatan Bid (KB)</span>
-                                            <span className="text-[9px] font-semibold text-red-500">Platform</span>
-                                        </div>
-                                        <p className="text-sm font-black text-red-600 mt-0.5">
-                                            +500rb / +1jt
+                                        <span className="text-[9px] font-bold text-red-600 uppercase tracking-wider block">Kelipatan (KB)</span>
+                                        <p className="text-xs font-black text-red-600 mt-0.5 truncate">
+                                            +Rp {(Number(liveAuction.bidIncrement) || 500000).toLocaleString('id-ID')}
+                                        </p>
+                                    </div>
+                                    <div className="bg-white p-2.5 rounded-xl border border-blue-100 shadow-2xs">
+                                        <span className="text-[9px] font-bold text-blue-600 uppercase tracking-wider block">Total Bid</span>
+                                        <p className="text-xs font-black text-blue-600 mt-0.5 truncate">
+                                            {liveAuction.bidsCount || liveAuction.history?.length || 0}x Tawaran
                                         </p>
                                     </div>
                                 </div>
@@ -5735,10 +6324,17 @@ export default function AndroidKoiApp({
                                                                 <h5 className="font-bold text-xs text-slate-900 line-clamp-1 group-hover:text-red-600 transition-colors">
                                                                     {auc.name}
                                                                 </h5>
-                                                                <p className="text-[10px] text-slate-400 mt-1">Tawaran Tertinggi</p>
+                                                                <div className="flex items-center justify-between text-[10px] text-slate-400 mt-1">
+                                                                    <span>Tawaran Tertinggi</span>
+                                                                    <span className="text-blue-600 font-bold">{(auc as any).bidsCount || (auc as any).auctionRaw?.bids_count || 12}x bid</span>
+                                                                </div>
                                                                 <p className="text-xs font-black text-red-600">
                                                                     Rp {(Number(auc.price || (auc as any).currentBid) || 0).toLocaleString('id-ID')}
                                                                 </p>
+                                                                <div className="flex items-center justify-between text-[9px] text-slate-500 mt-1 pt-1 border-t border-slate-100">
+                                                                    <span>OB: Rp {(Number((auc as any).startPrice || (auc as any).auctionRaw?.start_price || Math.round(Number(auc.price || 15000000) * 0.75))).toLocaleString('id-ID')}</span>
+                                                                    <span className="text-amber-700 font-semibold">{formatAgeInYears((auc as any).age || (auc as any).auctionRaw?.product?.age)}</span>
+                                                                </div>
                                                             </div>
 
                                                             <button
@@ -6361,7 +6957,7 @@ export default function AndroidKoiApp({
                                                 {selectedOrderDetail.product?.name}
                                             </h4>
                                             <p className="text-[10px] text-slate-400 mt-0.5">
-                                                {selectedOrderDetail.product?.size} • {selectedOrderDetail.product?.age || 'Nisai'} • {selectedOrderDetail.product?.gender || 'Female'}
+                                                {selectedOrderDetail.product?.size} • {formatAgeInYears(selectedOrderDetail.product?.age)} • {selectedOrderDetail.product?.gender || 'Female'}
                                             </p>
                                             <p className="text-xs font-extrabold text-red-600 mt-1">
                                                 Rp {selectedOrderDetail.product?.price?.toLocaleString('id-ID')}
@@ -6548,7 +7144,7 @@ export default function AndroidKoiApp({
                                         <img src={activeOrder.product.images?.[0] || '/images/koi/kohaku.jpg'} alt="Koi" className="w-16 h-16 rounded-xl object-cover bg-slate-950 shrink-0" />
                                         <div className="min-w-0">
                                             <h5 className="font-bold text-xs text-slate-900 truncate">{activeOrder.product.name}</h5>
-                                            <p className="text-[10px] text-slate-500 mt-0.5">{activeOrder.product.size} | {activeOrder.product.age || 'Nisai'}</p>
+                                            <p className="text-[10px] text-slate-500 mt-0.5">{activeOrder.product.size} | {formatAgeInYears(activeOrder.product.age)}</p>
                                             <p className="text-[10px] text-slate-400 mt-0.5">{typeof activeOrder.product?.store === 'object' ? (activeOrder.product.store as any)?.name : (activeOrder.product?.store || 'Toko Koi Sejahtera')}</p>
                                             <p className="text-xs font-extrabold text-red-600 mt-1">Rp {activeOrder.fishPrice.toLocaleString('id-ID')}</p>
                                         </div>
@@ -8333,7 +8929,7 @@ export default function AndroidKoiApp({
                         {[
                             { id: 'home', label: 'Beranda', icon: Home, screen: 'home' as ScreenType },
                             { id: 'favorite', label: 'Favorit', icon: Heart, screen: 'favorite' as ScreenType, badge: favoritesList.length > 0 ? favoritesList.length : undefined },
-                            { id: 'chat', label: 'Chat', icon: MessageCircle, screen: 'chat_list' as ScreenType, badge: totalUnreadChatCount > 0 ? totalUnreadChatCount : undefined },
+                            { id: 'articles', label: 'Artikel', icon: Newspaper, screen: 'articles_list' as ScreenType },
                             { id: 'orders', label: 'Pesanan', icon: ReceiptText, screen: 'orders' as ScreenType },
                             { id: 'profile', label: 'Akun', icon: User, screen: 'profile' as ScreenType },
                         ].map((tab) => {
@@ -8961,6 +9557,89 @@ export default function AndroidKoiApp({
                                 <Check className="w-5 h-5 stroke-[2.5]" />
                                 <span>Simpan & Terapkan Ukuran</span>
                             </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* ========================================================= */}
+                {/* MODAL BACA ARTIKEL & PANDUAN PADA MOBILE (BOTTOM SHEET)   */}
+                {/* ========================================================= */}
+                {selectedMobileArticle && (
+                    <div className="absolute inset-0 z-50 bg-black/70 backdrop-blur-xs flex flex-col justify-end animate-in fade-in duration-200">
+                        <div
+                            className="bg-white rounded-t-[32px] max-h-[85vh] flex flex-col overflow-hidden shadow-2xl animate-in slide-in-from-bottom duration-300"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            {/* Modal Header Bar */}
+                            <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between shrink-0">
+                                <span className="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 font-bold text-[10px] uppercase">
+                                    {selectedMobileArticle.badge_text || selectedMobileArticle.category_label || selectedMobileArticle.category}
+                                </span>
+                                <button
+                                    onClick={() => setSelectedMobileArticle(null)}
+                                    className="p-1 rounded-full bg-slate-100 text-slate-500 hover:text-slate-800"
+                                >
+                                    <X className="w-4 h-4" />
+                                </button>
+                            </div>
+
+                            {/* Modal Content Scroll */}
+                            <div className="p-5 overflow-y-auto space-y-3.5 text-xs">
+                                {selectedMobileArticle.media_type === 'youtube' && selectedMobileArticle.youtube_embed_url ? (
+                                    <div className="aspect-video w-full rounded-2xl overflow-hidden bg-black shadow-sm">
+                                        <iframe
+                                            src={selectedMobileArticle.youtube_embed_url}
+                                            title={selectedMobileArticle.title}
+                                            className="w-full h-full border-0"
+                                            allowFullScreen
+                                        />
+                                    </div>
+                                ) : selectedMobileArticle.banner_image ? (
+                                    <div className="aspect-[16/9] w-full rounded-2xl overflow-hidden bg-slate-100 shadow-sm">
+                                        <img
+                                            src={selectedMobileArticle.banner_image}
+                                            alt={selectedMobileArticle.title}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    </div>
+                                ) : null}
+
+                                <h3 className="text-base font-extrabold text-slate-900 leading-snug">
+                                    {selectedMobileArticle.title}
+                                </h3>
+
+                                {selectedMobileArticle.summary && (
+                                    <div className="p-3 bg-amber-50 rounded-xl border border-amber-200/80 text-[11px] text-amber-900 font-medium leading-relaxed">
+                                        {selectedMobileArticle.summary}
+                                    </div>
+                                )}
+
+                                <div className="text-[11px] leading-relaxed text-slate-600 whitespace-pre-line font-light">
+                                    {selectedMobileArticle.content || selectedMobileArticle.summary}
+                                </div>
+                            </div>
+
+                            {/* Modal Footer with Custom URL link */}
+                            <div className="p-4 border-t border-slate-100 flex items-center gap-2 bg-slate-50 shrink-0">
+                                {selectedMobileArticle.custom_url ? (
+                                    <a
+                                        href={selectedMobileArticle.custom_url}
+                                        target={selectedMobileArticle.target_type || '_blank'}
+                                        rel="noopener noreferrer"
+                                        className="flex-1 py-3 px-4 bg-amber-500 hover:bg-amber-600 text-stone-950 font-bold text-xs rounded-2xl shadow flex items-center justify-center gap-1.5 transition active:scale-98"
+                                    >
+                                        <span>Buka Tautan Resmi</span>
+                                        <ExternalLink className="w-3.5 h-3.5" />
+                                    </a>
+                                ) : (
+                                    <button
+                                        onClick={() => setSelectedMobileArticle(null)}
+                                        className="flex-1 py-2.5 bg-slate-200 text-slate-700 font-semibold text-xs rounded-2xl"
+                                    >
+                                        Tutup
+                                    </button>
+                                )}
+                            </div>
                         </div>
                     </div>
                 )}

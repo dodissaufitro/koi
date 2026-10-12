@@ -1,4 +1,4 @@
-import { Auction, PaginatedData } from '@/types/fish';
+import { Auction, PaginatedData, formatAgeInYears } from '@/types/fish';
 import { Head, Link, router } from '@inertiajs/react';
 import {
     ArrowLeft,
@@ -176,26 +176,47 @@ export default function AuctionIndex({
                                     </div>
 
                                     <div className="p-5">
-                                        <div className="text-[10px] text-slate-500 uppercase font-semibold">
-                                            {auction.product?.origin || 'Import Jepang'}
+                                        <div className="flex items-center justify-between text-[10px] text-slate-500 font-semibold mb-1">
+                                            <span className="uppercase">{auction.product?.origin || 'Import Jepang'}</span>
+                                            <span className="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-700 dark:text-amber-300 font-bold border border-amber-500/20">
+                                                {formatAgeInYears(auction.product?.age || auction.age)}
+                                            </span>
                                         </div>
-                                        <h3 className={`text-base font-bold line-clamp-1 mt-0.5 transition ${isDark ? 'text-slate-100 group-hover:text-amber-300' : 'text-slate-900 group-hover:text-amber-600'}`}>
+                                        <h3 className={`text-base font-bold line-clamp-1 transition ${isDark ? 'text-slate-100 group-hover:text-amber-300' : 'text-slate-900 group-hover:text-amber-600'}`}>
                                             {auction.product?.name}
                                         </h3>
                                     </div>
                                 </div>
 
-                                <div className={`p-5 border-t flex items-center justify-between ${isDark ? 'border-white/5 bg-[#141C2B]/30' : 'border-slate-100 bg-slate-50/60'}`}>
-                                    <div>
-                                        <span className="text-[10px] text-slate-500 uppercase block">Tawaran Tertinggi</span>
-                                        <span className="text-base font-bold font-serif text-amber-600 dark:text-amber-300">
-                                            Rp {Number(auction.current_bid).toLocaleString('id-ID')}
+                                <div className={`p-5 border-t space-y-2.5 ${isDark ? 'border-white/5 bg-[#141C2B]/30' : 'border-slate-100 bg-slate-50/60'}`}>
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <span className="text-[10px] text-slate-500 uppercase block font-semibold">Tawaran Tertinggi</span>
+                                            <span className="text-lg font-bold font-serif text-amber-600 dark:text-amber-300">
+                                                Rp {Number(auction.current_bid).toLocaleString('id-ID')}
+                                            </span>
+                                        </div>
+                                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-300 border border-blue-500/20 text-[10px] font-bold">
+                                            <Gavel className="w-3 h-3" />
+                                            {auction.bids_count || 0}x bid
                                         </span>
                                     </div>
 
-                                    <span className="px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold transition">
-                                        Buka Lelang
-                                    </span>
+                                    <div className="flex items-center justify-between pt-2 border-t border-slate-200/60 dark:border-white/10 text-[11px]">
+                                        <span className="text-slate-500 dark:text-slate-400">
+                                            <strong className="text-slate-700 dark:text-slate-300 font-bold">OB:</strong> Rp {Number(auction.start_price).toLocaleString('id-ID')}
+                                        </span>
+                                        <span className="text-amber-600 dark:text-amber-400 font-semibold">
+                                            <strong className="font-bold">KB:</strong> +Rp {Number(auction.bid_increment).toLocaleString('id-ID')}
+                                        </span>
+                                    </div>
+
+                                    <div className="pt-1">
+                                        <span className="w-full py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-sm">
+                                            <Gavel className="w-3.5 h-3.5" />
+                                            <span>Masuk Ruang Lelang</span>
+                                        </span>
+                                    </div>
                                 </div>
                             </Link>
                         );

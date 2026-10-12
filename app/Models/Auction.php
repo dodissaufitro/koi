@@ -40,6 +40,15 @@ class Auction extends Model
         ];
     }
 
+    protected $appends = [
+        'age',
+        'formatted_current_bid',
+        'formatted_start_price',
+        'formatted_buyout_price',
+        'min_next_bid',
+        'is_ended',
+    ];
+
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
@@ -78,6 +87,21 @@ class Auction extends Model
     public function getMinNextBidAttribute(): float
     {
         return (float) ($this->current_bid + $this->bid_increment);
+    }
+
+    public function getAgeAttribute(): ?string
+    {
+        $age = $this->product?->age;
+        if (!$age) return '2 Tahun';
+        if (preg_match('/(\d+)\s*tahun/i', $age, $m)) return "{$m[1]} Tahun";
+        if (is_numeric($age)) return "{$age} Tahun";
+        $lower = strtolower($age);
+        if (str_contains($lower, 'tosai')) return '1 Tahun';
+        if (str_contains($lower, 'nisai')) return '2 Tahun';
+        if (str_contains($lower, 'sansai')) return '3 Tahun';
+        if (str_contains($lower, 'yonsai')) return '4 Tahun';
+        if (str_contains($lower, 'gosai')) return '5 Tahun';
+        return str_ends_with($lower, 'tahun') ? $age : "{$age} Tahun";
     }
 
     public function getIsEndedAttribute(): bool

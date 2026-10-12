@@ -51,6 +51,7 @@ class HandleInertiaRequests extends Middleware
                 'error' => fn () => $request->session()->get('error'),
                 'status' => fn () => $request->session()->get('status'),
             ],
+            'whatsapp_cs' => fn () => \App\Services\WhatsAppGatewayService::getCsConfig(),
         ]);
     }
 }

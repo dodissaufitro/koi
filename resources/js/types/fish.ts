@@ -48,6 +48,7 @@ export interface Product {
     condition: 'fresh' | 'live' | 'frozen' | 'processed';
     catch_type?: 'laut' | 'tambak' | 'tawar' | null;
     origin?: string | null;
+    age?: string | null;
     status: 'active' | 'inactive' | 'draft';
     views_count: number;
     formatted_price?: string;
@@ -164,8 +165,48 @@ export interface Auction {
     formatted_buyout_price?: string | null;
     min_next_bid?: number;
     is_ended?: boolean;
+    age?: string;
     product?: Product;
     highest_bidder?: User;
     bids?: Bid[];
+}
+
+export const formatAgeInYears = (age?: string | number | null): string => {
+    if (!age) return '2 Tahun';
+    const str = String(age).trim();
+    if (!str) return '2 Tahun';
+    if (/tahun/i.test(str)) return str;
+    if (!isNaN(Number(str))) return `${str} Tahun`;
+    const lower = str.toLowerCase();
+    if (lower.includes('tosai')) return '1 Tahun';
+    if (lower.includes('nisai')) return '2 Tahun';
+    if (lower.includes('sansai')) return '3 Tahun';
+    if (lower.includes('yonsai')) return '4 Tahun';
+    if (lower.includes('gosai')) return '5 Tahun';
+    return `${str} Tahun`;
+};
+
+export interface Article {
+    id: number;
+    title: string;
+    slug: string;
+    category: 'event_announcement' | 'tips_care' | 'banner_ads' | 'news';
+    summary?: string | null;
+    content?: string | null;
+    media_type: 'image' | 'youtube' | 'none';
+    banner_image?: string | null;
+    youtube_url?: string | null;
+    youtube_embed_url?: string | null;
+    custom_url?: string | null;
+    target_type?: '_blank' | '_self';
+    is_active: boolean;
+    is_pinned_top: boolean;
+    badge_text?: string | null;
+    order_priority: number;
+    views_count: number;
+    category_label?: string;
+    published_at?: string | null;
+    created_at?: string;
+    author?: User;
 }
 
