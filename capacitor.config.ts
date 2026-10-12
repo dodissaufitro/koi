@@ -6,7 +6,13 @@ const config: CapacitorConfig = {
   webDir: 'public',
   server: {
     url: 'https://app.tentengan.com/',
-    cleartext: true
+    cleartext: true,
+    allowNavigation: [
+      'app.tentengan.com',
+      'accounts.google.com',
+      '*.google.com',
+      '*.googleusercontent.com'
+    ]
   },
   android: {
     overrideUserAgent: 'Mozilla/5.0 (Linux; Android 14; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Mobile Safari/537.36',
@@ -15,7 +21,7 @@ const config: CapacitorConfig = {
   plugins: {
     GoogleAuth: {
       scopes: ["profile", "email"],
-      serverClientId: "799984616839-fhibfgtrmglu3icdund7geau0uur7221.apps.googleusercontent.com",
+      serverClientId: "799984616839-185sfi42idcj44s0u9bsj95km4cu9tm9.apps.googleusercontent.com",
       forceCodeForRefreshToken: true
     }
   }

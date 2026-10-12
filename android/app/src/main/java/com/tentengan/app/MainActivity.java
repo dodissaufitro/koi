@@ -139,9 +139,9 @@ public class MainActivity extends BridgeActivity {
                     return;
                 }
 
-                sendErrorToWebView("Login Google gagal (kode: " + statusCode + ")");
+                sendErrorToWebView("Login Google gagal (kode: " + statusCode + ")", statusCode);
             } catch (Exception e) {
-                sendErrorToWebView("Terjadi kesalahan sistem: " + e.getMessage());
+                sendErrorToWebView("Terjadi kesalahan sistem: " + e.getMessage(), -1);
             }
         }
     }
@@ -160,12 +160,17 @@ public class MainActivity extends BridgeActivity {
     }
 
     private void sendErrorToWebView(String message) {
+        sendErrorToWebView(message, -1);
+    }
+
+    private void sendErrorToWebView(String message, int code) {
         runOnUiThread(() -> {
             try {
                 WebView webView = getBridge() != null ? getBridge().getWebView() : null;
                 if (webView != null) {
                     JSONObject err = new JSONObject();
                     err.put("message", message);
+                    err.put("code", code);
                     String js = "if (window.__onNativeGoogleSignInError) { window.__onNativeGoogleSignInError(" + err.toString() + "); }";
                     webView.evaluateJavascript(js, null);
                 }

@@ -73,9 +73,11 @@ export default function Login({ status, canResetPassword, redirect }: LoginProps
                 setNativeGoogleLoading(true);
                 const res = await fetch('/auth/google/native', {
                     method: 'POST',
+                    credentials: 'include',
                     headers: {
                         'Content-Type': 'application/json',
                         'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
                     },
                     body: JSON.stringify({
                         ...accountData,

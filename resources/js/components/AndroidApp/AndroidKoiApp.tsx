@@ -24,8 +24,12 @@ import {
     HelpCircle,
     Info,
     LogOut,
+    LogIn,
     ShieldCheck,
     Lock,
+    Mail,
+    Eye,
+    EyeOff,
     Truck,
     CheckCircle2,
     X,
@@ -1927,6 +1931,12 @@ export default function AndroidKoiApp({
     const [googleLoginLoading, setGoogleLoginLoading] = useState(false);
     const [googleLoginReason, setGoogleLoginReason] = useState<'favorit' | 'chat' | 'like' | 'pesanan' | 'tawaran' | 'general'>('general');
     const [pendingLoginAction, setPendingLoginAction] = useState<{ type: 'navigate' | 'like' | 'chat'; payload?: any } | null>(null);
+    const [loginAuthMode, setLoginAuthMode] = useState<'google' | 'email'>('google');
+    const [emailInput, setEmailInput] = useState('budi@example.com');
+    const [passwordInput, setPasswordInput] = useState('password');
+    const [showPasswordInput, setShowPasswordInput] = useState(false);
+    const [emailLoginLoading, setEmailLoginLoading] = useState(false);
+    const [emailLoginError, setEmailLoginError] = useState<string | null>(null);
 
     // =========================================================================
     // CHAT SYSTEM STATE (FITUR CHAT MITRA, OPERATOR, & GRUP KHUSUS USER)
@@ -2999,6 +3009,31 @@ export default function AndroidKoiApp({
         else if (tab === 'profile') navigateTo('profile');
     };
 
+    // Web Google OAuth Fallback (Buka lewat browser web jika native dialog bermasalah)
+    const handleWebGoogleLogin = () => {
+        setGoogleLoginLoading(true);
+        const targetScreen = (pendingLoginAction && pendingLoginAction.type === 'navigate' && pendingLoginAction.payload)
+            ? (pendingLoginAction.payload as ScreenType)
+            : (currentScreen !== 'welcome' ? currentScreen : 'home');
+
+        if (typeof window !== 'undefined') {
+            try {
+                localStorage.setItem('koki_last_screen', targetScreen || 'home');
+            } catch {}
+        }
+
+        const pathname = typeof window !== 'undefined' ? window.location.pathname : '/';
+        const searchParams = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
+
+        if (targetScreen && targetScreen !== 'home') {
+            searchParams.set('screen', targetScreen);
+        }
+
+        const currentUrl = `${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
+        const redirectParam = currentUrl && currentUrl !== '/' ? `?redirect=${encodeURIComponent(currentUrl)}` : '';
+        window.location.href = `/auth/google${redirectParam}`;
+    };
+
     // Listener untuk Native Android Google Sign-In Dialog (Google Play Services)
     useEffect(() => {
         (window as any).__onNativeGoogleSignInSuccess = async (accountData: any) => {
@@ -3006,9 +3041,11 @@ export default function AndroidKoiApp({
                 setGoogleLoginLoading(true);
                 const res = await fetch('/auth/google/native', {
                     method: 'POST',
+                    credentials: 'include',
                     headers: {
                         'Content-Type': 'application/json',
                         'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
                     },
                     body: JSON.stringify(accountData),
                 });
@@ -3019,23 +3056,18 @@ export default function AndroidKoiApp({
 
                     const targetScreen = (pendingLoginAction && pendingLoginAction.type === 'navigate' && pendingLoginAction.payload)
                         ? (pendingLoginAction.payload as ScreenType)
-                        : currentScreen;
+                        : (currentScreen !== 'welcome' ? currentScreen : 'home');
 
                     if (typeof window !== 'undefined') {
                         try {
-                            localStorage.setItem('koki_last_screen', targetScreen);
+                            localStorage.setItem('koki_last_screen', targetScreen || 'home');
                         } catch {}
                     }
 
-                    if (targetScreen && targetScreen !== 'home') {
-                        navigateTo(targetScreen);
-                        setPendingLoginAction(null);
-                        setGoogleLoginLoading(false);
-                    } else if (data.redirect && data.redirect !== '/' && !data.redirect.endsWith('/')) {
-                        window.location.href = data.redirect;
-                    } else {
+                    // Reload halaman agar session Laravel dan props Inertia ter-update dengan user aktif
+                    setTimeout(() => {
                         window.location.reload();
-                    }
+                    }, 400);
                 } else {
                     setGoogleLoginLoading(false);
                     triggerToast(`⚠️ ${data.message || 'Gagal memproses akun Google'}`);
@@ -3048,7 +3080,16 @@ export default function AndroidKoiApp({
 
         (window as any).__onNativeGoogleSignInError = (errData: any) => {
             setGoogleLoginLoading(false);
-            triggerToast(`⚠️ ${errData?.message || 'Login Google dibatalkan atau bermasalah'}`);
+            const errMsg = errData?.message || 'Login Google dibatalkan atau bermasalah';
+            // Deteksi jika developer error (kode 10) atau dialog Play Services tidak tersedia
+            if (errData?.code === 10 || errData?.code === 12500 || (typeof errMsg === 'string' && (errMsg.includes('kode: 10') || errMsg.includes('kode: 12500')))) {
+                triggerToast('⚠️ Google Native terkendala. Mengalihkan ke Google Web...');
+                setTimeout(() => {
+                    handleWebGoogleLogin();
+                }, 800);
+            } else {
+                triggerToast(`⚠️ ${errMsg}`);
+            }
         };
 
         (window as any).__onNativeGoogleSignInCancel = () => {
@@ -3064,14 +3105,13 @@ export default function AndroidKoiApp({
 
     // Google Login Handler - Langsung buka dialog Akun Google Native Android di HP tanpa redirect web
     const handleGoogleLogin = () => {
-        // Tentukan layar target yang ingin dituju (favorit, pesanan, chat, beranda, dll.)
         const targetScreen = (pendingLoginAction && pendingLoginAction.type === 'navigate' && pendingLoginAction.payload)
             ? (pendingLoginAction.payload as ScreenType)
-            : currentScreen;
+            : (currentScreen !== 'welcome' ? currentScreen : 'home');
 
         if (typeof window !== 'undefined') {
             try {
-                localStorage.setItem('koki_last_screen', targetScreen);
+                localStorage.setItem('koki_last_screen', targetScreen || 'home');
             } catch {}
         }
 
@@ -3079,18 +3119,64 @@ export default function AndroidKoiApp({
             setGoogleLoginLoading(true);
             (window as any).AndroidGoogleBridge.signIn();
         } else {
-            setGoogleLoginLoading(true);
-            const pathname = typeof window !== 'undefined' ? window.location.pathname : '/';
-            const searchParams = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
+            handleWebGoogleLogin();
+        }
+    };
 
-            // Sisipkan target screen ke URL query parameter agar redirect Google membawa kembali tujuannya
-            if (targetScreen && targetScreen !== 'home') {
-                searchParams.set('screen', targetScreen);
+    // Handler Login Email & Password langsung di aplikasi Android
+    const handleEmailLoginSubmit = async (e?: React.FormEvent) => {
+        if (e) e.preventDefault();
+        try {
+            setEmailLoginLoading(true);
+            setEmailLoginError(null);
+
+            const targetScreen = (pendingLoginAction && pendingLoginAction.type === 'navigate' && pendingLoginAction.payload)
+                ? (pendingLoginAction.payload as ScreenType)
+                : (currentScreen !== 'welcome' ? currentScreen : 'home');
+
+            if (typeof window !== 'undefined') {
+                try {
+                    localStorage.setItem('koki_last_screen', targetScreen || 'home');
+                } catch {}
             }
 
-            const currentUrl = `${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
-            const redirectParam = currentUrl && currentUrl !== '/' ? `?redirect=${encodeURIComponent(currentUrl)}` : '';
-            window.location.href = `/auth/google${redirectParam}`;
+            const csrfToken = typeof document !== 'undefined'
+                ? document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                : '';
+
+            const res = await fetch('/login', {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: JSON.stringify({
+                    email: emailInput,
+                    password: passwordInput,
+                    remember: true,
+                }),
+            });
+
+            const data = await res.json();
+            if (res.ok && data.success) {
+                triggerToast(`✅ Berhasil masuk sebagai ${data.user?.name || 'Pengguna'}`);
+                setIsGoogleLoginModalOpen(false);
+                setTimeout(() => {
+                    window.location.reload();
+                }, 400);
+            } else {
+                setEmailLoginLoading(false);
+                const errMsg = data.message || data.errors?.email?.[0] || 'Email atau kata sandi tidak sesuai.';
+                setEmailLoginError(errMsg);
+                triggerToast(`⚠️ ${errMsg}`);
+            }
+        } catch (err: any) {
+            setEmailLoginLoading(false);
+            setEmailLoginError('Terjadi gangguan koneksi login.');
+            triggerToast('⚠️ Terjadi gangguan koneksi login.');
         }
     };
 
@@ -6426,16 +6512,14 @@ export default function AndroidKoiApp({
                                             </p>
                                         </div>
                                         <button
-                                            onClick={() => handleGoogleLogin()}
+                                            onClick={() => {
+                                                setGoogleLoginReason('general');
+                                                setIsGoogleLoginModalOpen(true);
+                                            }}
                                             className="w-full py-2.5 px-4 bg-white hover:bg-slate-50 text-slate-800 font-bold rounded-xl text-xs flex items-center justify-center gap-2 shadow-sm transition-transform active:scale-95"
                                         >
-                                            <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
-                                                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                                                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                                                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-                                                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
-                                            </svg>
-                                            <span>Masuk dengan Google</span>
+                                            <LogIn className="w-4 h-4 text-red-600" />
+                                            <span>Masuk ke Akun Saya (Google / Email)</span>
                                         </button>
                                     </div>
                                 )}
@@ -6558,18 +6642,17 @@ export default function AndroidKoiApp({
                                         </button>
                                     ) : (
                                         <button
-                                            onClick={() => handleGoogleLogin()}
-                                            className="w-full px-4 py-3.5 flex items-center justify-between text-left hover:bg-blue-50 text-blue-600 transition-colors"
+                                            onClick={() => {
+                                                setGoogleLoginReason('general');
+                                                setIsGoogleLoginModalOpen(true);
+                                            }}
+                                            className="w-full px-4 py-3.5 flex items-center justify-between text-left hover:bg-amber-50 text-amber-700 transition-colors"
                                         >
                                             <div className="flex items-center gap-3">
-                                                <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
-                                                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                                                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                                                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-                                                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
-                                                </svg>
-                                                <span className="text-xs font-bold">Masuk dengan Google</span>
+                                                <LogIn className="w-4 h-4 text-amber-600" />
+                                                <span className="text-xs font-bold">Masuk ke Akun (Google / Email)</span>
                                             </div>
+                                            <ChevronRight className="w-4 h-4 text-amber-400" />
                                         </button>
                                     )}
                                 </div>
@@ -9055,27 +9138,22 @@ export default function AndroidKoiApp({
                     </div>
                 )}
 
-                {/* 5. MODAL: GOOGLE SIGN IN (POPUP BOTTOM SHEET) */}
+                {/* 5. MODAL: LOGIN AUTENTIKASI (GOOGLE & EMAIL/PASSWORD MULTI-ROLE) */}
                 {isGoogleLoginModalOpen && (
                     <div className="absolute inset-0 bg-black/65 backdrop-blur-sm z-50 flex items-end animate-in fade-in duration-200">
-                        <div className="w-full bg-white rounded-t-3xl p-5 space-y-4 animate-in slide-in-from-bottom duration-300 shadow-2xl">
+                        <div className="w-full max-h-[90vh] overflow-y-auto bg-white rounded-t-3xl p-5 space-y-4 animate-in slide-in-from-bottom duration-300 shadow-2xl">
                             {/* Drag handle */}
                             <div className="w-10 h-1 bg-slate-200 rounded-full mx-auto" />
 
                             {/* Modal Header */}
                             <div className="flex justify-between items-start">
                                 <div className="flex items-center gap-2.5">
-                                    <div className="w-9 h-9 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center p-2 shadow-sm">
-                                        <svg className="w-5 h-5" viewBox="0 0 24 24">
-                                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-                                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
-                                        </svg>
+                                    <div className="w-9 h-9 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-600 flex items-center justify-center p-1.5 shadow-sm">
+                                        <Lock className="w-5 h-5 text-amber-600" />
                                     </div>
                                     <div>
-                                        <h4 className="font-bold text-sm text-slate-900">Masuk dengan Google</h4>
-                                        <p className="text-[10px] text-slate-500">Pilih akun untuk melanjutkan ke KoiMart</p>
+                                        <h4 className="font-bold text-sm text-slate-900">Masuk ke Akun KoiMart</h4>
+                                        <p className="text-[10px] text-slate-500">Pilih opsi masuk untuk membuka fitur lengkap</p>
                                     </div>
                                 </div>
                                 <button
@@ -9091,46 +9169,237 @@ export default function AndroidKoiApp({
 
                             {/* Informative Alert / Context Banner */}
                             <div className="p-3 rounded-xl bg-amber-50 border border-amber-200/70 text-[11px] text-amber-800 flex items-start gap-2">
-                                <Lock className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                                <ShieldCheck className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                                 <div>
-                                    <span className="font-semibold">Login Diperlukan: </span>
-                                    {googleLoginReason === 'favorit' && 'Anda harus masuk dengan Google terlebih dahulu untuk melihat dan mengelola Ikan Favorit.'}
-                                    {googleLoginReason === 'chat' && 'Anda harus masuk dengan Google terlebih dahulu untuk berkonsultasi dan nego langsung dengan penjual.'}
-                                    {googleLoginReason === 'like' && 'Anda harus masuk dengan Google terlebih dahulu untuk menyukai dan menyimpan ikan ke daftar favorit.'}
-                                    {googleLoginReason === 'pesanan' && 'Anda harus masuk dengan Google terlebih dahulu untuk melihat, melacak, dan mengelola Pesanan Saya.'}
-                                    {googleLoginReason === 'tawaran' && 'Anda harus masuk dengan Google terlebih dahulu untuk mengecek dan mengikuti tawaran lelang.'}
-                                    {googleLoginReason === 'general' && 'Masuk dengan Google untuk akses fitur transaksi dan interaksi lengkap.'}
+                                    <span className="font-semibold">Akses Terproteksi: </span>
+                                    {googleLoginReason === 'favorit' && 'Silakan masuk terlebih dahulu untuk melihat dan mengelola Ikan Favorit.'}
+                                    {googleLoginReason === 'chat' && 'Silakan masuk terlebih dahulu untuk berkonsultasi dan nego langsung dengan penjual.'}
+                                    {googleLoginReason === 'like' && 'Silakan masuk terlebih dahulu untuk menyukai dan menyimpan ikan ke daftar favorit.'}
+                                    {googleLoginReason === 'pesanan' && 'Silakan masuk terlebih dahulu untuk melihat, melacak, dan mengelola Pesanan Saya.'}
+                                    {googleLoginReason === 'tawaran' && 'Silakan masuk terlebih dahulu untuk mengecek dan mengikuti tawaran lelang.'}
+                                    {googleLoginReason === 'general' && 'Masuk akun untuk akses fitur transaksi dan interaksi lengkap.'}
                                 </div>
                             </div>
 
-                            {/* Main Direct Google Login Button */}
-                            <button
-                                onClick={handleGoogleLogin}
-                                disabled={googleLoginLoading}
-                                className="w-full py-3.5 px-4 bg-white hover:bg-slate-50 active:bg-slate-100 border-2 border-slate-200 hover:border-blue-500 text-slate-800 font-bold rounded-2xl text-sm shadow-md flex items-center justify-center gap-3 transition-all active:scale-[0.99] cursor-pointer"
-                            >
-                                {googleLoginLoading ? (
-                                    <>
-                                        <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-                                        <span className="text-slate-700 font-medium">Membuka Google Sign-In...</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
-                                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-                                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
-                                        </svg>
-                                        <span className="font-bold text-slate-800">Lanjutkan dengan Google</span>
-                                    </>
-                                )}
-                            </button>
+                            {/* Tab Switcher: Google vs Email & Kata Sandi */}
+                            <div className="flex rounded-xl bg-slate-100 p-1 text-xs font-semibold">
+                                <button
+                                    type="button"
+                                    onClick={() => setLoginAuthMode('google')}
+                                    className={`flex-1 py-2 rounded-lg transition-all flex items-center justify-center gap-2 ${
+                                        loginAuthMode === 'google'
+                                            ? 'bg-white text-slate-900 shadow-sm'
+                                            : 'text-slate-500 hover:text-slate-800'
+                                    }`}
+                                >
+                                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24">
+                                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                                    </svg>
+                                    <span>Akun Google</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setLoginAuthMode('email')}
+                                    className={`flex-1 py-2 rounded-lg transition-all flex items-center justify-center gap-1.5 ${
+                                        loginAuthMode === 'email'
+                                            ? 'bg-white text-slate-900 shadow-sm'
+                                            : 'text-slate-500 hover:text-slate-800'
+                                    }`}
+                                >
+                                    <Mail className="w-3.5 h-3.5 text-amber-600" />
+                                    <span>Email & Sandi</span>
+                                </button>
+                            </div>
 
-                            {/* Trust Badge */}
-                            <div className="flex items-center justify-center gap-1.5 text-[11px] text-slate-500 pt-1 pb-2">
-                                <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                                <span>Terhubung langsung & aman ke server Google</span>
+                            {/* TAB 1: GOOGLE AUTH */}
+                            {loginAuthMode === 'google' && (
+                                <div className="space-y-3">
+                                    {/* Main Direct Google Login Button */}
+                                    <button
+                                        onClick={handleGoogleLogin}
+                                        disabled={googleLoginLoading}
+                                        className="w-full py-3.5 px-4 bg-white hover:bg-slate-50 active:bg-slate-100 border-2 border-slate-200 hover:border-blue-500 text-slate-800 font-bold rounded-2xl text-xs sm:text-sm shadow-md flex items-center justify-center gap-2.5 transition-all active:scale-[0.99] cursor-pointer"
+                                    >
+                                        {googleLoginLoading ? (
+                                            <>
+                                                <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                                                <span className="text-slate-700 font-medium">Menghubungkan Akun Google...</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+                                                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                                                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                                                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                                                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                                                </svg>
+                                                <span>Lanjutkan dengan Akun Google</span>
+                                            </>
+                                        )}
+                                    </button>
+
+                                    {/* Fallback Web Google Button jika dialog native bermasalah */}
+                                    <button
+                                        type="button"
+                                        onClick={handleWebGoogleLogin}
+                                        disabled={googleLoginLoading}
+                                        className="w-full py-2.5 px-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 font-semibold rounded-xl text-xs flex items-center justify-center gap-2 transition"
+                                    >
+                                        <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
+                                        <span>Buka Google via Web Browser</span>
+                                    </button>
+
+                                    {/* Trust Badge */}
+                                    <div className="flex items-center justify-center gap-1.5 text-[11px] text-slate-500 pt-1">
+                                        <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                                        <span>Terhubung langsung & aman ke server Google</span>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* TAB 2: EMAIL & PASSWORD AUTH */}
+                            {loginAuthMode === 'email' && (
+                                <form onSubmit={handleEmailLoginSubmit} className="space-y-3">
+                                    {/* Quick 1-Click Role Fillers */}
+                                    <div className="space-y-1.5">
+                                        <div className="flex items-center justify-between text-[11px] text-slate-500">
+                                            <span>Pilih Akun Cepat (1-Klik):</span>
+                                            <span className="font-mono text-amber-600 font-semibold">password</span>
+                                        </div>
+                                        <div className="grid grid-cols-3 gap-1.5">
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setEmailInput('budi@example.com');
+                                                    setPasswordInput('password');
+                                                }}
+                                                className={`py-1.5 px-2 rounded-lg border text-[10px] font-bold text-left transition ${
+                                                    emailInput === 'budi@example.com'
+                                                        ? 'bg-amber-50 border-amber-400 text-amber-800 ring-1 ring-amber-400'
+                                                        : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+                                                }`}
+                                            >
+                                                <div className="truncate">Kolektor / Bidder</div>
+                                                <div className="text-[9px] text-slate-400 font-normal truncate">Budi Santoso</div>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setEmailInput('owner@kokikoi.com');
+                                                    setPasswordInput('password');
+                                                }}
+                                                className={`py-1.5 px-2 rounded-lg border text-[10px] font-bold text-left transition ${
+                                                    emailInput === 'owner@kokikoi.com'
+                                                        ? 'bg-emerald-50 border-emerald-400 text-emerald-800 ring-1 ring-emerald-400'
+                                                        : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+                                                }`}
+                                            >
+                                                <div className="truncate">Galeri Koi</div>
+                                                <div className="text-[9px] text-slate-400 font-normal truncate">Owner Koki Koi</div>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setEmailInput('admin@koimart.test');
+                                                    setPasswordInput('password');
+                                                }}
+                                                className={`py-1.5 px-2 rounded-lg border text-[10px] font-bold text-left transition ${
+                                                    emailInput === 'admin@koimart.test'
+                                                        ? 'bg-purple-50 border-purple-400 text-purple-800 ring-1 ring-purple-400'
+                                                        : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+                                                }`}
+                                            >
+                                                <div className="truncate">Super Admin</div>
+                                                <div className="text-[9px] text-slate-400 font-normal truncate">Sistem Master</div>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* Email Input */}
+                                    <div className="space-y-1">
+                                        <label className="text-[11px] font-semibold text-slate-700">Alamat Email:</label>
+                                        <div className="relative">
+                                            <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                                            <input
+                                                type="email"
+                                                required
+                                                value={emailInput}
+                                                onChange={(e) => setEmailInput(e.target.value)}
+                                                placeholder="email@example.com"
+                                                className="w-full pl-9 pr-3 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-amber-500 focus:outline-none transition"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Password Input */}
+                                    <div className="space-y-1">
+                                        <label className="text-[11px] font-semibold text-slate-700">Kata Sandi:</label>
+                                        <div className="relative">
+                                            <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                                            <input
+                                                type={showPasswordInput ? 'text' : 'password'}
+                                                required
+                                                value={passwordInput}
+                                                onChange={(e) => setPasswordInput(e.target.value)}
+                                                placeholder="••••••••"
+                                                className="w-full pl-9 pr-10 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-amber-500 focus:outline-none transition"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowPasswordInput(!showPasswordInput)}
+                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                                            >
+                                                {showPasswordInput ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {emailLoginError && (
+                                        <div className="p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 text-[11px] font-medium text-center">
+                                            ⚠️ {emailLoginError}
+                                        </div>
+                                    )}
+
+                                    {/* Submit Button */}
+                                    <button
+                                        type="submit"
+                                        disabled={emailLoginLoading}
+                                        className="w-full py-3 px-4 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 active:scale-[0.99] text-white font-bold rounded-xl text-xs shadow-md shadow-amber-600/20 flex items-center justify-center gap-2 transition cursor-pointer"
+                                    >
+                                        {emailLoginLoading ? (
+                                            <>
+                                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                                <span>Memverifikasi Akun...</span>
+                                            </>
+                                        ) : (
+                                            <span>Masuk Sekarang →</span>
+                                        )}
+                                    </button>
+                                </form>
+                            )}
+
+                            {/* Separator & Full Login Portal Link */}
+                            <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+                                <a
+                                    href="/login"
+                                    className="text-[11px] text-amber-700 hover:text-amber-800 font-bold underline flex items-center gap-1"
+                                >
+                                    <span>Buka Portal Login Lengkap (/login)</span>
+                                    <ArrowUpRight className="w-3 h-3" />
+                                </a>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setIsGoogleLoginModalOpen(false);
+                                        setPendingLoginAction(null);
+                                    }}
+                                    className="text-[11px] text-slate-400 hover:text-slate-600 py-1 px-2 font-medium"
+                                >
+                                    Nanti Saja
+                                </button>
                             </div>
                         </div>
                     </div>

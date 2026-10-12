@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -52,7 +53,7 @@ class AuthenticatedSessionController extends Controller
     /**
      * Handle an incoming authentication request.
      */
-    public function store(LoginRequest $request): RedirectResponse
+    public function store(LoginRequest $request): RedirectResponse|JsonResponse
     {
         // Ambil target redirect dari request input atau session
         $targetRedirect = $request->input('redirect') ?: $request->session()->get('url.intended');
@@ -63,6 +64,27 @@ class AuthenticatedSessionController extends Controller
         $request->session()->regenerate();
 
         $user = $request->user();
+
+        $destination = match (true) {
+            $user->isAdmin() => route('admin.dashboard', absolute: false),
+            $user->isSeller() || (bool) $user->store => route('seller.dashboard', absolute: false),
+            default => route('home', absolute: false),
+        };
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Login berhasil! Selamat datang, ' . $user->name,
+                'redirect' => $targetRedirect ?: $destination,
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'avatar' => $user->avatar,
+                    'role' => $user->role,
+                ],
+            ]);
+        }
 
         // 1. Jika ada target redirect sebelumnya yang valid, arahkan ke sana
         if ($targetRedirect) {
