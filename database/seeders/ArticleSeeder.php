@@ -17,6 +17,24 @@ class ArticleSeeder extends Seeder
         $articles = [
             // 1. EVENT ANNOUNCEMENT (Banner + Teks, Pinned Top di Web Atas & Mobile)
             [
+                'title' => 'Video Eksklusif: Dokumentasi Panen Raya Mudpond & All Japan Koi Show 2026',
+                'slug' => 'video-eksklusif-panen-raya-mudpond-all-japan-koi-show',
+                'category' => 'event_announcement',
+                'summary' => 'Saksikan penangkapan indukan Nishikigoi kelas Grand Champion langsung dari mudpond Dainichi & Sakai Farm Jepang. Klik play untuk langsung mulai menonton.',
+                'content' => "Dokumentasi eksklusif gelaran Nishikigoi Grand Harvest dan persiapan All Japan Koi Show 2026. Saksikan keindahan ikan koi kelas dunia dengan proporsi tubuh jumbo dan kualitas warna beni dan shiroji yang memukau.\n\nVideo ini di-stream resmi langsung dari YouTube tanpa membebani penyimpanan server KoiMart.",
+                'media_type' => 'youtube',
+                'banner_image' => null,
+                'youtube_url' => 'https://www.youtube.com/watch?v=Hc0E5B0vLfg',
+                'custom_url' => null,
+                'target_type' => '_blank',
+                'is_active' => true,
+                'is_pinned_top' => true,
+                'badge_text' => 'VIDEO YOUTUBE',
+                'order_priority' => 1,
+                'published_at' => now(),
+                'author_id' => $adminId,
+            ],
+            [
                 'title' => 'All Indonesia Koi Show 2026: Sesi Lelang Eksklusif & Pameran Akbar Nishikigoi',
                 'slug' => 'all-indonesia-koi-show-2026-sesi-lelang-eksklusif',
                 'category' => 'event_announcement',
@@ -30,7 +48,7 @@ class ArticleSeeder extends Seeder
                 'is_active' => true,
                 'is_pinned_top' => true,
                 'badge_text' => 'EVENT AKBAR LIVE',
-                'order_priority' => 1,
+                'order_priority' => 2,
                 'published_at' => now(),
                 'author_id' => $adminId,
             ],
@@ -111,14 +129,14 @@ class ArticleSeeder extends Seeder
 
             // 3. MODUL BANNER IKLAN (Image / YouTube Embed dengan Custom URL)
             [
-                'title' => 'Eksplorasi Mudpond Niigata & Profil Indukan Dainichi Koi Farm',
+                'title' => 'Eksplorasi Mudpond & Koleksi Koi Sultan 1 Miliar di Kolam deHakims',
                 'slug' => 'eksplorasi-mudpond-niigata-dainichi-koi-farm',
                 'category' => 'banner_ads',
-                'summary' => 'Saksikan dokumentasi eksklusif pemilihan indukan Showa & Kohaku langsung dari pegunungan Ojiya, Niigata, Jepang.',
-                'content' => "Tonton liputan eksklusif penangkapan (ikeage) anakan koi berdarah murni di mudpond Jepang sebelum dikirim ke galeri karantina resmi KoiMart Indonesia.",
+                'summary' => 'Saksikan dokumentasi eksklusif ikan koi senilai 1 miliar berenang indah di kolam megah deHakims. Klik play untuk langsung mulai menonton.',
+                'content' => "Tonton liputan eksklusif deretan koi spektakuler pilihan dengan kualitas warna dan tubuh sempurna yang memukau jutaan penonton di YouTube.\n\nVideo ini di-stream resmi langsung dari YouTube tanpa membebani penyimpanan server.",
                 'media_type' => 'youtube',
-                'banner_image' => '/images/koi-hero-banner.jpg',
-                'youtube_url' => 'https://www.youtube.com/watch?v=ScMzIvxBSi4',
+                'banner_image' => null,
+                'youtube_url' => 'https://www.youtube.com/watch?v=Hc0E5B0vLfg',
                 'custom_url' => 'https://chat.whatsapp.com/KoiMart-VIP-Lelang88',
                 'target_type' => '_blank',
                 'is_active' => true,

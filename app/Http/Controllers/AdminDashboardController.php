@@ -109,7 +109,7 @@ class AdminDashboardController extends Controller
                 ->when($search, fn($q) => $q->where('title', 'like', "%{$search}%")->orWhere('content', 'like', "%{$search}%")->orWhere('category', 'like', "%{$search}%"))
                 ->orderBy('order_priority', 'asc')
                 ->latest()
-                ->paginate(10)
+                ->paginate(12)
                 ->withQueryString(),
 
             'whatsapp' => [

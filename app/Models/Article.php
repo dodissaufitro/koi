@@ -42,6 +42,7 @@ class Article extends Model
 
     protected $appends = [
         'youtube_embed_url',
+        'youtube_thumbnail',
         'category_label',
     ];
 
@@ -90,21 +91,52 @@ class Article extends Model
     }
 
     /**
-     * Konversi URL YouTube biasa ke format embed responsif.
+     * Ekstrak YouTube Video ID dari URL (11 karakter unik).
      */
-    public function getYoutubeEmbedUrlAttribute(): ?string
+    public function getYoutubeVideoIdAttribute(): ?string
     {
         if (empty($this->youtube_url)) {
             return null;
         }
 
-        $url = $this->youtube_url;
-        $videoId = null;
-
-        if (preg_match('/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/', $url, $matches)) {
-            $videoId = $matches[1];
+        if (preg_match('/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/', $this->youtube_url, $matches)) {
+            return $matches[1];
         }
 
-        return $videoId ? "https://www.youtube-nocookie.com/embed/{$videoId}?autoplay=0&rel=0" : null;
+        return null;
+    }
+
+    /**
+     * Konversi URL YouTube biasa ke format embed responsif standar.
+     */
+    public function getYoutubeEmbedUrlAttribute(): ?string
+    {
+        $videoId = $this->youtube_video_id;
+        return $videoId ? "https://www.youtube.com/embed/{$videoId}?rel=0&playsinline=1" : null;
+    }
+
+    /**
+     * Thumbnail gambar resolusi tinggi langsung dari CDN YouTube (server 0 MB simpan gambar).
+     */
+    public function getYoutubeThumbnailAttribute(): ?string
+    {
+        $videoId = $this->youtube_video_id;
+        return $videoId ? "https://img.youtube.com/vi/{$videoId}/hqdefault.jpg" : null;
+    }
+
+    /**
+     * Banner image accessor: jika tidak ada gambar manual tapi ada video YouTube, pakai thumbnail YouTube otomatis.
+     */
+    public function getBannerImageAttribute(?string $value): ?string
+    {
+        if (!empty($value)) {
+            return $value;
+        }
+
+        if ($this->media_type === 'youtube') {
+            return $this->youtube_thumbnail;
+        }
+
+        return null;
     }
 }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { usePage, router } from '@inertiajs/react';
 import { SharedData } from '@/types';
 import { Auction, Category, Product, formatAgeInYears } from '@/types/fish';
@@ -67,7 +67,8 @@ import {
     Gavel,
     Trophy,
     RefreshCw,
-    ArrowUpRight
+    ArrowUpRight,
+    Calendar
 } from 'lucide-react';
 
 // Varietas Ikan Koi Premium Resmi (Hanya Koi Premium, Bukan Marketplace Umum)
@@ -1647,11 +1648,74 @@ export default function AndroidKoiApp({
     // Artikel, Pengumuman Event & Banner Iklan
     const [selectedMobileArticle, setSelectedMobileArticle] = useState<any | null>(null);
 
-    const dynamicAnnouncements = (pinnedAnnouncements && pinnedAnnouncements.length > 0)
-        ? pinnedAnnouncements
-        : (articles && articles.filter((a: any) => a.category === 'event_announcement' && a.is_pinned_top).length > 0)
-            ? articles.filter((a: any) => a.category === 'event_announcement' && a.is_pinned_top)
-            : [];
+    // Koleksi Artikel Beranda yang bisa di-slide ke samping (Pinned + Event Announcements + Articles)
+    const homeSliderArticles = useMemo(() => {
+        const pool: any[] = [];
+        if (pinnedAnnouncements && pinnedAnnouncements.length > 0) {
+            pool.push(...pinnedAnnouncements);
+        }
+        if (articles && articles.length > 0) {
+            articles.forEach((a: any) => {
+                if (!pool.some((p: any) => p.id === a.id)) {
+                    pool.push(a);
+                }
+            });
+        }
+        if (pool.length === 0) {
+            return [
+                {
+                    id: 'art-video-demo',
+                    title: 'KOI-KOI SENILAI 1 MILIAR EMANG BEDA SETELAH MASUK KOLAM DEHAKIMS',
+                    summary: 'Saksikan dokumentasi eksklusif ikan koi senilai 1 miliar berenang indah di kolam megah deHakims. Klik play untuk langsung mulai menonton.',
+                    content: 'Dokumentasi eksklusif gelaran Nishikigoi super premium di kolam megah deHakims (Irfan Hakim). Saksikan keindahan koi-koi bernilai tinggi dengan proporsi tubuh jumbo dan kualitas warna beni dan shiroji yang memukau jutaan penonton.',
+                    media_type: 'youtube',
+                    banner_image: 'https://img.youtube.com/vi/Hc0E5B0vLfg/hqdefault.jpg',
+                    youtube_url: 'https://www.youtube.com/watch?v=Hc0E5B0vLfg',
+                    youtube_embed_url: 'https://www.youtube.com/embed/Hc0E5B0vLfg?rel=0&playsinline=1',
+                    badge_text: 'VIDEO YOUTUBE',
+                    category: 'event_announcement',
+                    author_name: 'deHakims & KoiMart',
+                    created_at: '2026-10-13',
+                },
+                {
+                    id: 'art-event-1',
+                    title: 'Grand Champions Show 2026: Pameran & Lelang Eksklusif Nishikigoi',
+                    summary: 'Ikuti kemeriahan festival koi terlengkap tahun ini dengan partisipasi breeder terkemuka Blitar & Niigata Jepang.',
+                    content: 'Gelaran spektakuler Nishikigoi Grand Champions 2026 siap digelar dengan menghadirkan lebih dari 500 ikan koi grade show champion. Dapatkan kesempatan memiliki ikan berprestasi dengan sertifikat silsilah resmi.',
+                    banner_image: '/images/koi/showa.jpg',
+                    badge_text: 'EVENT UTAMA',
+                    category: 'event_announcement',
+                    author_name: 'Koki Official',
+                    created_at: '2026-10-12',
+                },
+                {
+                    id: 'art-event-2',
+                    title: 'Panduan Kurasi Pola & Kualitas Kulit (Kiwa & Sashi) Nishikigoi Juara',
+                    summary: 'Tips mendalam dari kurator senior dalam memilih Kohaku, Showa, dan Sanke dengan potensi pertumbuhan optimal.',
+                    content: 'Kualitas kulit (shiraji) yang bersih mengkilap bagai porselen serta ketegasan batas warna (kiwa) menjadi kunci utama dalam menilai prospek ikan koi berkualitas super.',
+                    banner_image: '/images/koi/kohaku.jpg',
+                    badge_text: 'TIPS & EDUKASI',
+                    category: 'tips_care',
+                    author_name: 'Master Breeder',
+                    created_at: '2026-10-11',
+                },
+                {
+                    id: 'art-event-3',
+                    title: 'Standar Karantina 48 Jam & Oksigenasi Pengiriman Jarak Jauh',
+                    summary: 'Protokol ketat pengiriman ikan koi hidup via thermo-box khusus agar ikan tiba prima di kolam Anda.',
+                    content: 'Kesehatan dan keselamatan ikan selama perjalanan adalah prioritas mutlak kami. Setiap paket dikemas dengan sistem multi-layer packing beroksigen murni ganda.',
+                    banner_image: '/images/koi/shiro.jpg',
+                    badge_text: 'STANDAR PENGIRIMAN',
+                    category: 'event_announcement',
+                    author_name: 'Tim Medis Koki',
+                    created_at: '2026-10-10',
+                }
+            ];
+        }
+        return pool;
+    }, [pinnedAnnouncements, articles]);
+
+    const dynamicAnnouncements = homeSliderArticles;
 
     const dynamicTips = (tipsArticles && tipsArticles.length > 0)
         ? tipsArticles
@@ -3949,66 +4013,106 @@ export default function AndroidKoiApp({
                             <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
 
                                 {/* ========================================================= */}
-                                {/* 1. EVENT ANNOUNCEMENT (TOP BANNER & TEXT PADA MOBILE)    */}
+                                {/* 1. ARTIKEL & EVENT ANNOUNCEMENT SLIDER (SLIDE KE SAMPING) */}
                                 {/* ========================================================= */}
-                                {dynamicAnnouncements.length > 0 && (
-                                    <div className="space-y-2">
-                                        {dynamicAnnouncements.map((eventItem: any) => (
-                                            <div
-                                                key={eventItem.id}
-                                                className="rounded-2xl overflow-hidden bg-gradient-to-r from-stone-900 via-slate-900 to-stone-900 border border-amber-500/40 shadow-lg text-white group"
-                                            >
-                                                {/* Mini Banner Image */}
-                                                {eventItem.banner_image && (
-                                                    <div className="relative aspect-[21/9] w-full overflow-hidden bg-black">
+                                {homeSliderArticles.length > 0 && (
+                                    <div className="space-y-2.5">
+                                        {/* Slider Header */}
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-2 h-2 rounded-full bg-red-600 animate-pulse" />
+                                                <h3 className="font-bold text-sm text-slate-900 flex items-center gap-1.5">
+                                                    <span>Kabar & Pengumuman Event</span>
+                                                    <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                                                </h3>
+                                            </div>
+                                            <span className="text-[10px] font-semibold text-slate-400 flex items-center gap-0.5">
+                                                <span>Geser</span>
+                                                <ChevronRight className="w-3 h-3" />
+                                            </span>
+                                        </div>
+
+                                        {/* Horizontal Slide / Carousel Cards (Bisa di-slide ke samping) */}
+                                        <div
+                                            className="flex gap-3 overflow-x-auto no-scrollbar scroll-smooth snap-x snap-mandatory -mx-5 px-5 pb-1 select-none"
+                                            onWheel={(e) => {
+                                                if (e.deltaY !== 0) {
+                                                    e.currentTarget.scrollLeft += e.deltaY;
+                                                }
+                                            }}
+                                        >
+                                            {homeSliderArticles.map((art: any) => (
+                                                <div
+                                                    key={art.id}
+                                                    onClick={() => setSelectedMobileArticle(art)}
+                                                    className="w-[82%] sm:w-[320px] shrink-0 snap-start bg-white rounded-2xl overflow-hidden border border-slate-200/90 shadow-xs hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between active:scale-[0.99]"
+                                                >
+                                                    {/* Article Banner Image */}
+                                                    <div className="relative aspect-[16/9] w-full overflow-hidden bg-slate-950">
                                                         <img
-                                                            src={eventItem.banner_image}
-                                                            alt={eventItem.title}
+                                                            src={art.banner_image || '/images/koi/showa.jpg'}
+                                                            alt={art.title}
                                                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                                         />
-                                                        <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-transparent to-transparent" />
-                                                        <div className="absolute top-2 left-2">
-                                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500 text-stone-950 font-black text-[9px] uppercase shadow">
-                                                                <Sparkles className="w-2.5 h-2.5 text-stone-950" />
-                                                                <span>{eventItem.badge_text || 'EVENT RESMI'}</span>
+                                                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-black/20" />
+
+                                                        {/* Category Badge Pill on Top Left */}
+                                                        <div className="absolute top-2.5 left-2.5 z-10 flex items-center gap-1.5">
+                                                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-red-600 text-white font-extrabold text-[9px] uppercase tracking-wider shadow-sm">
+                                                                <Radio className="w-2.5 h-2.5 animate-pulse" />
+                                                                <span>{art.badge_text || (art.category === 'event_announcement' ? 'EVENT' : art.category === 'tips_care' ? 'TIPS' : 'ARTIKEL')}</span>
+                                                            </span>
+                                                            {art.media_type === 'youtube' && (
+                                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/70 backdrop-blur-md text-red-400 font-extrabold text-[9px] uppercase border border-red-500/30 shadow-sm">
+                                                                    <Play className="w-2.5 h-2.5 fill-current" />
+                                                                    <span>VIDEO</span>
+                                                                </span>
+                                                            )}
+                                                        </div>
+
+                                                        {/* Author / Date Pill on Top Right */}
+                                                        <div className="absolute top-2.5 right-2.5 z-10">
+                                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md text-white text-[9px] font-medium border border-white/10">
+                                                                <Calendar className="w-2.5 h-2.5 text-amber-300" />
+                                                                <span>{art.author_name || 'Official'}</span>
+                                                            </span>
+                                                        </div>
+
+                                                        {/* Centered YouTube Play Button Overlay */}
+                                                        {art.media_type === 'youtube' && (
+                                                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+                                                                <div className="w-10 h-10 rounded-full bg-red-600/90 text-white flex items-center justify-center shadow-lg backdrop-blur-xs ring-4 ring-white/20 group-hover:scale-110 transition-transform">
+                                                                    <Play className="w-4 h-4 fill-white ml-0.5" />
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Article Body: Title & Summary */}
+                                                    <div className="p-3.5 flex-1 flex flex-col justify-between space-y-2">
+                                                        <div>
+                                                            <h4 className="text-xs font-bold text-slate-900 leading-snug line-clamp-2 group-hover:text-red-600 transition-colors">
+                                                                {art.title}
+                                                            </h4>
+                                                            <p className="text-[11px] text-slate-500 line-clamp-2 mt-1 leading-relaxed">
+                                                                {art.summary || art.content}
+                                                            </p>
+                                                        </div>
+
+                                                        {/* Footer: Selengkapnya Link */}
+                                                        <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+                                                            <span className="text-red-600 font-bold text-[11px] flex items-center gap-1 group-hover:text-red-700 transition-colors">
+                                                                <span>Selengkapnya</span>
+                                                                <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                                                            </span>
+                                                            <span className="text-[10px] text-slate-400 font-medium">
+                                                                Baca Detail
                                                             </span>
                                                         </div>
                                                     </div>
-                                                )}
-
-                                                <div className="p-3.5 space-y-2">
-                                                    <div>
-                                                        <h4 className="text-xs font-bold text-amber-300 leading-snug line-clamp-1">
-                                                            {eventItem.title}
-                                                        </h4>
-                                                        <p className="text-[11px] text-slate-300 line-clamp-2 mt-0.5 leading-relaxed font-light">
-                                                            {eventItem.summary || eventItem.content}
-                                                        </p>
-                                                    </div>
-
-                                                    <div className="flex items-center justify-between pt-1 border-t border-white/10 text-[10px]">
-                                                        <button
-                                                            onClick={() => setSelectedMobileArticle(eventItem)}
-                                                            className="text-amber-400 font-bold hover:underline"
-                                                        >
-                                                            Lihat Rincian →
-                                                        </button>
-
-                                                        {eventItem.custom_url && (
-                                                            <a
-                                                                href={eventItem.custom_url}
-                                                                target={eventItem.target_type || '_blank'}
-                                                                rel="noopener noreferrer"
-                                                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-500 hover:bg-amber-400 text-stone-950 font-black text-[10px] shadow"
-                                                            >
-                                                                <span>Buka Link Event</span>
-                                                                <ExternalLink className="w-2.5 h-2.5" />
-                                                            </a>
-                                                        )}
-                                                    </div>
                                                 </div>
-                                            </div>
-                                        ))}
+                                            ))}
+                                        </div>
                                     </div>
                                 )}
 
@@ -4481,14 +4585,29 @@ export default function AndroidKoiApp({
                                                         className="bg-white rounded-2xl overflow-hidden border border-slate-200/80 shadow-sm"
                                                     >
                                                         {isYt ? (
-                                                            <div className="relative aspect-video w-full bg-black">
-                                                                <iframe
-                                                                    src={ad.youtube_embed_url}
-                                                                    title={ad.title}
-                                                                    className="w-full h-full border-0"
-                                                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                                                    allowFullScreen
+                                                            <div
+                                                                onClick={() => setSelectedMobileArticle(ad)}
+                                                                className="relative aspect-video w-full bg-slate-950 overflow-hidden cursor-pointer group"
+                                                            >
+                                                                <img
+                                                                    src={ad.banner_image || `https://img.youtube.com/vi/${(ad.youtube_url || '').match(/[\w-]{11}/)?.[0] || 'Hc0E5B0vLfg'}/hqdefault.jpg`}
+                                                                    alt={ad.title}
+                                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                                                 />
+                                                                <div className="absolute inset-0 bg-black/35 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                                                                    <div className="w-14 h-14 rounded-full bg-red-600 text-white flex items-center justify-center shadow-xl shadow-red-950/50 ring-4 ring-white/30 group-hover:scale-110 active:scale-95 transition-all">
+                                                                        <Play className="w-6 h-6 fill-white ml-0.5" />
+                                                                    </div>
+                                                                </div>
+                                                                <div className="absolute top-2.5 left-2.5">
+                                                                    <span className="px-2.5 py-0.5 rounded-full bg-red-600 text-white font-extrabold text-[9px] uppercase shadow-md flex items-center gap-1">
+                                                                        <Radio className="w-2.5 h-2.5 animate-pulse" />
+                                                                        <span>{ad.badge_text || 'VIDEO RESMI SPONSOR'}</span>
+                                                                    </span>
+                                                                </div>
+                                                                <div className="absolute bottom-2.5 right-2.5 px-2 py-0.5 rounded-md bg-black/80 backdrop-blur-md text-[9px] font-bold text-white">
+                                                                    Putar Video ▶
+                                                                </div>
                                                             </div>
                                                         ) : (
                                                             <div className="relative aspect-[16/9] w-full overflow-hidden bg-slate-900">
@@ -5509,13 +5628,6 @@ export default function AndroidKoiApp({
                                                                 <span>Baca Selengkapnya</span>
                                                                 <ChevronRight className="w-3.5 h-3.5" />
                                                             </span>
-
-                                                            {article.custom_url && (
-                                                                <span className="text-[10px] text-slate-400 font-medium flex items-center gap-0.5">
-                                                                    <span>Tautan Resmi</span>
-                                                                    <ExternalLink className="w-3 h-3" />
-                                                                </span>
-                                                            )}
                                                         </div>
                                                     </div>
                                                 </div>
@@ -9854,22 +9966,68 @@ export default function AndroidKoiApp({
 
                             {/* Modal Content Scroll */}
                             <div className="p-5 overflow-y-auto space-y-3.5 text-xs">
-                                {selectedMobileArticle.media_type === 'youtube' && selectedMobileArticle.youtube_embed_url ? (
-                                    <div className="aspect-video w-full rounded-2xl overflow-hidden bg-black shadow-sm">
-                                        <iframe
-                                            src={selectedMobileArticle.youtube_embed_url}
-                                            title={selectedMobileArticle.title}
-                                            className="w-full h-full border-0"
-                                            allowFullScreen
-                                        />
+                                {selectedMobileArticle.media_type === 'youtube' && (selectedMobileArticle.youtube_embed_url || selectedMobileArticle.youtube_url) ? (
+                                    <div className="space-y-1.5">
+                                        <div className="aspect-video w-full rounded-2xl overflow-hidden bg-black shadow-lg relative ring-1 ring-white/10">
+                                            {(() => {
+                                                const rawUrl = selectedMobileArticle.youtube_url || selectedMobileArticle.youtube_embed_url || '';
+                                                const match = rawUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+                                                const vid = match ? match[1] : (rawUrl.includes('/embed/') ? rawUrl.split('/embed/')[1]?.split('?')[0] : 'Hc0E5B0vLfg');
+                                                const embedSrc = `https://www.youtube.com/embed/${vid}?rel=0&playsinline=1`;
+
+                                                return (
+                                                    <iframe
+                                                        src={embedSrc}
+                                                        title={selectedMobileArticle.title}
+                                                        className="w-full h-full border-0"
+                                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                                        referrerPolicy="strict-origin-when-cross-origin"
+                                                        allowFullScreen
+                                                    />
+                                                );
+                                            })()}
+                                        </div>
+                                        <div className="flex items-center justify-between px-1 text-[10px] gap-2 pt-0.5">
+                                            <a
+                                                href={`https://www.youtube.com/watch?v=${(() => {
+                                                    const rawUrl = selectedMobileArticle.youtube_url || selectedMobileArticle.youtube_embed_url || '';
+                                                    const match = rawUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+                                                    return match ? match[1] : 'Hc0E5B0vLfg';
+                                                })()}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-red-600 hover:bg-red-700 text-white font-bold text-[11px] shadow-sm transition active:scale-95"
+                                            >
+                                                <Play className="w-2.5 h-2.5 fill-white" />
+                                                <span>Buka di YouTube (Bebas Login) ↗</span>
+                                            </a>
+                                            <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full">
+                                                ✓ Akses Publik Tanpa Login
+                                            </span>
+                                        </div>
                                     </div>
                                 ) : selectedMobileArticle.banner_image ? (
-                                    <div className="aspect-[16/9] w-full rounded-2xl overflow-hidden bg-slate-100 shadow-sm">
+                                    <div
+                                        onClick={() => {
+                                            if (selectedMobileArticle.custom_url) {
+                                                window.open(selectedMobileArticle.custom_url, selectedMobileArticle.target_type || '_blank');
+                                            }
+                                        }}
+                                        className={`aspect-[16/9] w-full rounded-2xl overflow-hidden bg-slate-100 shadow-sm relative ${
+                                            selectedMobileArticle.custom_url ? 'cursor-pointer' : ''
+                                        }`}
+                                    >
                                         <img
                                             src={selectedMobileArticle.banner_image}
                                             alt={selectedMobileArticle.title}
                                             className="w-full h-full object-cover"
                                         />
+                                        {selectedMobileArticle.custom_url && (
+                                            <div className="absolute bottom-2.5 right-2.5 px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-xs text-white text-[10px] font-semibold flex items-center gap-1 shadow-md border border-white/20">
+                                                <ExternalLink className="w-3 h-3 text-amber-400" />
+                                                <span>Buka Link Gambar</span>
+                                            </div>
+                                        )}
                                     </div>
                                 ) : null}
 
@@ -9890,23 +10048,22 @@ export default function AndroidKoiApp({
 
                             {/* Modal Footer with Custom URL link */}
                             <div className="p-4 border-t border-slate-100 flex items-center gap-2 bg-slate-50 shrink-0">
-                                {selectedMobileArticle.custom_url ? (
+                                <button
+                                    onClick={() => setSelectedMobileArticle(null)}
+                                    className="flex-1 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold text-xs rounded-2xl transition"
+                                >
+                                    Tutup
+                                </button>
+                                {selectedMobileArticle.custom_url && (
                                     <a
                                         href={selectedMobileArticle.custom_url}
                                         target={selectedMobileArticle.target_type || '_blank'}
                                         rel="noopener noreferrer"
-                                        className="flex-1 py-3 px-4 bg-amber-500 hover:bg-amber-600 text-stone-950 font-bold text-xs rounded-2xl shadow flex items-center justify-center gap-1.5 transition active:scale-98"
+                                        className="flex-1 py-2.5 px-4 bg-amber-500 hover:bg-amber-600 text-stone-950 font-bold text-xs rounded-2xl shadow flex items-center justify-center gap-1.5 transition active:scale-98"
                                     >
-                                        <span>Buka Tautan Resmi</span>
+                                        <span>Buka Link Gambar</span>
                                         <ExternalLink className="w-3.5 h-3.5" />
                                     </a>
-                                ) : (
-                                    <button
-                                        onClick={() => setSelectedMobileArticle(null)}
-                                        className="flex-1 py-2.5 bg-slate-200 text-slate-700 font-semibold text-xs rounded-2xl"
-                                    >
-                                        Tutup
-                                    </button>
                                 )}
                             </div>
                         </div>
