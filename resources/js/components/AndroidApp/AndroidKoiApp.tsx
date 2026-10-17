@@ -3775,7 +3775,7 @@ export default function AndroidKoiApp({
     });
 
     return (
-        <div className="relative min-h-screen bg-slate-950 flex justify-center items-center py-0 sm:py-6 select-none font-sans">
+        <div className="relative min-h-[100dvh] sm:min-h-screen h-[100dvh] sm:h-auto bg-slate-950 flex justify-center items-center py-0 sm:py-6 select-none font-sans overflow-hidden sm:overflow-visible">
             {/* Scoped CSS Rule: Memperbesar Ukuran Tulisan & Kontras Tajam */}
             <style>{`
                 /* MODE BESAR */
@@ -3919,93 +3919,94 @@ export default function AndroidKoiApp({
                     {/* ========================================================================= */}
                     {currentScreen === 'home' && (
                         <div className="flex-1 flex flex-col bg-slate-50 pb-20">
-                            {/* Top Bar (KoiMart Logo + Bell) */}
-                            <div className="px-5 py-3 flex justify-between items-center bg-white border-b border-slate-100">
-                                <div className="flex items-center gap-2">
-                                    <div className="w-8 h-8 rounded-full bg-red-600 flex items-center justify-center p-1.5 shadow-md shadow-red-600/30">
-                                        <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5 text-white">
-                                            <path d="M19 12c-3.5 1-6.5-1-9-4 2.5 5 2.5 8 0 11 3-2 6-2 9-7z" fill="white" />
-                                        </svg>
+                            {/* Top Bar Header (Logo KoiMart + Aksi Cepat + Search) */}
+                            <div className="bg-white border-b border-slate-200/70 shadow-2xs z-20">
+                                <div className="px-4 py-2.5 flex justify-between items-center">
+                                    {/* Brand Logo */}
+                                    <div className="flex items-center gap-2.5 shrink-0">
+                                        <div className="w-8 h-8 rounded-full bg-red-600 flex items-center justify-center p-1.5 shadow-md shadow-red-600/30">
+                                            <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5 text-white">
+                                                <path d="M19 12c-3.5 1-6.5-1-9-4 2.5 5 2.5 8 0 11 3-2 6-2 9-7z" fill="white" />
+                                            </svg>
+                                        </div>
+                                        <span className="text-xl font-black tracking-tight select-none">
+                                            <span className="text-slate-900">Koi</span>
+                                            <span className="text-red-600">Mart</span>
+                                        </span>
                                     </div>
-                                    <span className="text-xl font-bold tracking-tight">
-                                        <span className="text-slate-900">Koi</span>
-                                        <span className="text-red-600">Mart</span>
-                                    </span>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    {/* Tombol Ukuran Huruf Cepat */}
-                                    <button
-                                        onClick={() => setIsFontSizeModalOpen(true)}
-                                        className="px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-900 rounded-full border border-amber-300 flex items-center gap-1 transition-all active:scale-95 shadow-2xs"
-                                        title="Ubah Ukuran Tulisan"
-                                    >
-                                        <span className="text-xs font-black bg-amber-600 text-white rounded-md px-1 py-0.2">A⁺</span>
-                                        <span className="text-[11px] font-extrabold text-amber-900">Huruf</span>
-                                    </button>
 
-                                    {/* Tombol Chat di samping Keranjang */}
-                                    <button
-                                        onClick={() => {
-                                            if (!isLoggedIn) {
-                                                setGoogleLoginReason('chat');
-                                                setPendingLoginAction({ type: 'navigate', payload: 'chat_list' });
-                                                setIsGoogleLoginModalOpen(true);
-                                                triggerToast('🔒 Silakan login dengan Google terlebih dahulu untuk mengakses Chat');
-                                                return;
-                                            }
-                                            refreshChatThreads();
-                                            navigateTo('chat_list');
-                                        }}
-                                        className="relative p-2 text-slate-700 hover:bg-slate-100 rounded-full transition-colors active:scale-95"
-                                        title="Pesan & Chat"
-                                    >
-                                        <MessageCircle className="w-5 h-5" />
-                                        {totalUnreadChatCount > 0 && (
-                                            <span className="absolute top-1 right-1 min-w-3.5 h-3.5 px-1 bg-red-600 rounded-full ring-2 ring-white text-[8px] font-bold text-white flex items-center justify-center">
-                                                {totalUnreadChatCount}
-                                            </span>
-                                        )}
-                                    </button>
-
-                                    <button
-                                        onClick={() => navigateTo('cart')}
-                                        className="relative p-2 text-slate-700 hover:bg-slate-100 rounded-full transition-colors active:scale-95"
-                                        title="Keranjang Belanja"
-                                    >
-                                        <ShoppingCart className="w-5 h-5" />
-                                        {cartItems.length > 0 && (
-                                            <span className="absolute top-1 right-1 min-w-3.5 h-3.5 px-1 bg-red-600 rounded-full ring-2 ring-white text-[8px] font-bold text-white flex items-center justify-center">
-                                                {cartItems.length}
-                                            </span>
-                                        )}
-                                    </button>
-                                    <button
-                                        onClick={() => triggerToast('Tidak ada notifikasi baru')}
-                                        className="relative p-2 text-slate-700 hover:bg-slate-100 rounded-full transition-colors"
-                                        title="Notifikasi"
-                                    >
-                                        <Bell className="w-5 h-5" />
-                                        <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-600 rounded-full ring-2 ring-white"></span>
-                                    </button>
-                                </div>
-                            </div>
-
-                            {/* Search Bar - Lebih Jelas & Tulisan Mudah Dibaca */}
-                            <div className="px-5 py-3 bg-white">
-                                <div className="relative">
-                                    <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                                    <input
-                                        type="text"
-                                        placeholder="Cari ikan koi, jenis, atau penjual..."
-                                        value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
-                                        className="w-full pl-10 pr-4 py-2.5 bg-slate-100 text-sm font-semibold rounded-full border border-slate-200/60 focus:outline-none focus:ring-2 focus:ring-red-500 text-slate-900 placeholder:text-slate-500 placeholder:font-normal"
-                                    />
-                                    {searchQuery && (
-                                        <button onClick={() => setSearchQuery('')} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500">
-                                            <X className="w-3.5 h-3.5" />
+                                    {/* Header Action Buttons (Chat, Keranjang, Notifikasi) */}
+                                    <div className="flex items-center gap-1">
+                                        {/* Tombol Chat */}
+                                        <button
+                                            onClick={() => {
+                                                if (!isLoggedIn) {
+                                                    setGoogleLoginReason('chat');
+                                                    setPendingLoginAction({ type: 'navigate', payload: 'chat_list' });
+                                                    setIsGoogleLoginModalOpen(true);
+                                                    triggerToast('🔒 Silakan login dengan Google terlebih dahulu untuk mengakses Chat');
+                                                    return;
+                                                }
+                                                refreshChatThreads();
+                                                navigateTo('chat_list');
+                                            }}
+                                            className="relative w-9 h-9 flex items-center justify-center text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-full transition-colors active:scale-95"
+                                            title="Pesan & Chat"
+                                            aria-label="Pesan & Chat"
+                                        >
+                                            <MessageCircle className="w-5 h-5" />
+                                            {totalUnreadChatCount > 0 && (
+                                                <span className="absolute top-1 right-1 min-w-3.5 h-3.5 px-1 bg-red-600 rounded-full ring-2 ring-white text-[8px] font-bold text-white flex items-center justify-center">
+                                                    {totalUnreadChatCount}
+                                                </span>
+                                            )}
                                         </button>
-                                    )}
+
+                                        {/* Tombol Keranjang */}
+                                        <button
+                                            onClick={() => navigateTo('cart')}
+                                            className="relative w-9 h-9 flex items-center justify-center text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-full transition-colors active:scale-95"
+                                            title="Keranjang Belanja"
+                                            aria-label="Keranjang Belanja"
+                                        >
+                                            <ShoppingCart className="w-5 h-5" />
+                                            {cartItems.length > 0 && (
+                                                <span className="absolute top-1 right-1 min-w-3.5 h-3.5 px-1 bg-red-600 rounded-full ring-2 ring-white text-[8px] font-bold text-white flex items-center justify-center">
+                                                    {cartItems.length}
+                                                </span>
+                                            )}
+                                        </button>
+
+                                        {/* Tombol Notifikasi */}
+                                        <button
+                                            onClick={() => triggerToast('Tidak ada notifikasi baru')}
+                                            className="relative w-9 h-9 flex items-center justify-center text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-full transition-colors active:scale-95"
+                                            title="Notifikasi"
+                                            aria-label="Notifikasi"
+                                        >
+                                            <Bell className="w-5 h-5" />
+                                            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-600 rounded-full ring-2 ring-white" />
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Search Bar */}
+                                <div className="px-4 pb-3 pt-0.5">
+                                    <div className="relative">
+                                        <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                                        <input
+                                            type="text"
+                                            placeholder="Cari ikan koi, jenis, atau penjual..."
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                            className="w-full pl-10 pr-9 py-2 bg-slate-100/90 text-sm font-medium rounded-full border border-slate-200/70 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 text-slate-900 placeholder:text-slate-400 transition"
+                                        />
+                                        {searchQuery && (
+                                            <button onClick={() => setSearchQuery('')} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5">
+                                                <X className="w-3.5 h-3.5" />
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
 
@@ -4034,7 +4035,7 @@ export default function AndroidKoiApp({
 
                                         {/* Horizontal Slide / Carousel Cards (Bisa di-slide ke samping) */}
                                         <div
-                                            className="flex gap-3 overflow-x-auto no-scrollbar scroll-smooth snap-x snap-mandatory -mx-5 px-5 pb-1 select-none"
+                                            className="flex gap-3 overflow-x-auto no-scrollbar scroll-smooth snap-x snap-mandatory pb-1 select-none"
                                             onWheel={(e) => {
                                                 if (e.deltaY !== 0) {
                                                     e.currentTarget.scrollLeft += e.deltaY;
@@ -4140,7 +4141,7 @@ export default function AndroidKoiApp({
 
                                 {/* Category Icons Bar (Tampilkan SEMUA Kategori, Smooth Scroll, 1 Baris Rapih, Tidak Terpotong) */}
                                 <div
-                                    className="flex items-start gap-3 overflow-x-auto no-scrollbar scroll-smooth py-1 px-1 -mx-1 select-none"
+                                    className="flex items-start gap-3 overflow-x-auto no-scrollbar scroll-smooth py-1 select-none"
                                     onWheel={(e) => {
                                         if (e.deltaY !== 0) {
                                             e.currentTarget.scrollLeft += e.deltaY;
@@ -4227,62 +4228,52 @@ export default function AndroidKoiApp({
                                     </button>
                                 </div>
 
-                                {/* Banner Cek Hasil Tawaran Saya - Refined Luxury Aesthetic */}
+                                {/* Banner Cek Hasil Tawaran Saya */}
                                 <button
                                     onClick={() => navigateTo('my_bids')}
-                                    className="w-full text-left p-3.5 bg-gradient-to-br from-emerald-50/90 via-teal-50/50 to-white border border-emerald-200/90 rounded-2xl shadow-xs hover:shadow-md transition-all active:scale-98 group relative overflow-hidden cursor-pointer"
+                                    className="w-full text-left p-3.5 bg-white border border-slate-200 rounded-2xl hover:border-slate-300 transition-all active:scale-[0.99] group cursor-pointer"
                                 >
-                                    {/* Ambient subtle glow */}
-                                    <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-emerald-200/30 rounded-full blur-xl pointer-events-none" />
-
-                                    {/* Top Row: Icon, Title & Direct Navigation Action */}
-                                    <div className="flex items-center justify-between gap-2 relative z-1">
+                                    {/* Top Row: Icon, Title & Action */}
+                                    <div className="flex items-center justify-between gap-2">
                                         <div className="flex items-center gap-2.5 min-w-0">
-                                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shadow-md shadow-emerald-500/25 shrink-0 group-hover:scale-105 transition-transform">
-                                                <Gavel className="w-5 h-5" />
+                                            <div className="w-9 h-9 rounded-lg bg-emerald-600 text-white flex items-center justify-center shrink-0">
+                                                <Gavel className="w-4.5 h-4.5" />
                                             </div>
                                             <div className="min-w-0">
-                                                <div className="flex items-center gap-1.5">
-                                                    <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 whitespace-nowrap">Status Penawaran</span>
-                                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
-                                                </div>
-                                                <h4 className="text-xs font-extrabold text-slate-900 mt-0.5 truncate">
+                                                <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Status Penawaran</span>
+                                                <h4 className="text-xs font-bold text-slate-900 mt-0.5 truncate">
                                                     Hasil Tawaran Saya
                                                 </h4>
                                             </div>
                                         </div>
 
                                         <div className="flex items-center gap-1.5 shrink-0">
-                                            <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-extrabold border border-emerald-200/70 whitespace-nowrap">
-                                                {isLoggedIn ? `${userBids.length} Lelang` : 'Kunci (Login)'}
+                                            <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[10px] font-semibold whitespace-nowrap">
+                                                {isLoggedIn ? `${userBids.length} Lelang` : 'Login'}
                                             </span>
-                                            <div className="w-7 h-7 rounded-full bg-white border border-emerald-200/80 text-emerald-700 flex items-center justify-center shadow-2xs group-hover:bg-emerald-50 group-hover:translate-x-0.5 transition-all">
-                                                <ChevronRight className="w-4 h-4" />
-                                            </div>
+                                            <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-slate-600 transition-colors" />
                                         </div>
                                     </div>
 
-                                    {/* Bottom Row: 3 Responsive Status Chips */}
-                                    <div className="grid grid-cols-3 gap-1.5 mt-3 pt-2.5 border-t border-emerald-100/90 relative z-1">
-                                        <div className="flex items-center justify-center gap-1 py-1 px-1.5 rounded-lg bg-emerald-50/90 border border-emerald-200/70 text-emerald-800">
-                                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0 animate-pulse"></span>
-                                            <span className="text-[10px] font-bold truncate">
-                                                {userBids.filter(b => b.isLeading && !b.isEnded).length} Memimpin
-                                            </span>
+                                    {/* Bottom Row: 3 Status Chips */}
+                                    <div className="flex items-center gap-2 mt-3 pt-2.5 border-t border-slate-100">
+                                        <div className="flex items-center gap-1.5 text-emerald-700 text-[11px] font-semibold">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+                                            <span>{userBids.filter(b => b.isLeading && !b.isEnded).length} Memimpin</span>
                                         </div>
 
-                                        <div className="flex items-center justify-center gap-1 py-1 px-1.5 rounded-lg bg-amber-50/90 border border-amber-200/70 text-amber-800">
+                                        <span className="text-slate-300">·</span>
+
+                                        <div className="flex items-center gap-1.5 text-amber-700 text-[11px] font-semibold">
                                             <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"></span>
-                                            <span className="text-[10px] font-bold truncate">
-                                                {userBids.filter(b => b.status === 'outbid').length} Terlampaui
-                                            </span>
+                                            <span>{userBids.filter(b => b.status === 'outbid').length} Terlampaui</span>
                                         </div>
 
-                                        <div className="flex items-center justify-center gap-1 py-1 px-1.5 rounded-lg bg-rose-50/90 border border-rose-200/70 text-rose-800">
-                                            <Trophy className="w-3 h-3 text-rose-600 shrink-0" />
-                                            <span className="text-[10px] font-bold truncate">
-                                                {userBids.filter(b => b.status === 'won').length} Menang
-                                            </span>
+                                        <span className="text-slate-300">·</span>
+
+                                        <div className="flex items-center gap-1.5 text-rose-700 text-[11px] font-semibold">
+                                            <Trophy className="w-3 h-3 text-rose-500 shrink-0" />
+                                            <span>{userBids.filter(b => b.status === 'won').length} Menang</span>
                                         </div>
                                     </div>
                                 </button>
@@ -4310,7 +4301,7 @@ export default function AndroidKoiApp({
                                     </div>
 
                                     {/* Horizontal Scroll of Active Auction Cards */}
-                                    <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none -mx-1 px-1">
+                                    <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none">
                                         {dynamicTopAuctions.slice(0, 5).map((auc, idx) => (
                                             <div
                                                 key={idx}
@@ -9120,7 +9111,7 @@ export default function AndroidKoiApp({
 
                 {/* 3. ANDROID BOTTOM NAVIGATION BAR (Tampil di semua tampilan aplikasi) */}
                 {currentScreen !== 'welcome' && (
-                    <div className="absolute bottom-0 left-0 right-0 h-[70px] bg-white border-t border-slate-200/90 px-2 flex items-center justify-around z-40 shadow-lg">
+                    <div className="fixed bottom-0 left-0 right-0 sm:absolute sm:bottom-0 sm:left-0 sm:right-0 h-[68px] sm:h-[70px] bg-white border-t border-slate-200/90 px-2 flex items-center justify-around z-40 shadow-[0_-2px_10px_rgba(0,0,0,0.06)] pb-[env(safe-area-inset-bottom,0px)]">
                         {[
                             { id: 'home', label: 'Beranda', icon: Home, screen: 'home' as ScreenType },
                             { id: 'favorite', label: 'Favorit', icon: Heart, screen: 'favorite' as ScreenType, badge: favoritesList.length > 0 ? favoritesList.length : undefined },
@@ -9134,17 +9125,17 @@ export default function AndroidKoiApp({
                                 <button
                                     key={tab.id}
                                     onClick={() => handleTabClick(tab.id as any)}
-                                    className="flex flex-col items-center justify-center flex-1 py-1.5 transition-transform active:scale-90 relative"
+                                    className="flex flex-col items-center justify-center flex-1 py-1 transition-transform active:scale-90 relative"
                                 >
                                     <div className="relative">
-                                        <IconComponent className={`w-6 h-6 transition-colors ${isActive ? 'text-red-600 stroke-[2.5]' : 'text-slate-600 stroke-[1.8]'}`} />
+                                        <IconComponent className={`w-5.5 h-5.5 transition-colors ${isActive ? 'text-red-600 stroke-[2.5]' : 'text-slate-600 stroke-[1.8]'}`} />
                                         {tab.badge && (
-                                            <span className="absolute -top-1.5 -right-2.5 bg-red-600 text-white text-[10px] font-black px-1.5 py-0.2 rounded-full min-w-4 text-center ring-2 ring-white">
+                                            <span className="absolute -top-1 -right-2 bg-red-600 text-white text-[9px] font-black px-1.5 py-0.2 rounded-full min-w-4 text-center ring-2 ring-white">
                                                 {tab.badge}
                                             </span>
                                         )}
                                     </div>
-                                    <span className={`text-xs mt-1 transition-colors ${isActive ? 'text-red-600 font-black' : 'text-slate-600 font-bold'}`}>
+                                    <span className={`text-[11px] mt-0.5 leading-tight transition-colors ${isActive ? 'text-red-600 font-black' : 'text-slate-600 font-bold'}`}>
                                         {tab.label}
                                     </span>
                                 </button>
