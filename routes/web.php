@@ -9,6 +9,7 @@ use App\Http\Controllers\StoreController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
+use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\AuctionController;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\ChatController;
@@ -18,6 +19,10 @@ use App\Http\Controllers\HomeController;
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/products', [ProductController::class, 'index'])->name('products.index');
 Route::get('/products/{product:slug}', [ProductController::class, 'show'])->name('products.show');
+
+// Artikel, Edukasi & Event Koi
+Route::get('/articles', [ArticleController::class, 'index'])->name('articles.index');
+Route::get('/articles/{slug}', [ArticleController::class, 'show'])->name('articles.show');
 
 // Lelang Ikan Koi (Nishikigoi Auction)
 Route::get('/auctions', [AuctionController::class, 'index'])->name('auctions.index');

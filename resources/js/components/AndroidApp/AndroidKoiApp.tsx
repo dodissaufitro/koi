@@ -1648,6 +1648,13 @@ export default function AndroidKoiApp({
     // Artikel, Pengumuman Event & Banner Iklan
     const [selectedMobileArticle, setSelectedMobileArticle] = useState<any | null>(null);
 
+    // Navigasi ke Halaman Artikel Baru
+    const navigateToArticle = (art: any) => {
+        if (!art) return;
+        const targetSlug = art.slug || art.id;
+        router.visit(`/articles/${targetSlug}`);
+    };
+
     // Koleksi Artikel Beranda yang bisa di-slide ke samping (Pinned + Event Announcements + Articles)
     const homeSliderArticles = useMemo(() => {
         const pool: any[] = [];
@@ -4045,7 +4052,7 @@ export default function AndroidKoiApp({
                                             {homeSliderArticles.map((art: any) => (
                                                 <div
                                                     key={art.id}
-                                                    onClick={() => setSelectedMobileArticle(art)}
+                                                    onClick={() => navigateToArticle(art)}
                                                     className="w-[82%] sm:w-[320px] shrink-0 snap-start bg-white rounded-2xl overflow-hidden border border-slate-200/90 shadow-xs hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between active:scale-[0.99]"
                                                 >
                                                     {/* Article Banner Image */}
@@ -4577,7 +4584,7 @@ export default function AndroidKoiApp({
                                                     >
                                                         {isYt ? (
                                                             <div
-                                                                onClick={() => setSelectedMobileArticle(ad)}
+                                                                onClick={() => navigateToArticle(ad)}
                                                                 className="relative aspect-video w-full bg-slate-950 overflow-hidden cursor-pointer group"
                                                             >
                                                                 <img
@@ -4627,7 +4634,7 @@ export default function AndroidKoiApp({
 
                                                             <div className="flex items-center justify-between pt-1 border-t border-slate-100">
                                                                 <button
-                                                                    onClick={() => setSelectedMobileArticle(ad)}
+                                                                    onClick={() => navigateToArticle(ad)}
                                                                     className="text-[11px] font-semibold text-slate-600 hover:text-slate-900"
                                                                 >
                                                                     Detail Informasi →
@@ -4672,7 +4679,7 @@ export default function AndroidKoiApp({
                                             {dynamicTips.map((tip: any) => (
                                                 <div
                                                     key={tip.id}
-                                                    onClick={() => setSelectedMobileArticle(tip)}
+                                                    onClick={() => navigateToArticle(tip)}
                                                     className="bg-white rounded-2xl p-3 border border-slate-100 shadow-sm flex items-center gap-3 active:scale-99 transition-transform cursor-pointer"
                                                 >
                                                     <img
@@ -5556,7 +5563,7 @@ export default function AndroidKoiApp({
                                             return (
                                                 <div
                                                     key={article.id || `art-${index}`}
-                                                    onClick={() => setSelectedMobileArticle(article)}
+                                                    onClick={() => navigateToArticle(article)}
                                                     className={`bg-white rounded-2xl overflow-hidden border transition-all active:scale-[0.99] cursor-pointer shadow-xs ${
                                                         isPinned
                                                             ? 'border-amber-300 ring-2 ring-amber-100'

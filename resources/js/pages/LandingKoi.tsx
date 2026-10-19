@@ -332,13 +332,13 @@ export default function LandingKoi({
 
                                     {/* Actions */}
                                     <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto justify-between sm:justify-end">
-                                        <button
-                                            onClick={() => setSelectedArticle(curEvent)}
+                                        <Link
+                                            href={`/articles/${curEvent.slug || curEvent.id}`}
                                             className="px-3 py-1 rounded-full bg-amber-500 hover:bg-amber-400 active:scale-95 text-stone-950 font-bold text-[11px] transition shadow flex items-center gap-1 cursor-pointer"
                                         >
                                             <span>Selengkapnya</span>
                                             <ChevronRight className="w-3 h-3" />
-                                        </button>
+                                        </Link>
 
                                         {/* Navigation if multiple pinned events */}
                                         {pinnedAnnouncements.length > 1 && (
@@ -1519,12 +1519,12 @@ export default function LandingKoi({
 
                                         {/* Bottom Action Footer with Custom URL */}
                                         <div className={`p-6 pt-0 flex items-center justify-between gap-4 mt-auto`}>
-                                            <button
-                                                onClick={() => setSelectedArticle(ad)}
+                                            <Link
+                                                href={`/articles/${ad.slug || ad.id}`}
                                                 className={`text-xs font-semibold hover:underline ${isDark ? 'text-slate-300' : 'text-slate-700'}`}
                                             >
                                                 Baca Informasi →
-                                            </button>
+                                            </Link>
 
                                             {ad.custom_url ? (
                                                 <a
@@ -1628,9 +1628,9 @@ export default function LandingKoi({
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7">
                                 {displayList.map((article) => {
                                     return (
-                                        <article
+                                        <Link
                                             key={article.id}
-                                            onClick={() => setSelectedArticle(article)}
+                                            href={`/articles/${article.slug || article.id}`}
                                             className={`group rounded-3xl border overflow-hidden transition-all duration-300 flex flex-col justify-between cursor-pointer ${
                                                 isDark
                                                     ? 'bg-[#111724]/90 border-white/[0.08] hover:border-amber-400/50 hover:bg-[#141C2B] shadow-md hover:shadow-xl'
@@ -1695,7 +1695,7 @@ export default function LandingKoi({
                                                     Baca Selengkapnya <ChevronRight className="w-3 h-3" />
                                                 </span>
                                             </div>
-                                        </article>
+                                        </Link>
                                     );
                                 })}
                             </div>
