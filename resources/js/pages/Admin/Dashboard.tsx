@@ -35,6 +35,7 @@ import {
     ShieldCheck,
     ShoppingBag,
     ShoppingCart,
+    Smartphone,
     Sparkles,
     Star,
     Store as StoreIcon,
@@ -52,6 +53,8 @@ import {
 import React, { useEffect, useState } from 'react';
 import ArticleManagement from '../../components/Admin/ArticleManagement';
 import BackOfficeReports from '../../components/Admin/BackOfficeReports';
+import ApiTokenManagement from '../../components/Admin/ApiTokenManagement';
+import SellerPermissionManagement from '../../components/Admin/SellerPermissionManagement';
 import WhatsAppManagement from '../../components/Admin/WhatsAppManagement';
 
 interface PaginatedData<T> {
@@ -92,6 +95,7 @@ interface Props {
         total_revenue: number;
         total_reviews: number;
         total_articles?: number;
+        total_api_tokens?: number;
     };
     tab: string;
     search: string;
@@ -176,6 +180,8 @@ export default function AdminDashboard({ stats, tab = 'dashboard', search: initi
         { id: 'orders', label: 'Pesanan', icon: ShoppingCart, count: 3, badgeColor: 'bg-rose-500' },
         { id: 'users', label: 'Pelanggan', icon: Users, count: stats.total_users },
         { id: 'stores', label: 'Toko Saya', icon: StoreIcon, count: stats.total_stores },
+        { id: 'seller_permissions', label: 'Hak Akses Seller', icon: ShieldCheck, count: null, badgeColor: 'bg-indigo-500' },
+        { id: 'api_tokens', label: 'API & Token iOS', icon: Smartphone, count: stats.total_api_tokens ?? null, badgeColor: 'bg-sky-500' },
         { id: 'auctions', label: 'Promosi', icon: Tag, count: stats.total_auctions },
         { id: 'categories', label: 'Kategori', icon: FolderTree, count: stats.total_categories },
         { id: 'reports', label: 'Laporan', icon: BarChart2, count: null },
@@ -1525,6 +1531,24 @@ export default function AdminDashboard({ stats, tab = 'dashboard', search: initi
                     ) : tab === 'articles' ? (
                         /* ARTIKEL & BANNER IKLAN / EVENT MANAGEMENT */
                         <ArticleManagement articles={data as any} isDark={isDark} />
+                    ) : tab === 'seller_permissions' ? (
+                        /* MANAJEMEN HAK AKSES SELLER */
+                        <SellerPermissionManagement
+                            data={data as any}
+                            searchTerm={searchTerm}
+                            onSearchChange={setSearchTerm}
+                            onSearchSubmit={handleSearch}
+                            isDark={isDark}
+                        />
+                    ) : tab === 'api_tokens' ? (
+                        /* MANAJEMEN API TOKEN & DOKUMENTASI IOS */
+                        <ApiTokenManagement
+                            data={data as any}
+                            searchTerm={searchTerm}
+                            onSearchChange={setSearchTerm}
+                            onSearchSubmit={handleSearch}
+                            isDark={isDark}
+                        />
                     ) : (
                         /* CRUD MANAGEMENT VIEWS FOR OTHER TABS */
                         <div className="space-y-4">
@@ -1696,6 +1720,13 @@ export default function AdminDashboard({ stats, tab = 'dashboard', search: initi
                                                                 </td>
                                                                 <td className="px-4 py-3 text-right">
                                                                     <div className="flex items-center justify-end gap-1.5">
+                                                                        <button
+                                                                            onClick={() => router.visit(`/admin/dashboard?tab=seller_permissions&search=${encodeURIComponent(row.name)}`)}
+                                                                            className="p-1 rounded hover:bg-amber-100 dark:hover:bg-amber-900/40 text-amber-500"
+                                                                            title="Atur Hak Akses Lapak Ini"
+                                                                        >
+                                                                            <ShieldCheck className="w-3.5 h-3.5" />
+                                                                        </button>
                                                                         <button onClick={() => openEditModal(row)} className="p-1 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300">
                                                                             <Edit2 className="w-3.5 h-3.5" />
                                                                         </button>

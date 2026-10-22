@@ -71,7 +71,7 @@ class AuthenticatedSessionController extends Controller
             default => route('home', absolute: false),
         };
 
-        if ($request->wantsJson() || $request->ajax()) {
+        if (!$request->header('X-Inertia') && ($request->wantsJson() || $request->ajax())) {
             return response()->json([
                 'success' => true,
                 'message' => 'Login berhasil! Selamat datang, ' . $user->name,

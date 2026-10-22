@@ -45,4 +45,24 @@ class Store extends Model
     {
         return $this->hasMany(Order::class);
     }
+
+    public function permission(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(SellerPermission::class);
+    }
+
+    public function getEffectivePermission(): SellerPermission
+    {
+        return SellerPermission::getForStore($this);
+    }
+
+    public function canAccess(string $feature): bool
+    {
+        $perm = $this->getEffectivePermission();
+        if (!$perm->is_active) {
+            return false;
+        }
+
+        return (bool) ($perm->{$feature} ?? false);
+    }
 }

@@ -160,7 +160,13 @@ class ProductController extends Controller
      */
     public function update(UpdateProductRequest $request, Product $product): RedirectResponse|JsonResponse
     {
+        // Pastikan hanya pemilik lapak atau admin yang bisa memperbarui produk
+        if (! $request->user() || (! $request->user()->isAdmin() && $request->user()->store?->id !== $product->store_id)) {
+            abort(403, 'Akses tidak diizinkan: Anda hanya dapat memperbarui produk milik lapak Anda sendiri.');
+        }
+
         $validated = $request->validated();
+        unset($validated['store_id']);
 
         if (isset($validated['name']) && $validated['name'] !== $product->name) {
             $validated['slug'] = Str::slug($validated['name']) . '-' . Str::random(5);

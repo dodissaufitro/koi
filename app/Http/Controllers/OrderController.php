@@ -184,6 +184,12 @@ class OrderController extends Controller
      */
     public function updateStatus(UpdateOrderStatusRequest $request, Order $order): RedirectResponse|JsonResponse
     {
+        $user = $request->user();
+        // Pastikan hanya pemilik lapak terkait atau admin yang dapat memperbarui pesanan
+        if (! $user || (! $user->isAdmin() && $user->store?->id !== $order->store_id)) {
+            abort(403, 'Akses tidak diizinkan: Anda hanya dapat memperbarui pesanan milik lapak Anda sendiri.');
+        }
+
         $status = $request->input('status');
         $data = ['status' => $status];
 

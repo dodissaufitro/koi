@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ApiToken;
 use App\Models\Article;
 use App\Models\Auction;
 use App\Models\Category;
@@ -9,6 +10,7 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Models\ProductImage;
 use App\Models\Review;
+use App\Models\SellerPermission;
 use App\Models\Store;
 use App\Models\User;
 use App\Models\WhatsAppBlast;
@@ -58,15 +60,32 @@ class AdminDashboardController extends Controller
             'total_revenue' => (float) Order::where('payment_status', 'paid')->sum('grand_total'),
             'total_reviews' => Review::count(),
             'total_articles' => Article::count(),
+            'total_seller_permissions' => SellerPermission::count(),
+            'total_api_tokens' => ApiToken::where('is_active', true)->count(),
         ];
 
         // Pengambilan data sesuai Tab yang aktif
         $data = match ($tab) {
-            'stores' => Store::with('user')
+            'seller_permissions' => Store::with(['user', 'permission'])
+                ->withCount(['products', 'orders'])
+                ->when($search, fn($q) => $q->where('name', 'like', "%{$search}%")->orWhereHas('user', fn($uq) => $uq->where('name', 'like', "%{$search}%")))
+                ->latest()
+                ->paginate(10)
+                ->through(function ($store) {
+                    $store->setRelation('permission', $store->getEffectivePermission());
+                    return $store;
+                })
+                ->withQueryString(),
+
+            'stores' => Store::with(['user', 'permission'])
                 ->withCount('products')
                 ->when($search, fn($q) => $q->where('name', 'like', "%{$search}%")->orWhere('city', 'like', "%{$search}%"))
                 ->latest()
                 ->paginate(10)
+                ->through(function ($store) {
+                    $store->setRelation('permission', $store->getEffectivePermission());
+                    return $store;
+                })
                 ->withQueryString(),
 
             'categories' => Category::withCount('products')
@@ -126,6 +145,12 @@ class AdminDashboardController extends Controller
                     'total_sellers' => User::where('role', 'seller')->whereNotNull('phone')->where('phone', '!=', '')->count(),
                 ],
             ],
+
+            'api_tokens' => ApiToken::with('creator:id,name,email')
+                ->when($search, fn($q) => $q->where('name', 'like', "%{$search}%")->orWhere('token', 'like', "%{$search}%")->orWhere('notes', 'like', "%{$search}%"))
+                ->latest()
+                ->paginate(15)
+                ->withQueryString(),
 
             default => null,
         };
@@ -353,9 +378,78 @@ class AdminDashboardController extends Controller
         $validated['slug'] = Str::slug($validated['name']) . '-' . Str::random(4);
         $validated['is_verified'] = $request->boolean('is_verified', true);
 
-        Store::create($validated);
+        $store = Store::create($validated);
+        SellerPermission::getForStore($store);
 
         return back()->with('success', 'Lapak Toko baru berhasil dibuat.');
+    }
+
+    public function storeSeller(Request $request): RedirectResponse
+    {
+        $this->authorizeAdmin($request);
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:8',
+            'phone' => 'required|string|max:30',
+            'city' => 'required|string|max:100',
+            'address' => 'required|string',
+            'store_name' => 'required|string|max:255',
+            'store_description' => 'nullable|string',
+            'max_products' => 'nullable|integer|min:0',
+            'can_manage_products' => 'boolean',
+            'can_manage_auctions' => 'boolean',
+            'can_manage_orders' => 'boolean',
+            'can_view_reports' => 'boolean',
+            'can_manage_reviews' => 'boolean',
+            'can_edit_profile' => 'boolean',
+            'can_use_whatsapp' => 'boolean',
+            'can_create_articles' => 'boolean',
+            'notes' => 'nullable|string|max:500',
+        ]);
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($validated, $request) {
+            $user = User::create([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'password' => Hash::make($validated['password']),
+                'role' => 'seller',
+                'phone' => $validated['phone'],
+                'city' => $validated['city'],
+                'address' => $validated['address'],
+            ]);
+
+            $store = Store::create([
+                'user_id' => $user->id,
+                'name' => $validated['store_name'],
+                'slug' => Str::slug($validated['store_name']) . '-' . Str::random(4),
+                'description' => $validated['store_description'] ?? null,
+                'phone' => $validated['phone'],
+                'address' => $validated['address'],
+                'city' => $validated['city'],
+                'is_verified' => true,
+            ]);
+
+            SellerPermission::create([
+                'store_id' => $store->id,
+                'user_id' => $user->id,
+                'can_manage_products' => $request->boolean('can_manage_products', true),
+                'can_manage_auctions' => $request->boolean('can_manage_auctions', true),
+                'can_manage_orders' => $request->boolean('can_manage_orders', true),
+                'can_view_reports' => $request->boolean('can_view_reports', true),
+                'can_manage_reviews' => $request->boolean('can_manage_reviews', true),
+                'can_edit_profile' => $request->boolean('can_edit_profile', true),
+                'can_use_whatsapp' => $request->boolean('can_use_whatsapp', false),
+                'can_create_articles' => $request->boolean('can_create_articles', false),
+                'can_set_discount' => true,
+                'is_active' => true,
+                'max_products' => (int) ($validated['max_products'] ?? 50),
+                'notes' => $validated['notes'] ?? 'Didaftarkan langsung oleh SuperAdmin',
+            ]);
+        });
+
+        return back()->with('success', "Mitra Seller {$validated['store_name']} ({$validated['name']}) berhasil didaftarkan dan hak akses aktif.");
     }
 
     public function updateStore(Request $request, Store $store): RedirectResponse
@@ -386,6 +480,65 @@ class AdminDashboardController extends Controller
         $store->delete();
 
         return back()->with('success', "Lapak {$storeName} berhasil dihapus.");
+    }
+
+    /* =========================================================================
+     * MANAJEMEN HAK AKSES SELLER (SELLER PERMISSIONS)
+     * ========================================================================= */
+    public function updateSellerPermission(Request $request, Store $store): RedirectResponse
+    {
+        $this->authorizeAdmin($request);
+
+        $validated = $request->validate([
+            'can_manage_products' => 'required|boolean',
+            'can_manage_auctions' => 'required|boolean',
+            'can_manage_orders' => 'required|boolean',
+            'can_view_reports' => 'required|boolean',
+            'can_manage_reviews' => 'required|boolean',
+            'can_edit_profile' => 'required|boolean',
+            'can_use_whatsapp' => 'required|boolean',
+            'can_create_articles' => 'required|boolean',
+            'can_set_discount' => 'required|boolean',
+            'is_active' => 'required|boolean',
+            'max_products' => 'required|integer|min:0|max:10000',
+            'notes' => 'nullable|string|max:500',
+        ]);
+
+        $permission = SellerPermission::getForStore($store);
+        $permission->update($validated);
+
+        return back()->with('success', "Hak akses untuk lapak {$store->name} berhasil diperbarui.");
+    }
+
+    public function toggleSellerPermission(Request $request, Store $store): RedirectResponse
+    {
+        $this->authorizeAdmin($request);
+
+        $field = $request->input('field');
+        $allowedFields = [
+            'can_manage_products',
+            'can_manage_auctions',
+            'can_manage_orders',
+            'can_view_reports',
+            'can_manage_reviews',
+            'can_edit_profile',
+            'can_use_whatsapp',
+            'can_create_articles',
+            'can_set_discount',
+            'is_active',
+        ];
+
+        if (!in_array($field, $allowedFields)) {
+            return back()->withErrors(['error' => 'Field hak akses tidak valid.']);
+        }
+
+        $permission = SellerPermission::getForStore($store);
+        $permission->update([
+            $field => !$permission->{$field},
+        ]);
+
+        $statusStr = $permission->{$field} ? 'Diaktifkan' : 'Dinonaktifkan';
+        return back()->with('success', "Hak akses {$field} untuk lapak {$store->name} berhasil diubah ({$statusStr}).");
     }
 
     /* =========================================================================
@@ -781,4 +934,68 @@ class AdminDashboardController extends Controller
 
         return back()->with('success', 'Artikel / Banner berhasil dihapus.');
     }
+
+    /* =========================================================================
+     * API TOKEN MANAGEMENT (iOS & External Mobile Clients)
+     * ========================================================================= */
+    public function storeApiToken(Request $request): RedirectResponse
+    {
+        $this->authorizeAdmin($request);
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:100',
+            'device_type' => 'required|string|in:ios,android,web,third-party',
+            'expires_in_days' => 'nullable|integer|min:1|max:3650',
+            'notes' => 'nullable|string|max:500',
+        ]);
+
+        $expiresAt = !empty($validated['expires_in_days']) 
+            ? now()->addDays((int) $validated['expires_in_days']) 
+            : null;
+
+        $tokenPrefix = match ($validated['device_type']) {
+            'ios' => 'koki_ios',
+            'android' => 'koki_and',
+            default => 'koki_api',
+        };
+
+        $tokenString = ApiToken::generateTokenString($tokenPrefix);
+
+        $apiToken = ApiToken::create([
+            'name' => $validated['name'],
+            'token' => $tokenString,
+            'device_type' => $validated['device_type'],
+            'abilities' => ['*'],
+            'is_active' => true,
+            'expires_at' => $expiresAt,
+            'created_by' => $request->user()->id,
+            'notes' => $validated['notes'] ?? null,
+        ]);
+
+        return back()->with('success', "API Token '{$apiToken->name}' berhasil dibuat! Simpan token ini untuk aplikasi iOS: {$tokenString}");
+    }
+
+    public function toggleApiToken(Request $request, int $id): RedirectResponse
+    {
+        $this->authorizeAdmin($request);
+
+        $apiToken = ApiToken::findOrFail($id);
+        $apiToken->is_active = !$apiToken->is_active;
+        $apiToken->save();
+
+        $statusText = $apiToken->is_active ? 'diaktifkan kembali' : 'dinonaktifkan (revoked)';
+        return back()->with('success', "API Token '{$apiToken->name}' berhasil {$statusText}.");
+    }
+
+    public function destroyApiToken(Request $request, int $id): RedirectResponse
+    {
+        $this->authorizeAdmin($request);
+
+        $apiToken = ApiToken::findOrFail($id);
+        $name = $apiToken->name;
+        $apiToken->delete();
+
+        return back()->with('success', "API Token '{$name}' telah dihapus secara permanen.");
+    }
 }
+

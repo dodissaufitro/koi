@@ -71,7 +71,19 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/seller/orders', [OrderController::class, 'sellerOrders'])->name('seller.orders');
     Route::patch('/seller/orders/{order}/status', [OrderController::class, 'updateStatus'])->name('seller.orders.status');
 
-    // Manajemen Produk Lapak
+    // Aksi Seller Lapak Terproteksi Hak Akses
+    Route::post('/seller/products', [StoreController::class, 'storeProduct'])->name('seller.products.store');
+    Route::put('/seller/products/{product}', [StoreController::class, 'updateProduct'])->name('seller.products.update');
+    Route::delete('/seller/products/{product}', [StoreController::class, 'deleteProduct'])->name('seller.products.destroy');
+
+    Route::post('/seller/auctions', [StoreController::class, 'storeAuction'])->name('seller.auctions.store');
+    Route::put('/seller/auctions/{auction}', [StoreController::class, 'updateAuction'])->name('seller.auctions.update');
+    Route::delete('/seller/auctions/{auction}', [StoreController::class, 'deleteAuction'])->name('seller.auctions.destroy');
+
+    Route::put('/seller/orders/{order}/ship', [StoreController::class, 'updateOrderStatus'])->name('seller.orders.ship');
+    Route::put('/seller/profile', [StoreController::class, 'updateProfile'])->name('seller.profile.update');
+
+    // Manajemen Produk Lapak (fallback generic)
     Route::post('/products', [ProductController::class, 'store'])->name('products.store');
     Route::put('/products/{product}', [ProductController::class, 'update'])->name('products.update');
     Route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
@@ -85,10 +97,15 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/users/{user}', [AdminDashboardController::class, 'updateUser'])->name('users.update');
         Route::delete('/users/{user}', [AdminDashboardController::class, 'deleteUser'])->name('users.destroy');
 
-        // CRUD Stores
+        // CRUD Stores & Sellers
         Route::post('/stores', [AdminDashboardController::class, 'storeStore'])->name('stores.store');
         Route::put('/stores/{store}', [AdminDashboardController::class, 'updateStore'])->name('stores.update');
         Route::delete('/stores/{store}', [AdminDashboardController::class, 'deleteStore'])->name('stores.destroy');
+        Route::post('/sellers', [AdminDashboardController::class, 'storeSeller'])->name('sellers.store');
+
+        // CRUD Seller Permissions
+        Route::post('/seller-permissions/{store}', [AdminDashboardController::class, 'updateSellerPermission'])->name('seller_permissions.update');
+        Route::post('/seller-permissions/{store}/toggle', [AdminDashboardController::class, 'toggleSellerPermission'])->name('seller_permissions.toggle');
 
         // CRUD Categories
         Route::post('/categories', [AdminDashboardController::class, 'storeCategory'])->name('categories.store');
@@ -121,6 +138,11 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/articles', [AdminDashboardController::class, 'storeArticle'])->name('articles.store');
         Route::put('/articles/{article}', [AdminDashboardController::class, 'updateArticle'])->name('articles.update');
         Route::delete('/articles/{article}', [AdminDashboardController::class, 'deleteArticle'])->name('articles.destroy');
+
+        // CRUD API Tokens (iOS & Mobile Clients)
+        Route::post('/api-tokens', [AdminDashboardController::class, 'storeApiToken'])->name('api_tokens.store');
+        Route::post('/api-tokens/{id}/toggle', [AdminDashboardController::class, 'toggleApiToken'])->name('api_tokens.toggle');
+        Route::delete('/api-tokens/{id}', [AdminDashboardController::class, 'destroyApiToken'])->name('api_tokens.destroy');
     });
 });
 
