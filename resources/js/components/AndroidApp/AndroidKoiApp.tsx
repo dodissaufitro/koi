@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { usePage, router } from '@inertiajs/react';
 import { SharedData } from '@/types';
 import { Auction, Category, Product, formatAgeInYears } from '@/types/fish';
 import {
     Home,
+    Fish,
     LayoutGrid,
     Heart,
     ReceiptText,
@@ -68,8 +69,13 @@ import {
     Trophy,
     RefreshCw,
     ArrowUpRight,
-    Calendar
+    Calendar,
+    Loader2,
+    ChevronDown,
+    Zap,
+    Type
 } from 'lucide-react';
+import { KoiCinematicVideoBanner } from '@/components/AndroidApp/KoiCinematicVideoBanner';
 
 // Varietas Ikan Koi Premium Resmi (Hanya Koi Premium, Bukan Marketplace Umum)
 const INITIAL_CATEGORIES = [
@@ -142,6 +148,99 @@ export const OFFICIAL_KOI_GALLERY: StoreInfo = {
 };
 
 export const INITIAL_STORES: StoreInfo[] = [OFFICIAL_KOI_GALLERY];
+
+export interface SpecialEventItem {
+    id: string;
+    title: string;
+    subtitle: string;
+    tagline: string;
+    badge: string;
+    statusText: string;
+    isLive: boolean;
+    bgGradient: string;
+    accentColor: string;
+    accentBg: string;
+    bannerImage: string;
+    targetHours: number;
+    prizePool: string;
+    schedule: string;
+    mitra: string;
+    description: string;
+    perks: string[];
+}
+
+export const SPECIAL_EVENTS_DATA: SpecialEventItem[] = [
+    {
+        id: 'grand-champion-2026',
+        title: 'Nishikigoi Grand Champions 2026',
+        subtitle: 'Pameran & Lelang Akbar Mitra Blitar & Niigata Jepang',
+        tagline: 'Lelang 35 Ekor Ikan Juara Kelas Super Show Grade',
+        badge: 'EVENT AKBAR',
+        statusText: 'SEDANG BERLANGSUNG',
+        isLive: true,
+        bgGradient: 'from-amber-950 via-slate-900 to-rose-950',
+        accentColor: 'text-amber-400',
+        accentBg: 'bg-amber-500',
+        bannerImage: '/images/koi/showa.jpg',
+        targetHours: 28,
+        prizePool: 'Rp 250 Juta+ Total Valuasi Lelang',
+        schedule: '26 - 28 Oktober 2026 • Live Closing 21:00 WIB',
+        mitra: 'Daisuke Farm Niigata & Blitar Koi Center',
+        description: 'Gelaran spektakuler Nishikigoi Grand Champions 2026 mempertemukan para breeder terkemuka asal Blitar dan diler import Niigata. Seluruh ikan telah lolos karantina ketat 48 jam dan memiliki sertifikasi kualitas standar kontes show ZNA.',
+        perks: [
+            'Sertifikat Silsilah Breeder Resmi (ZNA & All Japan Koi Show)',
+            'Gratis Pengiriman Safe Thermo-Box Beroksigen Ganda Seluruh Indonesia',
+            'Garansi Hidup D.O.A (Death on Arrival) 100% via Rekber KoiMart',
+            'Bonus Pakan Premium Khusus Pembesar & Pencerah Warna 5kg'
+        ]
+    },
+    {
+        id: 'flash-bid-weekend',
+        title: 'Flash Bid Midnight Fiesta',
+        subtitle: 'Lelang Cepat Open Bid Super Murah & Diskon Kelipatan',
+        tagline: 'Open Bid Mulai Rp 100.000 dengan Garansi D.O.A Penuh',
+        badge: 'FLASH BID',
+        statusText: 'PROMO SPESIAL',
+        isLive: true,
+        bgGradient: 'from-red-950 via-slate-900 to-orange-950',
+        accentColor: 'text-rose-400',
+        accentBg: 'bg-red-500',
+        bannerImage: '/images/koi/kohaku.jpg',
+        targetHours: 14,
+        prizePool: 'Diskon Open Bid s/d 60%',
+        schedule: 'Setiap Hari Pukul 19:00 - 23:59 WIB',
+        mitra: 'Konsorsium Pembudidaya Koi Nusantara',
+        description: 'Kesempatan emas membawa pulang ikan koi prospek juara dengan penawaran awal (open bid) yang sangat bersahabat. Setiap sesi flash bid diawasi kurator profesional dan dilengkapi garansi hidup sampai tujuan.',
+        perks: [
+            'Open Bid terjangkau mulai Rp 100.000 untuk kolektor pemula maupun master',
+            'Kelipatan tawaran ringan Rp 50.000 - Rp 100.000',
+            'Proteksi Rekber Garansi KoiMart Resmi dengan konfirmasi penerimaan aman'
+        ]
+    },
+    {
+        id: 'tosai-championship',
+        title: 'Tosai Junior Championship',
+        subtitle: 'Kurasi Ikan Koi Muda Prospek Jumbo & Shiroji Porselen',
+        tagline: 'Ukuran 25-35 cm Potensi Tumbuh 85 cm+ Jumbo Body Conformation',
+        badge: 'KONTES SHOW',
+        statusText: 'SEGERA BERAKHIR',
+        isLive: true,
+        bgGradient: 'from-blue-950 via-slate-900 to-indigo-950',
+        accentColor: 'text-cyan-400',
+        accentBg: 'bg-blue-600',
+        bannerImage: '/images/koi/shiro.jpg',
+        targetHours: 46,
+        prizePool: 'Trofi Juara & Sertifikat Kurasi',
+        schedule: '25 - 29 Oktober 2026 • Penjurian Virtual',
+        mitra: 'Asosiasi Pecinta Koi Indonesia (APKI)',
+        description: 'Kompetisi dan lelang koi usia muda (tosai) dengan fokus pada potensi bodi jumbo dan kualitas kulit porselen (shiroji) yang jernih. Dilengkapi bimbingan langsung dari master breeder.',
+        perks: [
+            'Ikan Tosai terpilih dengan struktur tulang kepala lebar dan kiwa tajam',
+            'Potensi pertumbuhan cepat (Jumbo Frame Bloodline)',
+            'Konsultasi pemeliharaan kolam dan pakan gratis selama 6 bulan'
+        ]
+    }
+];
 
 const INITIAL_PRODUCTS = [
     {
@@ -1135,11 +1234,11 @@ const INITIAL_PRODUCTS = [
 ];
 
 const INITIAL_TOP_AUCTIONS = [
-    { id: 2, rank: 1, name: 'Showa Jumbo', size: '85 cm', age: '2 Tahun', price: 48500000, startPrice: 35000000, bidIncrement: 500000, dealerName: 'Koki Nishikigoi Official Gallery', dealerPhone: '+62 812-8888-1001', dealerType: 'import' as const, dealerBadge: 'Diler Import Niigata Terverifikasi', status: 'Lelang selesai', isRecord: true, image: '/images/koi/showa.jpg' },
-    { id: 3, rank: 2, name: 'Kohaku Jumbo', size: '88 cm', age: '3 Tahun', price: 42000000, startPrice: 30000000, bidIncrement: 500000, dealerName: 'Koki Nishikigoi Official Gallery', dealerPhone: '+62 812-8888-1001', dealerType: 'lokal' as const, dealerBadge: 'Breeder Lokal ZNA Terverifikasi', status: 'Lelang selesai', image: '/images/koi/kohaku.jpg' },
-    { id: 4, rank: 3, name: 'Sanke Jumbo', size: '80 cm', age: '2 Tahun', price: 37500000, startPrice: 25000000, bidIncrement: 500000, dealerName: 'Koki Nishikigoi Official Gallery', dealerPhone: '+62 812-8888-1001', dealerType: 'lokal' as const, dealerBadge: 'Breeder Lokal Lembang Terverifikasi', status: 'Lelang selesai', image: '/images/koi/sanke.jpg' },
-    { id: 5, rank: 4, name: 'Showa', size: '75 cm', age: '2 Tahun', price: 33000000, startPrice: 22000000, bidIncrement: 500000, dealerName: 'Koki Nishikigoi Official Gallery', dealerPhone: '+62 812-8888-1001', dealerType: 'import' as const, dealerBadge: 'Diler Import Gosanke Terverifikasi', status: 'Lelang selesai', image: '/images/koi/ritsurin_koi_1.jpg' },
-    { id: 6, rank: 5, name: 'Kohaku', size: '72 cm', age: '2 Tahun', price: 28000000, startPrice: 18000000, bidIncrement: 500000, dealerName: 'Koki Nishikigoi Official Gallery', dealerPhone: '+62 812-8888-1001', dealerType: 'lokal' as const, dealerBadge: 'Breeder Lokal APKI Terverifikasi', status: 'Lelang selesai', image: '/images/koi/kohaku_pond.jpg' }
+    { id: 2, rank: 1, name: 'Showa Jumbo', size: '85 cm', age: '2 Tahun', price: 48500000, startPrice: 35000000, bidIncrement: 500000, dealerName: 'Koki Nishikigoi Official Gallery', dealerPhone: '+62 812-8888-1001', dealerType: 'import' as const, dealerBadge: 'Diler Import Niigata Terverifikasi', status: 'Lelang selesai', bidsCount: 28, isRecord: true, image: '/images/koi/showa.jpg' },
+    { id: 3, rank: 2, name: 'Kohaku Jumbo', size: '88 cm', age: '3 Tahun', price: 42000000, startPrice: 30000000, bidIncrement: 500000, dealerName: 'Koki Nishikigoi Official Gallery', dealerPhone: '+62 812-8888-1001', dealerType: 'lokal' as const, dealerBadge: 'Breeder Lokal ZNA Terverifikasi', status: 'Lelang selesai', bidsCount: 24, image: '/images/koi/kohaku.jpg' },
+    { id: 4, rank: 3, name: 'Sanke Jumbo', size: '80 cm', age: '2 Tahun', price: 37500000, startPrice: 25000000, bidIncrement: 500000, dealerName: 'Koki Nishikigoi Official Gallery', dealerPhone: '+62 812-8888-1001', dealerType: 'lokal' as const, dealerBadge: 'Breeder Lokal Lembang Terverifikasi', status: 'Lelang selesai', bidsCount: 19, image: '/images/koi/sanke.jpg' },
+    { id: 5, rank: 4, name: 'Showa', size: '75 cm', age: '2 Tahun', price: 33000000, startPrice: 22000000, bidIncrement: 500000, dealerName: 'Koki Nishikigoi Official Gallery', dealerPhone: '+62 812-8888-1001', dealerType: 'import' as const, dealerBadge: 'Diler Import Gosanke Terverifikasi', status: 'Lelang selesai', bidsCount: 16, image: '/images/koi/ritsurin_koi_1.jpg' },
+    { id: 6, rank: 5, name: 'Kohaku', size: '72 cm', age: '2 Tahun', price: 28000000, startPrice: 18000000, bidIncrement: 500000, dealerName: 'Koki Nishikigoi Official Gallery', dealerPhone: '+62 812-8888-1001', dealerType: 'lokal' as const, dealerBadge: 'Breeder Lokal APKI Terverifikasi', status: 'Lelang selesai', bidsCount: 15, image: '/images/koi/kohaku_pond.jpg' }
 ];
 
 const INITIAL_FAVORITE_AUCTIONS = [
@@ -1148,6 +1247,248 @@ const INITIAL_FAVORITE_AUCTIONS = [
     { id: 9, rank: 3, name: 'Sanke', size: '68 cm', age: '2 Tahun', startPrice: 14000000, bidIncrement: 500000, dealerName: 'Koki Nishikigoi Official Gallery', dealerPhone: '+62 812-8888-1001', dealerType: 'lokal' as const, dealerBadge: 'Breeder Lokal Lembang Terverifikasi', timeLeft: 'Lelang berakhir 3 hari lagi', price: 19500000, isFavorite: true, image: '/images/koi/sanke.jpg' },
     { id: 10, rank: 4, name: 'Goshiki', size: '65 cm', age: '2 Tahun', startPrice: 12000000, bidIncrement: 500000, dealerName: 'Koki Nishikigoi Official Gallery', dealerPhone: '+62 812-8888-1001', dealerType: 'lokal' as const, dealerBadge: 'Breeder Lokal Sukabumi Terverifikasi', timeLeft: 'Lelang berakhir 2 hari lagi', price: 18000000, isFavorite: true, image: '/images/koi/ritsurin_koi_6.jpg' },
     { id: 11, rank: 5, name: 'Utsuri', size: '60 cm', age: '2 Tahun', startPrice: 10000000, bidIncrement: 500000, dealerName: 'Koki Nishikigoi Official Gallery', dealerPhone: '+62 812-8888-1001', dealerType: 'import' as const, dealerBadge: 'Diler Import Omosako Terverifikasi', timeLeft: 'Lelang berakhir 4 hari lagi', price: 15500000, isFavorite: true, image: '/images/koi/ritsurin_koi_7.jpg' }
+];
+
+// 10 Data Dummy Lelang Tambahan untuk Pengujian Infinite Scroll
+const EXTRA_DUMMY_AUCTIONS = [
+    { id: 101, rank: 11, name: 'Tancho Kohaku Dainichi 68 cm', size: '68 cm', age: '2 Tahun', price: 29500000, startPrice: 20000000, bidIncrement: 500000, dealerName: 'Koki Nishikigoi Official Gallery', dealerPhone: '+62 812-8888-1001', dealerType: 'import' as const, dealerBadge: 'Diler Import Dainichi Terverifikasi', status: 'LIVE', bidsCount: 16, image: '/images/koi/kohaku_pond.jpg' },
+    { id: 102, rank: 12, name: 'Shiro Utsuri Omosako Line 72 cm', size: '72 cm', age: '3 Tahun', price: 34000000, startPrice: 24000000, bidIncrement: 500000, dealerName: 'Koki Nishikigoi Official Gallery', dealerPhone: '+62 812-8888-1001', dealerType: 'import' as const, dealerBadge: 'Diler Import Omosako Terverifikasi', status: 'LIVE', bidsCount: 21, image: '/images/koi/ritsurin_koi_7.jpg' },
+    { id: 103, rank: 13, name: 'Ginrin Showa Isa Bloodline 65 cm', size: '65 cm', age: '2 Tahun', price: 26000000, startPrice: 18000000, bidIncrement: 500000, dealerName: 'Koki Nishikigoi Official Gallery', dealerPhone: '+62 812-8888-1001', dealerType: 'import' as const, dealerBadge: 'Diler Import Isa Terverifikasi', status: 'LIVE', bidsCount: 14, image: '/images/koi/showa.jpg' },
+    { id: 104, rank: 14, name: 'Kujaku Metallic Gold Aoki 62 cm', size: '62 cm', age: '2 Tahun', price: 21000000, startPrice: 15000000, bidIncrement: 500000, dealerName: 'Koki Nishikigoi Official Gallery', dealerPhone: '+62 812-8888-1001', dealerType: 'lokal' as const, dealerBadge: 'Breeder Lokal Blitar Terverifikasi', status: 'LIVE', bidsCount: 18, image: '/images/koi/kujaku_gold.jpg' },
+    { id: 105, rank: 15, name: 'Asagi Blue Indigo Niigata 70 cm', size: '70 cm', age: '3 Tahun', price: 27500000, startPrice: 19000000, bidIncrement: 500000, dealerName: 'Koki Nishikigoi Official Gallery', dealerPhone: '+62 812-8888-1001', dealerType: 'import' as const, dealerBadge: 'Diler Import Niigata Terverifikasi', status: 'LIVE', bidsCount: 15, image: '/images/koi/ritsurin_koi_3.jpg' },
+    { id: 106, rank: 16, name: 'Doitsu Sanke Torazo Selection 66 cm', size: '66 cm', age: '2 Tahun', price: 23500000, startPrice: 16500000, bidIncrement: 500000, dealerName: 'Koki Nishikigoi Official Gallery', dealerPhone: '+62 812-8888-1001', dealerType: 'lokal' as const, dealerBadge: 'Breeder Lokal Lembang Terverifikasi', status: 'LIVE', bidsCount: 19, image: '/images/koi/sanke.jpg' },
+    { id: 107, rank: 17, name: 'Beni Kumonryu Rare Specimen 58 cm', size: '58 cm', age: '1 Tahun', price: 17500000, startPrice: 12000000, bidIncrement: 500000, dealerName: 'Koki Nishikigoi Official Gallery', dealerPhone: '+62 812-8888-1001', dealerType: 'lokal' as const, dealerBadge: 'Breeder Spesialis Sukabumi Terverifikasi', status: 'LIVE', bidsCount: 11, image: '/images/koi/ritsurin_koi_8.jpg' },
+    { id: 108, rank: 18, name: 'Yamabuki Ogon Solid Gold 75 cm', size: '75 cm', age: '3 Tahun', price: 31000000, startPrice: 22000000, bidIncrement: 500000, dealerName: 'Koki Nishikigoi Official Gallery', dealerPhone: '+62 812-8888-1001', dealerType: 'import' as const, dealerBadge: 'Diler Import Izumiya Terverifikasi', status: 'LIVE', bidsCount: 22, image: '/images/koi/platina_white.jpg' },
+    { id: 109, rank: 19, name: 'Chagoi Jumbo Friendly Gentle 82 cm', size: '82 cm', age: '3 Tahun', price: 38000000, startPrice: 27000000, bidIncrement: 500000, dealerName: 'Koki Nishikigoi Official Gallery', dealerPhone: '+62 812-8888-1001', dealerType: 'lokal' as const, dealerBadge: 'Breeder Jumbo APKI Terverifikasi', status: 'LIVE', bidsCount: 25, image: '/images/koi/ritsurin_koi_5.jpg' },
+    { id: 110, rank: 20, name: 'Shusui Sky Blue Net Scale 64 cm', size: '64 cm', age: '2 Tahun', price: 19800000, startPrice: 14000000, bidIncrement: 500000, dealerName: 'Koki Nishikigoi Official Gallery', dealerPhone: '+62 812-8888-1001', dealerType: 'import' as const, dealerBadge: 'Diler Import Maruhiro Terverifikasi', status: 'LIVE', bidsCount: 13, image: '/images/koi/ritsurin_koi_6.jpg' }
+];
+
+export interface MyKoiItem {
+    id: string;
+    name: string;
+    variety: string;
+    size: string;
+    age: string;
+    farm: string;
+    dealer: string;
+    image: string;
+    price: number;
+    status: 'menunggu_bayar' | 'karantina' | 'dikirim' | 'selesai';
+    statusText: string;
+    statusBadgeColor: string;
+    actionLabel: string;
+    certificateNo: string;
+    note: string;
+    date: string;
+}
+
+export interface BidHistoryEntry {
+    id: string;
+    date: string;
+    name: string;
+    variety: string;
+    image: string;
+    bidAmount: number;
+    status: 'won' | 'placed' | 'outbid';
+    statusText: string;
+    dealer: string;
+}
+
+export const INITIAL_MY_KOI_LIST: MyKoiItem[] = [];
+
+// Helper untuk mengonversi data lelang yang dimenangkan menjadi item "Ikan Saya"
+export const convertWonAuctionToMyKoi = (
+    auc: any,
+    orders: any[] = []
+): MyKoiItem => {
+    if (!auc) {
+        return {
+            id: 'won-default',
+            name: 'Ikan Koi Dimenangkan',
+            variety: 'Kohaku',
+            size: '65 cm',
+            age: '2 Tahun',
+            farm: 'Mitra Koi Farm',
+            dealer: 'Koki Nishikigoi Official Gallery',
+            image: '/images/koi/kohaku.jpg',
+            price: 0,
+            status: 'menunggu_bayar',
+            statusText: 'Menunggu Pelunasan',
+            statusBadgeColor: 'bg-amber-500 text-stone-950 font-black',
+            actionLabel: 'Selesaikan Pembayaran',
+            certificateNo: 'CERT-LELANG',
+            note: 'Ikan hasil lelang resmi.',
+            date: 'Lelang Selesai'
+        };
+    }
+    const auctionId = String(auc.auctionId || auc.id || 'won');
+    const prod = auc.product || auc.auctionRaw?.product || null;
+    const name = auc.name || prod?.name || 'Ikan Lelang Nishikigoi';
+
+    // Variety
+    let variety = auc.variety || prod?.category?.name || 'Kohaku';
+    if (!variety || variety === 'Kohaku') {
+        if (/showa/i.test(name)) variety = 'Showa Sanshoku';
+        else if (/sanke/i.test(name)) variety = 'Taisho Sanke';
+        else if (/shiro/i.test(name)) variety = 'Shiro Utsuri';
+        else if (/chagoi/i.test(name)) variety = 'Chagoi';
+        else if (/kohaku/i.test(name)) variety = 'Kohaku';
+    }
+
+    // Size
+    let size = auc.size || '';
+    if (!size && typeof name === 'string') {
+        const match = name.match(/\b(\d+\s*cm)\b/i);
+        if (match) size = match[1];
+    }
+    if (!size) size = '65 cm';
+
+    // Age
+    let age = '2 Tahun';
+    if (typeof name === 'string') {
+        const ageMatch = name.match(/\b(Tosai|Nisai|Sansai|\d+\s*Tahun)\b/i);
+        if (ageMatch) age = ageMatch[1];
+    }
+
+    // Farm & Dealer
+    const farm = auc.store || prod?.store?.name || 'Mitra Koi Farm';
+    const dealer = prod?.store?.city ? `${farm} (${prod.store.city})` : 'Koki Nishikigoi Official Gallery';
+
+    // Image (Handle snake_case primary_image and camelCase primaryImage safely)
+    const rawImg = auc?.image || prod?.primary_image?.image_path || prod?.primaryImage?.image_path || '/images/koi/kohaku.jpg';
+    let image = typeof rawImg === 'string' ? rawImg : '/images/koi/kohaku.jpg';
+    if (image && !image.startsWith('http') && !image.startsWith('/')) {
+        image = '/' + image;
+    }
+
+    // Winning Price
+    const price = Number(auc.winningPrice || auc.currentBid || auc.price || auc.current_bid || 0);
+
+    // Matching order for quarantine/shipping/completed status
+    const safeOrders = Array.isArray(orders) ? orders : [];
+    const matchedOrder = safeOrders.find((o: any) => 
+        (o?.auctionId && String(o.auctionId) === auctionId) ||
+        (o?.product?.name && name && String(o.product.name).toLowerCase() === String(name).toLowerCase())
+    );
+
+    let status: 'menunggu_bayar' | 'karantina' | 'dikirim' | 'selesai' = 'menunggu_bayar';
+    let statusText = 'Menunggu Pelunasan (1x24 Jam)';
+    let statusBadgeColor = 'bg-amber-500 text-stone-950 font-black';
+    let actionLabel = 'Selesaikan Pembayaran';
+    let note = 'Pemenang lelang resmi. Mohon lakukan pelunasan dalam 1x24 jam untuk aktivasi karantina.';
+
+    if (matchedOrder) {
+        if (matchedOrder.status === 'completed' || matchedOrder.shippingStatus === 'delivered' || matchedOrder.status === 'selesai') {
+            status = 'selesai';
+            statusText = 'Tiba di Kolam & Diterima';
+            statusBadgeColor = 'bg-emerald-600 text-white font-bold';
+            actionLabel = 'Beri Review & Sertifikat';
+            note = 'Ikan telah berhasil diterima dengan sehat di kolam pemenang. Sertifikat fisik resmi terlampir.';
+        } else if (matchedOrder.status === 'shipping' || matchedOrder.shippingStatus === 'shipped' || matchedOrder.status === 'dikirim') {
+            status = 'dikirim';
+            statusText = `Pengiriman ${matchedOrder.courier || 'KALOG Express'} (Resi: ${matchedOrder.trackingNumber || 'KLG-' + auctionId})`;
+            statusBadgeColor = 'bg-indigo-600 text-white font-bold';
+            actionLabel = 'Lacak Ekspedisi';
+            note = 'Double oxygen bag + box styrofoam tebal. Ikan dalam perjalanan pengiriman bergaransi D.O.A.';
+        } else if (matchedOrder.status === 'quarantine' || matchedOrder.status === 'paid' || matchedOrder.status === 'karantina') {
+            status = 'karantina';
+            statusText = 'Karantina Farm (Proses Pemantauan)';
+            statusBadgeColor = 'bg-cyan-600 text-white font-bold';
+            actionLabel = 'Cek Log Karantina';
+            note = 'Parameter air optimal, nafsu makan baik. Tim karantina memantau kondisi sebelum pengiriman.';
+        }
+    }
+
+    const certificateNo = `CERT-${new Date().getFullYear()}-AUC-${auctionId}`;
+    const date = auc.date || 'Lelang Resmi';
+
+    return {
+        id: `won-auc-${auctionId}`,
+        name,
+        variety,
+        size,
+        age,
+        farm,
+        dealer,
+        image,
+        price,
+        status,
+        statusText,
+        statusBadgeColor,
+        actionLabel,
+        certificateNo,
+        note,
+        date
+    };
+};
+
+export const INITIAL_BID_HISTORY_LIST: BidHistoryEntry[] = [
+    {
+        id: 'hist-1',
+        date: '26 Okt 2026, 10:15 WIB',
+        name: 'Showa Jumbo Isa Bloodline 85 cm',
+        variety: 'Showa',
+        image: '/images/koi/showa.jpg',
+        bidAmount: 48500000,
+        status: 'won',
+        statusText: 'MENANG (Tertinggi)',
+        dealer: 'Koki Nishikigoi Official'
+    },
+    {
+        id: 'hist-2',
+        date: '25 Okt 2026, 19:40 WIB',
+        name: 'Showa Jumbo Isa Bloodline 85 cm',
+        variety: 'Showa',
+        image: '/images/koi/showa.jpg',
+        bidAmount: 47000000,
+        status: 'placed',
+        statusText: 'Tawaran Diajukan',
+        dealer: 'Koki Nishikigoi Official'
+    },
+    {
+        id: 'hist-3',
+        date: '24 Okt 2026, 21:10 WIB',
+        name: 'Kohaku Dainichi 68 cm',
+        variety: 'Kohaku',
+        image: '/images/koi/kohaku_pond.jpg',
+        bidAmount: 29500000,
+        status: 'won',
+        statusText: 'MENANG (Tertinggi)',
+        dealer: 'Koki Nishikigoi Official'
+    },
+    {
+        id: 'hist-4',
+        date: '23 Okt 2026, 14:00 WIB',
+        name: 'Ginrin Showa Isa 65 cm',
+        variety: 'Showa',
+        image: '/images/koi/showa.jpg',
+        bidAmount: 26000000,
+        status: 'outbid',
+        statusText: 'Terlampaui (Outbid)',
+        dealer: 'Koki Nishikigoi Official'
+    },
+    {
+        id: 'hist-5',
+        date: '20 Okt 2026, 16:30 WIB',
+        name: 'Doitsu Sanke Torazo 66 cm',
+        variety: 'Sanke',
+        image: '/images/koi/sanke.jpg',
+        bidAmount: 22000000,
+        status: 'outbid',
+        statusText: 'Terlampaui (Outbid)',
+        dealer: 'Koki Nishikigoi Official'
+    },
+    {
+        id: 'hist-6',
+        date: '12 Okt 2026, 18:00 WIB',
+        name: 'Shiro Utsuri Omosako 72 cm',
+        variety: 'Shiro Utsuri',
+        image: '/images/koi/ritsurin_koi_7.jpg',
+        bidAmount: 34000000,
+        status: 'won',
+        statusText: 'MENANG (Tertinggi)',
+        dealer: 'Koki Nishikigoi Official'
+    }
 ];
 
 export type ScreenType =
@@ -1170,7 +1511,9 @@ export type ScreenType =
     | 'chat_room'
     | 'store_gallery'
     | 'articles_list'
-    | 'my_bids';
+    | 'my_bids'
+    | 'bidder_center'
+    | 'seller_center';
 
 export interface UserBidItem {
     id: number | string;
@@ -1186,6 +1529,11 @@ export interface UserBidItem {
     isLeading: boolean;
     status: 'leading' | 'outbid' | 'won' | 'lost';
     isEnded?: boolean;
+    isWinner?: boolean;
+    winningPrice?: number;
+    winningPriceFormatted?: string;
+    winnerName?: string;
+    winnerAnnouncement?: string;
     bidsCount?: number;
     timeLeft: string;
     updatedAt?: string;
@@ -1528,7 +1876,7 @@ const LockedAccessCard = ({
                 className="w-full py-3.5 px-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-2xl text-xs shadow-lg shadow-red-600/30 flex items-center justify-center gap-2 transition active:scale-98 cursor-pointer"
             >
                 <ShieldCheck className="w-4 h-4" />
-                <span>Masuk dengan Google</span>
+                <span>Masuk ke Akun Saya</span>
             </button>
             {onBackClick && (
                 <button
@@ -1552,6 +1900,7 @@ interface Props {
     tipsArticles?: any[];
     bannerAds?: any[];
     articles?: any[];
+    wonAuctions?: any[];
 }
 
 export default function AndroidKoiApp({
@@ -1564,6 +1913,7 @@ export default function AndroidKoiApp({
     tipsArticles = [],
     bannerAds = [],
     articles = [],
+    wonAuctions = [],
 }: Props) {
     // User & Autentikasi Laravel / Google
     const pageProps = usePage<SharedData>().props;
@@ -1618,9 +1968,16 @@ export default function AndroidKoiApp({
             rank: idx + 1,
             name: prod?.name || 'Koi Show Champion',
             size: extractedSize,
-            age: '2 Tahun',
+            age: prod?.age || '2 Tahun',
             price: Number(auc.current_bid),
-            status: 'Lelang selesai',
+            startPrice: Number(auc.start_price || Math.round(Number(auc.current_bid) * 0.75)),
+            bidIncrement: Number(auc.bid_increment || 500000),
+            dealerName: prod?.store?.name || 'Koki Nishikigoi Official Gallery',
+            dealerPhone: prod?.store?.phone || '+62 812-8888-1001',
+            dealerType: 'import' as const,
+            dealerBadge: 'Diler Import Niigata Terverifikasi',
+            status: 'LIVE',
+            bidsCount: Number(auc.bids_count || 12),
             isRecord: idx === 0,
             image: img,
             auctionRaw: auc,
@@ -1637,8 +1994,17 @@ export default function AndroidKoiApp({
             rank: idx + 1,
             name: prod?.name || 'Koi Favorit',
             size: extractedSize,
+            age: prod?.age || '2 Tahun',
             timeLeft: 'Lelang berakhir 2 hari lagi',
             price: Number(auc.current_bid),
+            startPrice: Number(auc.start_price || Math.round(Number(auc.current_bid) * 0.75)),
+            bidIncrement: Number(auc.bid_increment || 500000),
+            dealerName: prod?.store?.name || 'Koki Nishikigoi Official Gallery',
+            dealerPhone: prod?.store?.phone || '+62 812-8888-1001',
+            dealerType: 'lokal' as const,
+            dealerBadge: 'Breeder Lokal APKI Terverifikasi',
+            status: 'LIVE',
+            bidsCount: Number(auc.bids_count || 15),
             isFavorite: true,
             image: img,
             auctionRaw: auc,
@@ -1821,12 +2187,44 @@ export default function AndroidKoiApp({
 
         triggerToast(`🔥 Membuka lelang ${effectiveName}`);
     };
-    // Screen State
-    const [currentScreen, setCurrentScreen] = useState<ScreenType>('home');
-    const [screenStack, setScreenStack] = useState<ScreenType[]>(['home']);
+    // Deteksi halaman awal: periksa query param ?screen atau riwayat koki_last_screen
+    const getInitialScreen = (): ScreenType => {
+        if (typeof window === 'undefined') return 'highest_auction';
+        try {
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlScreen = urlParams.get('screen') as ScreenType | null;
+            const savedScreen = localStorage.getItem('koki_last_screen') as ScreenType | null;
+            const candidate = urlScreen || savedScreen;
+            if (candidate && candidate !== 'welcome') {
+                return candidate;
+            }
+        } catch {}
+        return 'highest_auction';
+    };
 
-    // Bottom Tab State
-    const [activeTab, setActiveTab] = useState<'home' | 'categories' | 'chat' | 'articles' | 'favorite' | 'orders' | 'profile'>('home');
+    const initialScreen = getInitialScreen();
+
+    const getTabForScreen = (screen: ScreenType): 'home' | 'favorite' | 'koi' | 'orders' | 'bidder' | 'seller' | 'profile' | 'categories' | 'chat' | 'articles' => {
+        if (screen === 'highest_auction' || screen === 'favorite_auction' || screen === 'product_detail' || screen === 'auction_detail') return 'koi';
+        if (screen === 'home') return 'home';
+        if (screen === 'categories') return 'categories';
+        if (screen === 'favorite') return 'favorite';
+        if (screen === 'articles_list') return 'articles';
+        if (screen === 'chat_list' || screen === 'chat_room') return 'chat';
+        if (screen === 'seller_center' || screen === 'merchant_add_koi') return 'seller';
+        if (screen === 'bidder_center' || screen === 'orders' || screen === 'checkout_invoice' || screen === 'wag_tracking' || screen === 'order_detail' || screen === 'my_bids') return 'bidder';
+        if (screen === 'profile') return 'profile';
+        return 'koi';
+    };
+
+    // Screen State (Default Halaman Bursa Lelang Koi saat buka aplikasi atau halaman terakhir dibuka sebelum login)
+    const [currentScreen, setCurrentScreen] = useState<ScreenType>(initialScreen);
+    const [screenStack, setScreenStack] = useState<ScreenType[]>(initialScreen === 'highest_auction' ? ['highest_auction'] : ['highest_auction', initialScreen]);
+
+    // Bottom Tab State (Disinkronkan dengan screen awal)
+    const [activeTab, setActiveTab] = useState<'home' | 'favorite' | 'koi' | 'orders' | 'bidder' | 'seller' | 'profile' | 'categories' | 'chat' | 'articles'>(() => getTabForScreen(initialScreen));
+    const [auctionViewTab, setAuctionViewTab] = useState<'all' | 'favorite'>('all');
+    const [auctionSearchQuery, setAuctionSearchQuery] = useState('');
 
     // Filter & Search
     const [searchQuery, setSearchQuery] = useState('');
@@ -1836,7 +2234,18 @@ export default function AndroidKoiApp({
     const [articleSearchQuery, setArticleSearchQuery] = useState('');
 
     // Selected Details
-    const [selectedProduct, setSelectedProduct] = useState(dynamicProducts[0]);
+    const [selectedProduct, setSelectedProduct] = useState(() => {
+        if (typeof window !== 'undefined') {
+            try {
+                const savedProdId = localStorage.getItem('koki_last_product_id');
+                if (savedProdId) {
+                    const found = dynamicProducts.find(p => String(p.id) === savedProdId);
+                    if (found) return found;
+                }
+            } catch {}
+        }
+        return dynamicProducts[0];
+    });
     const [productImageIndex, setProductImageIndex] = useState(0);
 
     // Selected Store & Gallery State
@@ -1844,6 +2253,32 @@ export default function AndroidKoiApp({
     const [storeActiveTab, setStoreActiveTab] = useState<'gallery' | 'catalog' | 'info'>('gallery');
     const [activeGalleryModalItem, setActiveGalleryModalItem] = useState<StoreGalleryItem | null>(null);
     const [followedStores, setFollowedStores] = useState<string[]>([]);
+
+    // State Event & Promo Spesial Beranda
+    const [activeSpecialEventId, setActiveSpecialEventId] = useState<string>('grand-champion-2026');
+    const [isEventDetailModalOpen, setIsEventDetailModalOpen] = useState<boolean>(false);
+    const [eventTimeLeft, setEventTimeLeft] = useState<{ hours: number; minutes: number; seconds: number }>({
+        hours: 23,
+        minutes: 42,
+        seconds: 18,
+    });
+
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setEventTimeLeft(prev => {
+                if (prev.seconds > 0) {
+                    return { ...prev, seconds: prev.seconds - 1 };
+                } else if (prev.minutes > 0) {
+                    return { ...prev, minutes: 59, seconds: 59 };
+                } else if (prev.hours > 0) {
+                    return { hours: prev.hours - 1, minutes: 59, seconds: 59 };
+                } else {
+                    return { hours: 24, minutes: 0, seconds: 0 };
+                }
+            });
+        }, 1000);
+        return () => clearInterval(timer);
+    }, []);
 
     // Helper Integrasi WhatsApp Resmi Platform
     const openWhatsApp = (phone?: string, customText?: string) => {
@@ -1906,6 +2341,282 @@ export default function AndroidKoiApp({
     const [isTopUpOpen, setIsTopUpOpen] = useState(false); // Modal Biaya Pendaftaran Peserta Lelang
     const [toastMessage, setToastMessage] = useState<string | null>(null);
 
+    // State Pusat Bidder (Bidder Center: Dashboard, Profil, Ikan Saya, Bid Saya, BNR, History Bid, Lainnya)
+    const [bidderActiveTab, setBidderActiveTab] = useState<'dashboard' | 'profile' | 'my_koi' | 'my_bids' | 'bnr' | 'history' | 'others'>('dashboard');
+    const [bidderProfile, setBidderProfile] = useState({
+        fullName: userName !== 'Tamu' ? userName : 'Budi Santoso (Kolektor)',
+        email: userEmail !== 'Belum masuk' ? userEmail : 'budi.santoso@gmail.com',
+        phone: '+62 812-8888-1001',
+        address: 'Jl. Graha Raya Bintaro Blok GR-8 No. 12',
+        city: 'Tangerang Selatan',
+        province: 'Banten',
+        postalCode: '15220',
+        nearestDestination: 'Stasiun Gambir / Bandara Soekarno-Hatta (CGK)',
+        pondType: 'Kolam Semen 25 Ton (Filter Vortex 4 Chamber)',
+        bankName: 'BCA',
+        bankAccount: '8820-9912-34',
+        depositBalance: 1500000,
+        bidLimit: 50000000,
+        memberTier: 'Kolektor VIP Gold',
+        joinDate: 'Agustus 2024',
+        isKtpVerified: true,
+    });
+    const [isEditingBidderProfile, setIsEditingBidderProfile] = useState(false);
+    const [myKoiItems, setMyKoiItems] = useState<MyKoiItem[]>(() => {
+        if (!authUser?.id) return [];
+        if (wonAuctions && Array.isArray(wonAuctions) && wonAuctions.length > 0) {
+            return wonAuctions.map(auc => convertWonAuctionToMyKoi(auc, []));
+        }
+        return [];
+    });
+    const [bidHistoryItems, setBidHistoryItems] = useState<BidHistoryEntry[]>(INITIAL_BID_HISTORY_LIST);
+    const [myKoiFilter, setMyKoiFilter] = useState<'all' | 'menunggu_bayar' | 'karantina' | 'dikirim' | 'selesai'>('all');
+    const [bidHistoryFilter, setBidHistoryFilter] = useState<'all' | 'won' | 'outbid'>('all');
+
+    // =========================================================================
+    // SELLER & KEMITRAAN PETERNAK STATE (DAFTAR SEBAGAI SELLER)
+    // =========================================================================
+    const [isRegisteredSeller, setIsRegisteredSeller] = useState<boolean>(() => {
+        return Boolean(authUser?.role === 'seller' || (authUser as any)?.store);
+    });
+
+    // =========================================================================
+    // ROLE ACCESS LOGIN (BERDASARKAN LOGIN GOOGLE / ROLE: 'bidder' VS 'seller')
+    // =========================================================================
+    // Aturan Pemisahan Mode & Autentikasi:
+    // 1. Masuk dengan Google: MUTLAK HANYA UNTUK BIDDER (melakukan bid lelang & membeli ikan).
+    // 2. Form Email & Password: Untuk Seller (upload ikan & kelola lapak) dan SuperAdmin.
+    const isGoogleAccount = Boolean(
+        authUser?.google_id || 
+        (authUser as any)?.provider === 'google'
+    );
+
+    const [userAccessRole, setUserAccessRole] = useState<'seller' | 'bidder'>(() => {
+        // Akun Google selalu mutlak terkunci ke Mode Bidder
+        if (isGoogleAccount || authUser?.role === 'buyer') {
+            return 'bidder';
+        }
+        if (authUser?.role === 'seller' || Boolean((authUser as any)?.store)) {
+            return 'seller';
+        }
+        return 'bidder';
+    });
+
+    // Sinkronisasi otomatis: akun Google selalu mutlak terkunci ke Mode Bidder
+    useEffect(() => {
+        if (authUser) {
+            if (isGoogleAccount || authUser.role === 'buyer' || authUser.role !== 'seller') {
+                setUserAccessRole('bidder');
+                setIsRegisteredSeller(false);
+                try { localStorage.setItem('koimart_user_access_role', 'bidder'); } catch {}
+            } else if (authUser.role === 'seller') {
+                setUserAccessRole('seller');
+                setIsRegisteredSeller(true);
+                try { localStorage.setItem('koimart_user_access_role', 'seller'); } catch {}
+            }
+        } else {
+            setUserAccessRole('bidder');
+            setIsRegisteredSeller(false);
+        }
+    }, [authUser, isGoogleAccount]);
+
+    const switchUserRole = (newRole: 'seller' | 'bidder') => {
+        if (newRole === 'seller' && isGoogleAccount) {
+            triggerToast('🔒 Masuk dengan Google hanya untuk Mode Bidder. Untuk Mode Seller, silakan login dengan email & kata sandi.');
+            return;
+        }
+
+        setUserAccessRole(newRole);
+        try {
+            localStorage.setItem('koimart_user_access_role', newRole);
+        } catch { }
+
+        if (newRole === 'seller') {
+            setIsRegisteredSeller(true);
+            setSellerActiveTab('dashboard');
+            setCurrentScreen('seller_center');
+            triggerToast('🏪 Mode SELLER Aktif — Anda dapat mengupload ikan & mengelola lapak');
+        } else {
+            setCurrentScreen('highest_auction');
+            setActiveTab('koi');
+            triggerToast('🎯 Mode BIDDER Aktif — Anda dapat melakukan bid & membeli ikan');
+        }
+    };
+
+    const [registeredStoreName, setRegisteredStoreName] = useState<string>(() => {
+        if ((authUser as any)?.store?.name) return (authUser as any).store.name;
+        try {
+            const key = authUser?.id ? `koimart_store_name_${authUser.id}` : 'koimart_store_name_local';
+            return localStorage.getItem(key) || '';
+        } catch {
+            return '';
+        }
+    });
+    const [isSellerRegisterModalOpen, setIsSellerRegisterModalOpen] = useState(false);
+    const [sellerRegisterLoading, setSellerRegisterLoading] = useState(false);
+    const [sellerRegisterSuccessModalOpen, setSellerRegisterSuccessModalOpen] = useState(false);
+    const [sellerRegisterErrors, setSellerRegisterErrors] = useState<Record<string, string>>({});
+    const [sellerRegisterForm, setSellerRegisterForm] = useState({
+        owner_name: '',
+        owner_phone: '',
+        admin_name: '',
+        admin_phone: '',
+        name: '', // Nama dealer / farm
+        address: '', // Alamat dealer
+        city: 'Blitar', // Kota
+        province: 'Jawa Timur', // Provinsi
+        logo: '', // Logo (data URL / preview)
+        ktp: '', // KTP (data URL / preview)
+        description: '',
+        email: '',
+        password: '',
+    });
+
+    // =========================================================================
+    // SELLER DASHBOARD STATE (MANAJEMEN TOKO, PENJUALAN & LELANG SAYA)
+    // =========================================================================
+    const [sellerActiveTab, setSellerActiveTab] = useState<'dashboard' | 'listings' | 'orders' | 'wallet' | 'profile' | 'live_bids'>('dashboard');
+    const [sellerListingFilter, setSellerListingFilter] = useState<'all' | 'live' | 'sold'>('all');
+    const [isSellerWithdrawModalOpen, setIsSellerWithdrawModalOpen] = useState(false);
+    const [isSellerShipModalOpen, setIsSellerShipModalOpen] = useState(false);
+    const [selectedOrderToShip, setSelectedOrderToShip] = useState<any>(null);
+    const [sellerWithdrawAmount, setSellerWithdrawAmount] = useState('25000000');
+    const [sellerWithdrawBank, setSellerWithdrawBank] = useState('BCA (Rek: 0182-9988-12 a.n Blitar Koi Farm)');
+    const [sellerShippingForm, setSellerShippingForm] = useState({
+        courier: 'KALOG (Kereta Logistik)',
+        resiNumber: 'KLG-BTR-998218',
+        notes: 'Ikan karantina 3 hari tuntas, tabung oksigen murni ganda, packing styrofoam + ice gel.',
+    });
+
+    const [sellerAuctionsList, setSellerAuctionsList] = useState([
+        {
+            id: 's-auc-1',
+            name: 'Kohaku Sakai Super Jumbo',
+            size: '68 cm',
+            variety: 'Kohaku',
+            breeder: 'Sakai Fish Farm (Hiroshima)',
+            currentBid: 48500000,
+            startBid: 25000000,
+            bidCount: 28,
+            highestBidder: 'Bpk. Hendra Wijaya (Surabaya)',
+            image: '/images/koi/kohaku.jpg',
+            status: 'live',
+            timeLeft: '01:22:40',
+        },
+        {
+            id: 's-auc-2',
+            name: 'Showa Isa Male Champion Line',
+            size: '72 cm',
+            variety: 'Showa',
+            breeder: 'Isa Koi Farm',
+            currentBid: 35000000,
+            startBid: 18000000,
+            bidCount: 19,
+            highestBidder: 'Dr. Anton Gunawan (Bandung)',
+            image: '/images/koi/showa.jpg',
+            status: 'live',
+            timeLeft: '02:45:10',
+        },
+        {
+            id: 's-auc-3',
+            name: 'Taisho Sanke Dainichi Pattern',
+            size: '62 cm',
+            variety: 'Taisho Sanke',
+            breeder: 'Dainichi Koi Farm',
+            currentBid: 27500000,
+            startBid: 15000000,
+            bidCount: 14,
+            highestBidder: 'Ir. Bambang S (Jakarta)',
+            image: '/images/koi/sanke.jpg',
+            status: 'live',
+            timeLeft: '04:10:00',
+        },
+        {
+            id: 's-auc-4',
+            name: 'Shiro Utsuri Omosako Premium',
+            size: '58 cm',
+            variety: 'Shiro Utsuri',
+            breeder: 'Omosako Koi Farm',
+            currentBid: 18000000,
+            startBid: 10000000,
+            bidCount: 11,
+            highestBidder: 'Reza Fahlevi (Semarang)',
+            image: '/images/koi/ritsurin_koi_7.jpg',
+            status: 'live',
+            timeLeft: '06:30:00',
+        },
+        {
+            id: 's-auc-5',
+            name: 'Chagoi Ginrin Jumbo Monster',
+            size: '78 cm',
+            variety: 'Chagoi',
+            breeder: 'Marudo Koi Farm',
+            currentBid: 32000000,
+            startBid: 20000000,
+            bidCount: 16,
+            highestBidder: 'Bpk. Kuswanto (Malang)',
+            image: '/images/koi/aka_muji.jpg',
+            status: 'sold',
+            timeLeft: 'Selesai Terjual',
+        },
+        {
+            id: 's-auc-6',
+            name: 'Tancho Kohaku Clean Spot',
+            size: '54 cm',
+            variety: 'Tancho Kohaku',
+            breeder: 'Maruhiro Koi Farm',
+            currentBid: 16000000,
+            startBid: 10000000,
+            bidCount: 12,
+            highestBidder: 'Ibu Cindy Tan (Surabaya)',
+            image: '/images/koi/kohaku_pond.jpg',
+            status: 'sold',
+            timeLeft: 'Selesai Terjual',
+        },
+    ]);
+
+    const [sellerOrdersList, setSellerOrdersList] = useState([
+        {
+            id: 'ORD-SLR-881',
+            auctionTitle: 'Kohaku Sakai Super Jumbo 68cm',
+            winnerName: 'Bpk. Surya Dharma',
+            city: 'Kelapa Gading, Jakarta Utara',
+            price: 24500000,
+            escrowStatus: 'Dana Aman di Rekber',
+            shippingStatus: 'perlu_kirim',
+            resi: '',
+            courier: '',
+            image: '/images/koi/kohaku.jpg',
+            orderDate: '26 Okt 2026, 11:20 WIB',
+        },
+        {
+            id: 'ORD-SLR-882',
+            auctionTitle: 'Tancho Kohaku Clean Spot 54cm',
+            winnerName: 'Ibu Cindy Tan',
+            city: 'Citraland, Surabaya Barat',
+            price: 16000000,
+            escrowStatus: 'Dana Aman di Rekber',
+            shippingStatus: 'perlu_kirim',
+            resi: '',
+            courier: '',
+            image: '/images/koi/kohaku_pond.jpg',
+            orderDate: '26 Okt 2026, 10:45 WIB',
+        },
+        {
+            id: 'ORD-SLR-880',
+            auctionTitle: 'Chagoi Ginrin Jumbo Monster 78cm',
+            winnerName: 'Bpk. Farhan Hakim',
+            city: 'Medan Baru, Kota Medan',
+            price: 31000000,
+            escrowStatus: 'Dalam Pengiriman Kargo',
+            shippingStatus: 'dikirim',
+            resi: 'GARUDA-CARGO-992101',
+            courier: 'Garuda Indonesia Kargo (Live Animal)',
+            image: '/images/koi/aka_muji.jpg',
+            orderDate: '25 Okt 2026, 18:00 WIB',
+        },
+    ]);
+
     // =========================================================================
     // USER BIDS STATE (HASIL TAWARAN LELANG SAYA - KHUSUS AKUN LOGIN)
     // =========================================================================
@@ -1939,6 +2650,35 @@ export default function AndroidKoiApp({
         }
     }, [userBids, authUser?.id]);
 
+    // Initial Orders List (Disinkronkan khusus per user akun login)
+    const [ordersList, setOrdersList] = useState<any[]>(() => {
+        if (!authUser?.id) return [];
+        const storageKey = `koimart_orders_user_${authUser.id}`;
+        if (typeof window !== 'undefined') {
+            try {
+                const saved = localStorage.getItem(storageKey);
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    if (Array.isArray(parsed)) return parsed;
+                }
+            } catch { }
+        }
+        if (Number(authUser.id) === 14 || authUser.email?.includes('dodis')) {
+            return INITIAL_SAMPLE_ORDERS;
+        }
+        return [];
+    });
+
+    // Simpan otomatis ke localStorage setiap kali ordersList berubah
+    useEffect(() => {
+        if (authUser?.id && typeof window !== 'undefined') {
+            const storageKey = `koimart_orders_user_${authUser.id}`;
+            try {
+                localStorage.setItem(storageKey, JSON.stringify(ordersList));
+            } catch { }
+        }
+    }, [ordersList, authUser?.id]);
+
     // Ambil data penawaran terbaru dari backend API /my-bids
     const fetchUserBids = async () => {
         if (!authUser?.id) {
@@ -1965,6 +2705,17 @@ export default function AndroidKoiApp({
                         return merged;
                     });
                 }
+                if (data.won_auctions && Array.isArray(data.won_auctions)) {
+                    setMyKoiItems(prev => {
+                        const wonMap = new Map<string, MyKoiItem>();
+                        prev.forEach(item => wonMap.set(item.id, item));
+                        data.won_auctions.forEach((auc: any) => {
+                            const item = convertWonAuctionToMyKoi(auc, ordersList);
+                            wonMap.set(item.id, item);
+                        });
+                        return Array.from(wonMap.values());
+                    });
+                }
             }
         } catch (err) {
             console.warn('Gagal memuat status tawaran dari server:', err);
@@ -1978,8 +2729,41 @@ export default function AndroidKoiApp({
             fetchUserBids();
         } else {
             setUserBids([]);
+            setMyKoiItems([]);
         }
     }, [authUser?.id]);
+
+    // Sinkronisasi otomatis "Ikan Saya" khusus dari hasil lelang yang benar-benar dimenangkan
+    useEffect(() => {
+        if (!authUser?.id) {
+            setMyKoiItems([]);
+            return;
+        }
+
+        const wonMap = new Map<string, MyKoiItem>();
+
+        // 1. Data lelang yang dimenangkan dari backend HomeController (wonAuctions prop)
+        if (wonAuctions && Array.isArray(wonAuctions)) {
+            wonAuctions.forEach(auc => {
+                const item = convertWonAuctionToMyKoi(auc, ordersList);
+                wonMap.set(String(auc.id), item);
+            });
+        }
+
+        // 2. Data lelang yang dimenangkan dari state userBids / API /my-bids
+        if (userBids && Array.isArray(userBids)) {
+            userBids
+                .filter(b => b.status === 'won' || b.isWinner === true)
+                .forEach(b => {
+                    const aucId = String(b.auctionId || b.id);
+                    if (!wonMap.has(aucId)) {
+                        wonMap.set(aucId, convertWonAuctionToMyKoi(b, ordersList));
+                    }
+                });
+        }
+
+        setMyKoiItems(Array.from(wonMap.values()));
+    }, [authUser?.id, wonAuctions, userBids, ordersList]);
 
     // =========================================================================
     // USER-SPECIFIC FAVORITES & CHAT STORAGE
@@ -2003,8 +2787,8 @@ export default function AndroidKoiApp({
     const [googleLoginReason, setGoogleLoginReason] = useState<'favorit' | 'chat' | 'like' | 'pesanan' | 'tawaran' | 'general'>('general');
     const [pendingLoginAction, setPendingLoginAction] = useState<{ type: 'navigate' | 'like' | 'chat'; payload?: any } | null>(null);
     const [loginAuthMode, setLoginAuthMode] = useState<'google' | 'email'>('google');
-    const [emailInput, setEmailInput] = useState('budi@example.com');
-    const [passwordInput, setPasswordInput] = useState('password');
+    const [emailInput, setEmailInput] = useState('');
+    const [passwordInput, setPasswordInput] = useState('');
     const [showPasswordInput, setShowPasswordInput] = useState(false);
     const [emailLoginLoading, setEmailLoginLoading] = useState(false);
     const [emailLoginError, setEmailLoginError] = useState<string | null>(null);
@@ -2231,34 +3015,19 @@ export default function AndroidKoiApp({
         }
     }, [products]);
 
-    // Initial Orders List (Disinkronkan khusus per user akun login)
-    const [ordersList, setOrdersList] = useState<any[]>(() => {
-        if (!authUser?.id) return [];
-        const storageKey = `koimart_orders_user_${authUser.id}`;
-        if (typeof window !== 'undefined') {
-            try {
-                const saved = localStorage.getItem(storageKey);
-                if (saved) {
-                    const parsed = JSON.parse(saved);
-                    if (Array.isArray(parsed)) return parsed;
-                }
-            } catch { }
-        }
-        if (Number(authUser.id) === 14 || authUser.email?.includes('dodis')) {
-            return INITIAL_SAMPLE_ORDERS;
-        }
-        return [];
-    });
 
-    // Simpan otomatis ke localStorage setiap kali ordersList berubah
-    useEffect(() => {
-        if (authUser?.id && typeof window !== 'undefined') {
-            const storageKey = `koimart_orders_user_${authUser.id}`;
-            try {
-                localStorage.setItem(storageKey, JSON.stringify(ordersList));
-            } catch { }
+
+    // Total Saldo yang Telah Dibayarkan untuk Belanja (Berdasarkan pesanan terbayar)
+    const totalPaidShoppingAmount = useMemo(() => {
+        if (!ordersList || ordersList.length === 0) {
+            if (authUser?.email?.includes('budi') || !authUser) return 25355000;
+            return 0;
         }
-    }, [ordersList, authUser?.id]);
+        const sum = ordersList
+            .filter(o => o.status === 'paid' || o.status === 'completed' || o.status === 'dikirim' || o.status === 'selesai' || o.shippingStatus)
+            .reduce((acc, curr) => acc + Number(curr.grandTotal || curr.total_amount || curr.fishPrice || 0), 0);
+        return sum > 0 ? sum : (authUser?.email?.includes('budi') ? 25355000 : 0);
+    }, [ordersList, authUser]);
 
     // Active Order (Reference to latest order or ord-8812)
     const [activeOrder, setActiveOrder] = useState<any>(() => ordersList[0]);
@@ -2277,7 +3046,7 @@ export default function AndroidKoiApp({
     const [isCopiedLink, setIsCopiedLink] = useState(false);
 
     // =========================================================================
-    // PENGATUR UKURAN TULISAN
+    // PENGATUR UKURAN TULISAN (SLIDER TARIK & PERSENTASE REALTIME)
     // =========================================================================
     const [fontSizeScale, setFontSizeScale] = useState<'normal' | 'large' | 'xlarge'>(() => {
         if (typeof window !== 'undefined') {
@@ -2286,20 +3055,50 @@ export default function AndroidKoiApp({
         }
         return 'large'; // Default BESAR & JELAS
     });
+    const [fontSizePercent, setFontSizePercent] = useState<number>(() => {
+        if (typeof window !== 'undefined') {
+            const savedPct = localStorage.getItem('koki_font_percent');
+            if (savedPct) {
+                const num = parseInt(savedPct, 10);
+                if (!isNaN(num) && num >= 90 && num <= 140) return num;
+            }
+            const savedScale = localStorage.getItem('koki_font_scale');
+            if (savedScale === 'normal') return 100;
+            if (savedScale === 'xlarge') return 130;
+        }
+        return 115; // Default 115% (Besar)
+    });
     const [isFontSizeModalOpen, setIsFontSizeModalOpen] = useState(false);
+    const [isFontSizeDropdownOpen, setIsFontSizeDropdownOpen] = useState(false);
+
+    const getFontScaleLabel = (pct: number): string => {
+        if (pct <= 95) return 'Kecil';
+        if (pct <= 105) return 'Normal';
+        if (pct <= 120) return 'Besar';
+        if (pct <= 130) return 'Sangat Besar';
+        return 'Maksimal';
+    };
+
+    const handleFontSizePercentChange = (percent: number) => {
+        const bounded = Math.min(140, Math.max(90, percent));
+        setFontSizePercent(bounded);
+        const mappedScale: 'normal' | 'large' | 'xlarge' = 
+            bounded >= 125 ? 'xlarge' : bounded >= 108 ? 'large' : 'normal';
+        setFontSizeScale(mappedScale);
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('koki_font_percent', String(bounded));
+            localStorage.setItem('koki_font_scale', mappedScale);
+        }
+    };
 
     const changeFontSizeScale = (scale: 'normal' | 'large' | 'xlarge') => {
         setFontSizeScale(scale);
+        const pct = scale === 'xlarge' ? 130 : scale === 'large' ? 115 : 100;
+        setFontSizePercent(pct);
         if (typeof window !== 'undefined') {
             localStorage.setItem('koki_font_scale', scale);
+            localStorage.setItem('koki_font_percent', String(pct));
         }
-        triggerToast(
-            scale === 'xlarge'
-                ? '🔍 Ukuran Tulisan: Sangat Besar'
-                : scale === 'large'
-                    ? '🔤 Ukuran Tulisan: Besar'
-                    : '📝 Ukuran Tulisan: Standard'
-        );
     };
 
     const [orderInvoiceCountdown, setOrderInvoiceCountdown] = useState(7180);
@@ -2491,8 +3290,11 @@ export default function AndroidKoiApp({
         origin: 'Blitar Farm Heritage',
         description: 'Koi show grade pola maruten merah merata, shiroji seputih salju, sertifikat indukan resmi import Niigata.',
         image: '/images/koi/kohaku.jpg',
+        certificateImage: '',
+        certificateNo: 'APKI-2026-0881',
     });
     const [curationStep, setCurationStep] = useState<'input' | 'submitted_push_notif' | 'approved_published'>('input');
+    const [isSubmittingMerchantKoi, setIsSubmittingMerchantKoi] = useState(false);
 
     // Countdown Timer untuk Batas Waktu Bayar Invoice (Step 8)
     useEffect(() => {
@@ -2754,15 +3556,287 @@ export default function AndroidKoiApp({
         handleConfirmReceiveFish(activeOrder.orderNumber);
     };
 
-    // STEP 1, 2, 3: Merchant Input Data Koi -> Submit -> Push Notif ke Operator
-    const handleMerchantSubmitKoi = (e: React.FormEvent) => {
+    // Handler Upload Foto Ikan Koi Merchant dengan Kompresi Otomatis
+    const handleKoiPhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const rawDataUrl = event.target?.result as string;
+            const img = new Image();
+            img.onload = () => {
+                try {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+                    const maxDim = 1200;
+                    if (width > maxDim || height > maxDim) {
+                        if (width > height) {
+                            height = Math.round((height * maxDim) / width);
+                            width = maxDim;
+                        } else {
+                            width = Math.round((width * maxDim) / height);
+                            height = maxDim;
+                        }
+                    }
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    if (ctx) {
+                        ctx.drawImage(img, 0, 0, width, height);
+                        const compressed = canvas.toDataURL('image/jpeg', 0.85);
+                        setMerchantKoiForm(prev => ({ ...prev, image: compressed }));
+                        triggerToast('📸 Foto ikan koi berhasil diunggah!');
+                        return;
+                    }
+                } catch {
+                    // Fallback jika canvas error
+                }
+                setMerchantKoiForm(prev => ({ ...prev, image: rawDataUrl }));
+                triggerToast('📸 Foto ikan koi berhasil diunggah!');
+            };
+            img.src = rawDataUrl;
+        };
+        reader.readAsDataURL(file);
+    };
+
+    // Handler Upload Sertifikat Breeder (Gambar / Dokumen)
+    const handleKoiCertificateUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const rawDataUrl = event.target?.result as string;
+            if (file.type.startsWith('image/')) {
+                const img = new Image();
+                img.onload = () => {
+                    try {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width;
+                        let height = img.height;
+                        const maxDim = 1200;
+                        if (width > maxDim || height > maxDim) {
+                            if (width > height) {
+                                height = Math.round((height * maxDim) / width);
+                                width = maxDim;
+                            } else {
+                                width = Math.round((width * maxDim) / height);
+                                height = maxDim;
+                            }
+                        }
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        if (ctx) {
+                            ctx.drawImage(img, 0, 0, width, height);
+                            const compressed = canvas.toDataURL('image/jpeg', 0.85);
+                            setMerchantKoiForm(prev => ({
+                                ...prev,
+                                certificateImage: compressed,
+                                certificate: true,
+                            }));
+                            triggerToast('📜 Sertifikat breeder berhasil diunggah!');
+                            return;
+                        }
+                    } catch {
+                        // Fallback
+                    }
+                    setMerchantKoiForm(prev => ({
+                        ...prev,
+                        certificateImage: rawDataUrl,
+                        certificate: true,
+                    }));
+                    triggerToast('📜 Sertifikat breeder berhasil diunggah!');
+                };
+                img.src = rawDataUrl;
+            } else {
+                setMerchantKoiForm(prev => ({
+                    ...prev,
+                    certificateImage: rawDataUrl,
+                    certificate: true,
+                }));
+                triggerToast('📜 Dokumen sertifikat berhasil diunggah!');
+            }
+        };
+        reader.readAsDataURL(file);
+    };
+
+    // Reset Formulir Upload Koi untuk Input Baru
+    const handleResetMerchantKoiForm = () => {
+        setMerchantKoiForm({
+            name: '',
+            category: 'Kohaku',
+            size: '',
+            age: '2 Tahun',
+            price: '',
+            certificate: false,
+            origin: authUser?.city || 'Blitar',
+            description: '',
+            image: '',
+            certificateImage: '',
+            certificateNo: '',
+        });
+        setCurationStep('input');
+        triggerToast('📝 Formulir siap untuk input ikan koi baru.');
+    };
+
+    // STEP 1, 2, 3: Merchant Input Data Koi -> Submit Langsung ke Database & Server API
+    const handleMerchantSubmitKoi = async (e: React.FormEvent) => {
         e.preventDefault();
-        setCurationStep('submitted_push_notif');
-        triggerToast('📲 Step 2 & 3: Data Koi terkirim ke Server API! Push Notifikasi kurasi dikirim ke Operator.');
+        if (!merchantKoiForm.name.trim()) {
+            triggerToast('⚠️ Masukkan nama ikan koi.');
+            return;
+        }
+        if (!merchantKoiForm.price || Number(merchantKoiForm.price) <= 0) {
+            triggerToast('⚠️ Masukkan harga ikan koi yang valid.');
+            return;
+        }
+        if (!merchantKoiForm.image) {
+            triggerToast('⚠️ Silakan pilih/upload foto utama ikan koi terlebih dahulu.');
+            return;
+        }
+
+        setIsSubmittingMerchantKoi(true);
+
+        const categoryMap: Record<string, number> = {
+            Kohaku: 1,
+            Showa: 2,
+            Sanke: 3,
+            Tancho: 4,
+            'Shiro Utsuri': 5,
+            Goshiki: 6,
+            Kujaku: 7,
+            Chagoi: 8,
+        };
+
+        const numericSize = parseInt(merchantKoiForm.size.replace(/\D/g, '')) || 40;
+        const finalPrice = Number(merchantKoiForm.price) || 14500000;
+        const uploadedImg = merchantKoiForm.image || '/images/koi/kohaku.jpg';
+
+        const payload: Record<string, any> = {
+            name: merchantKoiForm.name,
+            category: merchantKoiForm.category,
+            category_id: categoryMap[merchantKoiForm.category] || 1,
+            variety: merchantKoiForm.category,
+            size_cm: numericSize,
+            size: `${numericSize} cm`,
+            age: merchantKoiForm.age || '2 Tahun',
+            price: finalPrice,
+            stock: 1,
+            status: 'active',
+            origin: merchantKoiForm.origin || (authUser?.city || 'Blitar'),
+            description: merchantKoiForm.description || `Ikan Koi ${merchantKoiForm.name} pilihan farm kualitas kontes.`,
+            image_url: uploadedImg,
+            image: uploadedImg,
+            certificate_image: merchantKoiForm.certificateImage || undefined,
+            certificate_no: merchantKoiForm.certificateNo || undefined,
+        };
+
+        try {
+            const csrfMeta = typeof document !== 'undefined' ? document.querySelector('meta[name="csrf-token"]') : null;
+            const csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '';
+
+            const response = await fetch('/seller/products', {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    ...(csrfToken ? { 'X-CSRF-TOKEN': csrfToken } : {}),
+                },
+                body: JSON.stringify(payload),
+            });
+
+            if (!response.ok) {
+                const errData = await response.json().catch(() => ({}));
+                const errMsg = errData.message || errData.error || (errData.errors ? Object.values(errData.errors)[0] : null) || `Gagal upload (HTTP ${response.status})`;
+                throw new Error(String(errMsg));
+            }
+
+            const resData = await response.json().catch(() => ({}));
+            const savedProduct = resData?.product;
+            const realId = savedProduct?.id ? `prod-${savedProduct.id}` : `prod-merchant-${Date.now()}`;
+            const savedImg = savedProduct?.primary_image?.image_path || savedProduct?.image_url || uploadedImg;
+
+            const newProductObj = {
+                id: realId,
+                name: merchantKoiForm.name,
+                category: merchantKoiForm.category,
+                size: `${numericSize} cm`,
+                age: merchantKoiForm.age || '2 Tahun',
+                gender: 'Female',
+                price: finalPrice,
+                city: authUser?.city || 'Blitar',
+                store: registeredStoreName || (authUser?.store as any)?.name || 'Lapak Peternak Mitra',
+                sellerUserId: authUser?.id ? Number(authUser.id) : 13,
+                storeRating: 5.0,
+                storeReviews: 12,
+                rating: 5.0,
+                reviewsCount: 1,
+                isPremium: true,
+                origin: merchantKoiForm.origin || 'Blitar Farm Heritage',
+                year: 2026,
+                description: merchantKoiForm.description,
+                image: savedImg,
+                images: [savedImg],
+                certificate: Boolean(merchantKoiForm.certificateImage || merchantKoiForm.certificate),
+                certificateImage: merchantKoiForm.certificateImage || null,
+                certificateNo: merchantKoiForm.certificateNo || 'APKI-2026-0881',
+            };
+
+            // Perbarui daftar produk di aplikasi
+            setAllCatalogProducts((prev) => [newProductObj, ...prev]);
+            setSelectedProduct(newProductObj);
+            setSellerAuctionsList((prev) => [
+                {
+                    id: `s-auc-${Date.now()}`,
+                    name: merchantKoiForm.name,
+                    size: `${numericSize} cm`,
+                    variety: merchantKoiForm.category,
+                    currentBid: finalPrice,
+                    totalBids: 0,
+                    bidsCount: 0,
+                    timeLeft: '24 Jam',
+                    status: 'live',
+                    statusLabel: 'Live Aktif',
+                    image: savedImg,
+                    lotNumber: `LOT #${Math.floor(Math.random() * 900) + 100}`,
+                    multiplier: 100000,
+                    highestBidder: 'Belum Ada Bid',
+                    viewsCount: 1,
+                    isHot: true,
+                },
+                ...prev,
+            ]);
+
+            setCurationStep('approved_published');
+            triggerToast('🎉 Ikan koi berhasil diunggah & tersimpan langsung di server database!');
+        } catch (fetchErr: any) {
+            console.warn('Fetch upload failed, trying router.post fallback:', fetchErr);
+
+            // Fallback via Inertia router
+            router.post('/seller/products', payload, {
+                preserveScroll: true,
+                onSuccess: () => {
+                    setCurationStep('approved_published');
+                    triggerToast('🎉 Ikan koi berhasil diunggah & tersimpan di database!');
+                },
+                onError: (err: any) => {
+                    const firstErr = Object.values(err)[0] as string || fetchErr?.message || 'Gagal menyimpan ke server.';
+                    triggerToast(`⚠️ ${firstErr}`);
+                },
+            });
+        } finally {
+            setIsSubmittingMerchantKoi(false);
+        }
     };
 
     // STEP 4 & 5: Operator Verifikasi & Approve Listing -> Publish ke Catalog/Store
     const handleOperatorApproveListing = () => {
+        const uploadedImg = merchantKoiForm.image || '/images/koi/kohaku.jpg';
         const newProductObj = {
             id: `prod-merchant-${Date.now()}`,
             name: merchantKoiForm.name || 'Kohaku Show Grade Blitar',
@@ -2772,7 +3846,7 @@ export default function AndroidKoiApp({
             gender: 'Female',
             price: Number(merchantKoiForm.price) || 14500000,
             city: 'Blitar',
-            store: 'Daisuke Nishikigoi Farm & Breeder',
+            store: registeredStoreName || 'Daisuke Nishikigoi Farm & Breeder',
             sellerUserId: authUser?.id ? Number(authUser.id) : 11,
             storeRating: 4.9,
             storeReviews: 88,
@@ -2782,13 +3856,17 @@ export default function AndroidKoiApp({
             origin: merchantKoiForm.origin,
             year: 2024,
             description: merchantKoiForm.description,
-            images: [merchantKoiForm.image],
+            image: uploadedImg,
+            images: [uploadedImg],
+            certificate: Boolean(merchantKoiForm.certificate || merchantKoiForm.certificateImage),
+            certificateImage: merchantKoiForm.certificateImage || null,
+            certificateNo: merchantKoiForm.certificateNo || 'APKI-2026-0881',
         };
 
         setAllCatalogProducts((prev) => [newProductObj, ...prev]);
         setSelectedProduct(newProductObj);
         setCurationStep('approved_published');
-        triggerToast('🎉 Step 4 & 5: Listing disetujui & Diterbitkan! Ikan sekarang live di katalog etalase pembeli.');
+        triggerToast('🎉 Step 4 & 5: Listing disetujui & Diterbitkan! Foto ikan & sertifikat sekarang live di katalog.');
     };
 
     // Show toast helper
@@ -2825,40 +3903,79 @@ export default function AndroidKoiApp({
 
     // Sinkronisasi Bottom Tab sesuai layar yang aktif
     const syncTabForScreen = (screen: ScreenType) => {
-        if (screen === 'home') setActiveTab('home');
+        if (screen === 'highest_auction' || screen === 'favorite_auction' || screen === 'product_detail' || screen === 'auction_detail') setActiveTab('koi');
+        else if (screen === 'home') setActiveTab('home');
         else if (screen === 'categories') setActiveTab('categories');
+        else if (screen === 'favorite') setActiveTab('favorite');
         else if (screen === 'articles_list') setActiveTab('articles');
         else if (screen === 'chat_list' || screen === 'chat_room') setActiveTab('chat');
-        else if (screen === 'favorite' || screen === 'favorite_auction') setActiveTab('favorite');
-        else if (screen === 'orders' || screen === 'checkout_invoice' || screen === 'wag_tracking' || screen === 'order_detail') setActiveTab('orders');
-        else if (screen === 'profile' || screen === 'merchant_add_koi' || screen === 'my_bids') setActiveTab('profile');
+        else if (screen === 'bidder_center' || screen === 'orders' || screen === 'checkout_invoice' || screen === 'wag_tracking' || screen === 'order_detail' || screen === 'my_bids') {
+            setActiveTab(userAccessRole === 'seller' ? 'seller' : 'bidder');
+        }
+        else if (screen === 'seller_center') {
+            setActiveTab(userAccessRole === 'seller' ? 'seller' : 'bidder');
+        }
+        else if (screen === 'profile' || screen === 'merchant_add_koi') setActiveTab('profile');
     };
 
     // Navigation Helper
     const navigateTo = (screen: ScreenType) => {
         if (screen === currentScreen) return;
 
-        // AUTH GUARD: Pesanan, Chat, dan Tawaran hanya bisa diakses ketika sudah login
+        // ROLE GUARD: Mode Seller & Upload Ikan khusus untuk Akun Seller (Peternak)
+        if (screen === 'seller_center' && (userAccessRole !== 'seller' || authUser?.role !== 'seller')) {
+            triggerToast('🔒 Mode Seller khusus Mitra Peternak. Menampilkan Pusat Bidder.');
+            navigateTo('bidder_center');
+            return;
+        }
+
+        if (screen === 'merchant_add_koi') {
+            if (userAccessRole !== 'seller') {
+                triggerToast('🔒 Upload ikan hanya untuk akun Seller. Bidder hanya dapat melakukan bid dan membeli ikan.');
+                return;
+            }
+            if (curationStep === 'approved_published') {
+                setCurationStep('input');
+            }
+        }
+
+        // AUTH GUARD: Pusat Bidder, Pesanan, Chat, dan Tawaran hanya bisa diakses ketika sudah login
         if (!isLoggedIn) {
+            try {
+                localStorage.setItem('koki_view_mode', 'android');
+                document.cookie = 'koki_view_mode=android; path=/; max-age=31536000';
+            } catch {}
+
+            if (screen === 'bidder_center') {
+                try { localStorage.setItem('koki_last_screen', 'bidder_center'); } catch {}
+                setGoogleLoginReason('tawaran');
+                setPendingLoginAction({ type: 'navigate', payload: 'bidder_center' });
+                setIsGoogleLoginModalOpen(true);
+                triggerToast('🔒 Silakan login terlebih dahulu untuk mengakses Pusat Bidder');
+                return;
+            }
             if (screen === 'orders' || screen === 'order_detail' || screen === 'checkout_invoice' || screen === 'wag_tracking') {
+                try { localStorage.setItem('koki_last_screen', screen); } catch {}
                 setGoogleLoginReason('pesanan');
                 setPendingLoginAction({ type: 'navigate', payload: screen });
                 setIsGoogleLoginModalOpen(true);
-                triggerToast('🔒 Silakan login dengan Google untuk mengakses Pesanan Saya');
+                triggerToast('🔒 Silakan login terlebih dahulu untuk mengakses Pesanan Saya');
                 return;
             }
             if (screen === 'chat_list' || screen === 'chat_room') {
+                try { localStorage.setItem('koki_last_screen', screen); } catch {}
                 setGoogleLoginReason('chat');
                 setPendingLoginAction({ type: 'navigate', payload: screen });
                 setIsGoogleLoginModalOpen(true);
-                triggerToast('🔒 Silakan login dengan Google untuk mengakses Chat');
+                triggerToast('🔒 Silakan login terlebih dahulu untuk mengakses Chat');
                 return;
             }
             if (screen === 'my_bids' || screen === 'auction_detail') {
+                try { localStorage.setItem('koki_last_screen', screen); } catch {}
                 setGoogleLoginReason('tawaran');
                 setPendingLoginAction({ type: 'navigate', payload: screen });
                 setIsGoogleLoginModalOpen(true);
-                triggerToast('🔒 Silakan login dengan Google untuk mengecek tawaran lelang');
+                triggerToast('🔒 Silakan login terlebih dahulu untuk mengecek tawaran lelang');
                 return;
             }
         }
@@ -2868,7 +3985,7 @@ export default function AndroidKoiApp({
         } catch { }
 
         setScreenStack((prev) => {
-            if (screen === 'home') return ['home'];
+            if (screen === 'highest_auction') return ['highest_auction'];
             return [...prev, screen];
         });
         setCurrentScreen(screen);
@@ -2880,7 +3997,7 @@ export default function AndroidKoiApp({
         }
     };
 
-    // Pulihkan layar terakhir yang diminta (misal 'favorite', 'orders', 'chat_list', dll.) setelah login berhasil
+    // Pulihkan layar terakhir yang diminta (misal 'bidder_center', 'favorite', 'orders', dll.) setelah login berhasil
     useEffect(() => {
         if (typeof window === 'undefined') return;
 
@@ -2894,13 +4011,20 @@ export default function AndroidKoiApp({
         const targetScreenToRestore = urlScreen || savedScreen;
 
         if (targetScreenToRestore && targetScreenToRestore !== 'welcome') {
-            try {
-                localStorage.removeItem('koki_last_screen');
-            } catch {}
+            if (targetScreenToRestore === 'product_detail') {
+                try {
+                    const savedProdId = urlParams.get('product_id') || localStorage.getItem('koki_last_product_id');
+                    if (savedProdId) {
+                        const found = dynamicProducts.find(p => String(p.id) === savedProdId);
+                        if (found) setSelectedProduct(found);
+                    }
+                } catch {}
+            }
 
-            // Bersihkan parameter ?screen dari URL bar tanpa reload agar URL bersih
+            // Bersihkan parameter ?screen & ?product_id dari URL bar tanpa reload agar URL tetap rapi dengan ?view=android
             if (urlScreen) {
                 urlParams.delete('screen');
+                urlParams.delete('product_id');
                 const newQuery = urlParams.toString();
                 const newUrl = window.location.pathname + (newQuery ? `?${newQuery}` : '');
                 window.history.replaceState({}, '', newUrl);
@@ -2909,15 +4033,40 @@ export default function AndroidKoiApp({
             // Langsung arahkan ke layar yang diminta pengguna
             setCurrentScreen(targetScreenToRestore);
             syncTabForScreen(targetScreenToRestore);
-            setScreenStack(targetScreenToRestore === 'home' ? ['home'] : ['home', targetScreenToRestore]);
+            setScreenStack(targetScreenToRestore === 'highest_auction' ? ['highest_auction'] : ['highest_auction', targetScreenToRestore]);
 
             const routerEl = document.getElementById('main-screen-router');
             if (routerEl) routerEl.scrollTop = 0;
         }
     }, []);
 
+    // Rekam layar aktif dan produk lelang yang sedang dibuka ke localStorage agar saat login bidder langsung kembali ke halaman terakhir
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        if (currentScreen && currentScreen !== 'welcome') {
+            try {
+                localStorage.setItem('koki_last_screen', currentScreen);
+                if (currentScreen === 'product_detail' && selectedProduct?.id) {
+                    localStorage.setItem('koki_last_product_id', String(selectedProduct.id));
+                }
+            } catch {}
+        }
+    }, [currentScreen, selectedProduct]);
+
     // Fungsi untuk menutup modal / popup jika sedang terbuka
     const closeAnyOpenModal = (): boolean => {
+        if (isFontSizeDropdownOpen) {
+            setIsFontSizeDropdownOpen(false);
+            return true;
+        }
+        if (isSellerWithdrawModalOpen) {
+            setIsSellerWithdrawModalOpen(false);
+            return true;
+        }
+        if (isSellerShipModalOpen) {
+            setIsSellerShipModalOpen(false);
+            return true;
+        }
         if (isFontSizeModalOpen) {
             setIsFontSizeModalOpen(false);
             return true;
@@ -2966,7 +4115,7 @@ export default function AndroidKoiApp({
         if (screenStack.length > 1) {
             const newStack = [...screenStack];
             newStack.pop();
-            const prevScreen = newStack[newStack.length - 1] || 'home';
+            const prevScreen = newStack[newStack.length - 1] || 'highest_auction';
             setScreenStack(newStack);
             setCurrentScreen(prevScreen);
             syncTabForScreen(prevScreen);
@@ -2976,18 +4125,18 @@ export default function AndroidKoiApp({
             return true;
         }
 
-        // 3. Jika sedang bukan di layar 'home' (misal di tab lain), arahkan kembali ke 'home'
-        if (currentScreen !== 'home') {
-            setCurrentScreen('home');
-            setActiveTab('home');
-            setScreenStack(['home']);
+        // 3. Jika sedang bukan di layar 'highest_auction' (misal di tab lain), arahkan kembali ke 'highest_auction'
+        if (currentScreen !== 'highest_auction') {
+            setCurrentScreen('highest_auction');
+            setActiveTab('koi');
+            setScreenStack(['highest_auction']);
 
             const routerEl = document.getElementById('main-screen-router');
             if (routerEl) routerEl.scrollTop = 0;
             return true;
         }
 
-        // 4. Sudah berada di halaman 'home' (layar utama):
+        // 4. Sudah berada di halaman 'highest_auction' (layar utama):
         // Jangan langsung keluar aplikasi, tampilkan konfirmasi double-tap back
         const now = Date.now();
         if (now - lastBackPressTimeRef.current < 2000) {
@@ -3043,32 +4192,43 @@ export default function AndroidKoiApp({
         return () => window.removeEventListener('popstate', handlePopState);
     }, [currentScreen]);
 
-    const handleTabClick = (tab: 'home' | 'categories' | 'chat' | 'articles' | 'favorite' | 'orders' | 'profile') => {
-        // Intercept jika belum login dengan Google untuk tab Favorit, Chat, & Pesanan
+    const handleTabClick = (tab: 'koi' | 'home' | 'categories' | 'chat' | 'articles' | 'favorite' | 'orders' | 'bidder' | 'seller' | 'profile') => {
+        // Intercept jika belum login untuk tab Favorit, Chat, Bidder
+        if (!isLoggedIn) {
+            try {
+                localStorage.setItem('koki_view_mode', 'android');
+                document.cookie = 'koki_view_mode=android; path=/; max-age=31536000';
+            } catch {}
+        }
+
         if (tab === 'favorite' && !isLoggedIn) {
+            try { localStorage.setItem('koki_last_screen', 'favorite'); } catch {}
             setGoogleLoginReason('favorit');
             setPendingLoginAction({ type: 'navigate', payload: 'favorite' });
             setIsGoogleLoginModalOpen(true);
-            triggerToast('🔒 Silakan login dengan Google terlebih dahulu untuk mengakses menu Favorit');
+            triggerToast('🔒 Silakan login terlebih dahulu untuk mengakses menu Favorit');
             return;
         }
         if (tab === 'chat' && !isLoggedIn) {
+            try { localStorage.setItem('koki_last_screen', 'chat_list'); } catch {}
             setGoogleLoginReason('chat');
             setPendingLoginAction({ type: 'navigate', payload: 'chat_list' });
             setIsGoogleLoginModalOpen(true);
-            triggerToast('🔒 Silakan login dengan Google terlebih dahulu untuk mengakses menu Chat');
+            triggerToast('🔒 Silakan login terlebih dahulu untuk mengakses menu Chat');
             return;
         }
-        if (tab === 'orders' && !isLoggedIn) {
-            setGoogleLoginReason('pesanan');
-            setPendingLoginAction({ type: 'navigate', payload: 'orders' });
+        if ((tab === 'bidder' || tab === 'orders') && !isLoggedIn) {
+            try { localStorage.setItem('koki_last_screen', 'bidder_center'); } catch {}
+            setGoogleLoginReason('tawaran');
+            setPendingLoginAction({ type: 'navigate', payload: 'bidder_center' });
             setIsGoogleLoginModalOpen(true);
-            triggerToast('🔒 Silakan login dengan Google terlebih dahulu untuk mengakses menu Pesanan Saya');
+            triggerToast('🔒 Silakan login terlebih dahulu untuk mengakses Pusat Bidder');
             return;
         }
 
         setActiveTab(tab);
-        if (tab === 'home') navigateTo('home');
+        if (tab === 'koi') navigateTo('highest_auction');
+        else if (tab === 'home') navigateTo('home');
         else if (tab === 'categories') navigateTo('categories');
         else if (tab === 'articles') navigateTo('articles_list');
         else if (tab === 'chat') {
@@ -3076,7 +4236,20 @@ export default function AndroidKoiApp({
             navigateTo('chat_list');
         }
         else if (tab === 'favorite') navigateTo('favorite');
-        else if (tab === 'orders') navigateTo('orders');
+        else if (tab === 'orders' || tab === 'bidder') {
+            if (userAccessRole === 'seller') {
+                setActiveTab('seller');
+                navigateTo('seller_center');
+            } else {
+                setActiveTab('bidder');
+                navigateTo('bidder_center');
+            }
+        }
+        else if (tab === 'seller') {
+            setUserAccessRole('seller');
+            setActiveTab('seller');
+            navigateTo('seller_center');
+        }
         else if (tab === 'profile') navigateTo('profile');
     };
 
@@ -3085,23 +4258,31 @@ export default function AndroidKoiApp({
         setGoogleLoginLoading(true);
         const targetScreen = (pendingLoginAction && pendingLoginAction.type === 'navigate' && pendingLoginAction.payload)
             ? (pendingLoginAction.payload as ScreenType)
-            : (currentScreen !== 'welcome' ? currentScreen : 'home');
+            : (currentScreen !== 'welcome' ? currentScreen : 'highest_auction');
 
         if (typeof window !== 'undefined') {
             try {
-                localStorage.setItem('koki_last_screen', targetScreen || 'home');
+                localStorage.setItem('koki_last_screen', targetScreen || 'highest_auction');
+                localStorage.setItem('koimart_user_access_role', 'bidder');
+                localStorage.setItem('koki_view_mode', 'android');
+                document.cookie = 'koki_view_mode=android; path=/; max-age=31536000';
+                if (targetScreen === 'product_detail' && selectedProduct?.id) {
+                    localStorage.setItem('koki_last_product_id', String(selectedProduct.id));
+                }
             } catch {}
         }
 
-        const pathname = typeof window !== 'undefined' ? window.location.pathname : '/';
         const searchParams = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
-
-        if (targetScreen && targetScreen !== 'home') {
+        searchParams.set('view', 'android');
+        if (targetScreen) {
             searchParams.set('screen', targetScreen);
         }
+        if (targetScreen === 'product_detail' && selectedProduct?.id) {
+            searchParams.set('product_id', String(selectedProduct.id));
+        }
 
-        const currentUrl = `${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
-        const redirectParam = currentUrl && currentUrl !== '/' ? `?redirect=${encodeURIComponent(currentUrl)}` : '';
+        const currentUrl = `/?${searchParams.toString()}`;
+        const redirectParam = `?redirect=${encodeURIComponent(currentUrl)}`;
         window.location.href = `/auth/google${redirectParam}`;
     };
 
@@ -3127,17 +4308,24 @@ export default function AndroidKoiApp({
 
                     const targetScreen = (pendingLoginAction && pendingLoginAction.type === 'navigate' && pendingLoginAction.payload)
                         ? (pendingLoginAction.payload as ScreenType)
-                        : (currentScreen !== 'welcome' ? currentScreen : 'home');
+                        : (currentScreen !== 'welcome' ? currentScreen : 'highest_auction');
 
                     if (typeof window !== 'undefined') {
                         try {
-                            localStorage.setItem('koki_last_screen', targetScreen || 'home');
+                            localStorage.setItem('koki_last_screen', targetScreen || 'highest_auction');
+                            localStorage.setItem('koimart_user_access_role', 'bidder');
+                            localStorage.setItem('koki_view_mode', 'android');
+                            document.cookie = 'koki_view_mode=android; path=/; max-age=31536000';
+                            if (targetScreen === 'product_detail' && selectedProduct?.id) {
+                                localStorage.setItem('koki_last_product_id', String(selectedProduct.id));
+                            }
                         } catch {}
                     }
 
-                    // Reload halaman agar session Laravel dan props Inertia ter-update dengan user aktif
+                    const target = targetScreen || 'highest_auction';
+                    const extraParam = target === 'product_detail' && selectedProduct?.id ? `&product_id=${selectedProduct.id}` : '';
                     setTimeout(() => {
-                        window.location.reload();
+                        window.location.href = `/?view=android&screen=${encodeURIComponent(target)}${extraParam}`;
                     }, 400);
                 } else {
                     setGoogleLoginLoading(false);
@@ -3172,17 +4360,23 @@ export default function AndroidKoiApp({
             delete (window as any).__onNativeGoogleSignInError;
             delete (window as any).__onNativeGoogleSignInCancel;
         };
-    }, [pendingLoginAction, currentScreen]);
+    }, [pendingLoginAction, currentScreen, selectedProduct]);
 
     // Google Login Handler - Langsung buka dialog Akun Google Native Android di HP tanpa redirect web
     const handleGoogleLogin = () => {
         const targetScreen = (pendingLoginAction && pendingLoginAction.type === 'navigate' && pendingLoginAction.payload)
             ? (pendingLoginAction.payload as ScreenType)
-            : (currentScreen !== 'welcome' ? currentScreen : 'home');
+            : (currentScreen !== 'welcome' ? currentScreen : 'highest_auction');
 
         if (typeof window !== 'undefined') {
             try {
-                localStorage.setItem('koki_last_screen', targetScreen || 'home');
+                localStorage.setItem('koki_last_screen', targetScreen || 'highest_auction');
+                localStorage.setItem('koimart_user_access_role', 'bidder');
+                localStorage.setItem('koki_view_mode', 'android');
+                document.cookie = 'koki_view_mode=android; path=/; max-age=31536000';
+                if (targetScreen === 'product_detail' && selectedProduct?.id) {
+                    localStorage.setItem('koki_last_product_id', String(selectedProduct.id));
+                }
             } catch {}
         }
 
@@ -3203,11 +4397,16 @@ export default function AndroidKoiApp({
 
             const targetScreen = (pendingLoginAction && pendingLoginAction.type === 'navigate' && pendingLoginAction.payload)
                 ? (pendingLoginAction.payload as ScreenType)
-                : (currentScreen !== 'welcome' ? currentScreen : 'home');
+                : (currentScreen !== 'welcome' ? currentScreen : 'highest_auction');
 
             if (typeof window !== 'undefined') {
                 try {
-                    localStorage.setItem('koki_last_screen', targetScreen || 'home');
+                    localStorage.setItem('koki_last_screen', targetScreen || 'highest_auction');
+                    localStorage.setItem('koki_view_mode', 'android');
+                    document.cookie = 'koki_view_mode=android; path=/; max-age=31536000';
+                    if (targetScreen === 'product_detail' && selectedProduct?.id) {
+                        localStorage.setItem('koki_last_product_id', String(selectedProduct.id));
+                    }
                 } catch {}
             }
 
@@ -3236,7 +4435,32 @@ export default function AndroidKoiApp({
                 triggerToast(`✅ Berhasil masuk sebagai ${data.user?.name || 'Pengguna'}`);
                 setIsGoogleLoginModalOpen(false);
                 setTimeout(() => {
-                    window.location.reload();
+                    if (data.user?.role === 'admin') {
+                        try {
+                            localStorage.setItem('koki_admin_view_mode', 'android');
+                            localStorage.setItem('koki_view_mode', 'android');
+                            document.cookie = 'koki_view_mode=android; path=/; max-age=31536000';
+                        } catch {}
+                        window.location.href = '/admin/dashboard?view=android';
+                    } else if (data.user?.role === 'seller') {
+                        try {
+                            localStorage.setItem('koimart_user_access_role', 'seller');
+                            localStorage.setItem('koki_last_screen', 'seller_center');
+                            localStorage.setItem('koki_view_mode', 'android');
+                            document.cookie = 'koki_view_mode=android; path=/; max-age=31536000';
+                        } catch {}
+                        window.location.href = '/?view=android&screen=seller_center';
+                    } else {
+                        try {
+                            localStorage.setItem('koimart_user_access_role', 'bidder');
+                            localStorage.setItem('koki_last_screen', targetScreen || 'highest_auction');
+                            localStorage.setItem('koki_view_mode', 'android');
+                            document.cookie = 'koki_view_mode=android; path=/; max-age=31536000';
+                        } catch {}
+                        const target = targetScreen || 'highest_auction';
+                        const extraParam = target === 'product_detail' && selectedProduct?.id ? `&product_id=${selectedProduct.id}` : '';
+                        window.location.href = `/?view=android&screen=${encodeURIComponent(target)}${extraParam}`;
+                    }
                 }, 400);
             } else {
                 setEmailLoginLoading(false);
@@ -3257,11 +4481,22 @@ export default function AndroidKoiApp({
             setGoogleLoginLoading(true);
             const targetScreen = (pendingLoginAction && pendingLoginAction.type === 'navigate' && pendingLoginAction.payload)
                 ? (pendingLoginAction.payload as ScreenType)
-                : currentScreen;
+                : (currentScreen !== 'welcome' ? currentScreen : 'highest_auction');
 
             if (typeof window !== 'undefined') {
                 try {
-                    localStorage.setItem('koki_last_screen', targetScreen);
+                    if (demoRole === 'seller') {
+                        localStorage.setItem('koimart_user_access_role', 'seller');
+                        localStorage.setItem('koki_last_screen', 'seller_center');
+                    } else {
+                        localStorage.setItem('koimart_user_access_role', 'bidder');
+                        localStorage.setItem('koki_last_screen', targetScreen || 'highest_auction');
+                    }
+                    localStorage.setItem('koki_view_mode', 'android');
+                    document.cookie = 'koki_view_mode=android; path=/; max-age=31536000';
+                    if (targetScreen === 'product_detail' && selectedProduct?.id) {
+                        localStorage.setItem('koki_last_product_id', String(selectedProduct.id));
+                    }
                 } catch {}
             }
 
@@ -3283,7 +4518,18 @@ export default function AndroidKoiApp({
             if (data.success) {
                 triggerToast(`✅ Berhasil masuk sebagai ${targetAccount.name}`);
                 setIsGoogleLoginModalOpen(false);
-                window.location.reload();
+                if (demoRole === 'admin') {
+                    try {
+                        localStorage.setItem('koki_admin_view_mode', 'android');
+                        localStorage.setItem('koki_view_mode', 'android');
+                        document.cookie = 'koki_view_mode=android; path=/; max-age=31536000';
+                    } catch {}
+                    window.location.href = '/admin/dashboard?view=android';
+                    return;
+                }
+                const target = demoRole === 'seller' ? 'seller_center' : (targetScreen || 'highest_auction');
+                const extraParam = target === 'product_detail' && selectedProduct?.id ? `&product_id=${selectedProduct.id}` : '';
+                window.location.href = `/?view=android&screen=${encodeURIComponent(target)}${extraParam}`;
             } else {
                 setGoogleLoginLoading(false);
                 triggerToast(data.message || 'Gagal login demo');
@@ -3300,6 +4546,7 @@ export default function AndroidKoiApp({
         setChatThreads([]);
         setOrdersList([]);
         setUserBids([]);
+        setMyKoiItems([]);
         setActiveThreadId('');
         router.post('/logout');
     };
@@ -3515,7 +4762,7 @@ export default function AndroidKoiApp({
 
         // Cek Status Pendaftaran Peserta Lelang (Pengganti E-Wallet)
         if (!isRegisteredParticipant) {
-            triggerToast('⚠️ Pendaftaran Diperlukan! Bayar biaya pendaftaran peserta lelang (Rp 250.000) untuk mulai menawar.');
+            triggerToast('⚠️ Pendaftaran Diperlukan! Silakan aktivasi status peserta lelang untuk mulai menawar.');
             setIsTopUpOpen(true);
             return;
         }
@@ -3694,6 +4941,143 @@ export default function AndroidKoiApp({
         triggerToast('🎉 Selamat! Biaya pendaftaran berhasil diverifikasi. Anda resmi terdaftar sebagai Peserta Lelang Koi Premium.');
     };
 
+    // Handler Buka & Submit Pendaftaran Seller Lapak KoiMart
+    const handleOpenSellerRegistration = () => {
+        if (isRegisteredSeller || (authUser?.role === 'seller' && (authUser as any)?.store?.is_verified)) {
+            setUserAccessRole('seller');
+            setActiveTab('seller');
+            navigateTo('seller_center');
+            triggerToast('🏪 Membuka Portal Lapak & Manajemen Koleksi Seller Anda');
+            return;
+        }
+        setSellerRegisterForm(prev => ({
+            ...prev,
+            owner_name: prev.owner_name || (userName && userName !== 'Tamu' ? userName : ''),
+            owner_phone: prev.owner_phone || (authUser?.phone as string || ''),
+            email: prev.email || (authUser?.email as string || ''),
+        }));
+        setIsSellerRegisterModalOpen(true);
+    };
+
+    const handleImageUploadToField = (field: 'logo' | 'ktp', e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const rawDataUrl = event.target?.result as string;
+            // Kompresi client-side via Canvas agar payload ringan & cepat diupload
+            const img = new Image();
+            img.onload = () => {
+                try {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+                    const maxDim = 1000;
+                    if (width > maxDim || height > maxDim) {
+                        if (width > height) {
+                            height = Math.round((height * maxDim) / width);
+                            width = maxDim;
+                        } else {
+                            width = Math.round((width * maxDim) / height);
+                            height = maxDim;
+                        }
+                    }
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    if (ctx) {
+                        ctx.drawImage(img, 0, 0, width, height);
+                        const compressed = canvas.toDataURL('image/jpeg', 0.82);
+                        setSellerRegisterForm(prev => ({ ...prev, [field]: compressed }));
+                        return;
+                    }
+                } catch {
+                    // Fallback ke rawDataUrl jika canvas tidak tersedia
+                }
+                setSellerRegisterForm(prev => ({ ...prev, [field]: rawDataUrl }));
+            };
+            img.src = rawDataUrl;
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const handleSubmitSellerRegistration = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setSellerRegisterErrors({});
+
+        if (!sellerRegisterForm.owner_name.trim()) {
+            triggerToast('⚠️ Masukkan Nama Owner');
+            return;
+        }
+        if (!sellerRegisterForm.owner_phone.trim()) {
+            triggerToast('⚠️ Masukkan No Telp Owner');
+            return;
+        }
+        if (!sellerRegisterForm.admin_name.trim()) {
+            triggerToast('⚠️ Masukkan Nama Admin');
+            return;
+        }
+        if (!sellerRegisterForm.admin_phone.trim()) {
+            triggerToast('⚠️ Masukkan No Telp Admin');
+            return;
+        }
+        if (!sellerRegisterForm.name.trim()) {
+            triggerToast('⚠️ Masukkan Nama Dealer / Farm Koi');
+            return;
+        }
+        if (!sellerRegisterForm.address.trim()) {
+            triggerToast('⚠️ Masukkan Alamat Dealer');
+            return;
+        }
+        if (!sellerRegisterForm.city.trim()) {
+            triggerToast('⚠️ Masukkan Kota Lokasi Dealer');
+            return;
+        }
+        if (!sellerRegisterForm.province.trim()) {
+            triggerToast('⚠️ Masukkan Provinsi');
+            return;
+        }
+
+        setSellerRegisterLoading(true);
+
+        const cleanPhone = sellerRegisterForm.owner_phone.replace(/\D/g, '');
+        const payload: any = {
+            owner_name: sellerRegisterForm.owner_name,
+            owner_phone: sellerRegisterForm.owner_phone,
+            admin_name: sellerRegisterForm.admin_name,
+            admin_phone: sellerRegisterForm.admin_phone,
+            name: sellerRegisterForm.name,
+            address: sellerRegisterForm.address,
+            city: sellerRegisterForm.city,
+            province: sellerRegisterForm.province,
+            description: sellerRegisterForm.description,
+            logo: sellerRegisterForm.logo || undefined,
+            ktp_image: sellerRegisterForm.ktp || undefined,
+            email: sellerRegisterForm.email?.trim() || (cleanPhone ? `seller_${cleanPhone}@koimart.local` : undefined),
+            password: sellerRegisterForm.password?.trim() || (cleanPhone ? `pass${cleanPhone}` : 'password123'),
+        };
+
+        router.post('/stores/register', payload, {
+            preserveScroll: true,
+            onSuccess: () => {
+                setSellerRegisterLoading(false);
+                setIsSellerRegisterModalOpen(false);
+                setSellerRegisterSuccessModalOpen(true);
+            },
+            onError: (err: any) => {
+                setSellerRegisterLoading(false);
+                if (err && typeof err === 'object') {
+                    setSellerRegisterErrors(err);
+                    const firstErrMsg = Object.values(err)[0] as string || 'Gagal mengirim pendaftaran.';
+                    triggerToast(`⚠️ ${firstErrMsg}`);
+                } else {
+                    triggerToast('⚠️ Gagal mengirim formulir pendaftaran. Silakan periksa kembali isian Anda.');
+                }
+            }
+        });
+    };
+
     // Backward-compatible Top up wallet handler
     const handleTopUp = (amount: number) => {
         setUserWallet(prev => prev + amount);
@@ -3781,40 +5165,210 @@ export default function AndroidKoiApp({
         return matchesCat && matchesStore && matchesQuery;
     });
 
+    // Koleksi Semua Sesi Lelang Aktif
+    const allAuctionsList = useMemo(() => {
+        const list: any[] = [...dynamicTopAuctions];
+        dynamicFavAuctions.forEach((fav) => {
+            if (!list.some((item) => item.id === fav.id || (item.name === fav.name && item.price === fav.price))) {
+                list.push(fav as any);
+            }
+        });
+        // 10 Data Dummy Lelang Tambahan untuk pengujian Infinite Scroll (Load 10 data bertahap)
+        EXTRA_DUMMY_AUCTIONS.forEach((dummy) => {
+            if (!list.some((item) => item.name === dummy.name || item.id === dummy.id)) {
+                list.push({
+                    ...dummy,
+                    rank: list.length + 1,
+                    auctionRaw: {
+                        id: dummy.id,
+                        product: {
+                            id: dummy.id,
+                            name: dummy.name,
+                            size: dummy.size,
+                            age: dummy.age,
+                            category: { name: dummy.name.split(' ')[0] },
+                        },
+                        current_bid: dummy.price,
+                        bids_count: dummy.bidsCount || 12,
+                    }
+                });
+            }
+        });
+        // Pastikan seluruh data ikan aktif tersedia untuk sesi lelang
+        dynamicProducts.forEach((prod, pIdx) => {
+            const alreadyExists = list.some((item) => item.name === prod.name || item.id === prod.id);
+            if (!alreadyExists) {
+                list.push({
+                    id: `auc-prod-${prod.id || pIdx}`,
+                    rank: list.length + 1,
+                    name: prod.name,
+                    size: prod.size || '65 cm',
+                    age: prod.age || '2 Tahun',
+                    price: Number(prod.price),
+                    status: 'LIVE',
+                    isRecord: false,
+                    image: prod.images?.[0] || '/images/koi/showa.jpg',
+                    bidsCount: Math.floor(8 + (pIdx % 15)),
+                    store: prod.store || 'Koki Nishikigoi Official Gallery',
+                    auctionRaw: {
+                        id: `auc-raw-${prod.id || pIdx}`,
+                        product: prod,
+                        current_bid: prod.price,
+                        bids_count: Math.floor(8 + (pIdx % 15)),
+                    }
+                });
+            }
+        });
+        return list;
+    }, [dynamicTopAuctions, dynamicFavAuctions, dynamicProducts]);
+
+    // Filter Lelang Beranda berdasarkan Kategori & Pencarian
+    const filteredAuctions = useMemo(() => {
+        return allAuctionsList.filter((auc) => {
+            const catName = selectedCategoryPill.replace(/^(Ikan\s+|Koi\s+)/i, '').trim().toLowerCase();
+            const matchesCat =
+                selectedCategoryPill === 'Semua' ||
+                auc.name.toLowerCase().includes(catName) ||
+                ((auc as any).auctionRaw?.product?.category?.name &&
+                    (auc as any).auctionRaw.product.category.name.toLowerCase().includes(catName));
+
+            const matchesQuery =
+                !searchQuery ||
+                auc.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                auc.size.toLowerCase().includes(searchQuery.toLowerCase());
+
+            return matchesCat && matchesQuery;
+        });
+    }, [allAuctionsList, selectedCategoryPill, searchQuery]);
+
+    // Filter Khusus Layar Bursa Lelang Koi berdasarkan input pencarian
+    const displayedAuctions = useMemo(() => {
+        if (!auctionSearchQuery.trim()) {
+            return allAuctionsList;
+        }
+        const q = auctionSearchQuery.toLowerCase().trim();
+        return allAuctionsList.filter((auc) => {
+            const nameMatch = auc.name ? auc.name.toLowerCase().includes(q) : false;
+            const sizeMatch = auc.size ? auc.size.toLowerCase().includes(q) : false;
+            const ageMatch = auc.age ? String(auc.age).toLowerCase().includes(q) : false;
+            const rawVariety = (auc as any).auctionRaw?.product?.variety || (auc as any).auctionRaw?.product?.category?.name || '';
+            const varietyMatch = rawVariety ? String(rawVariety).toLowerCase().includes(q) : false;
+            return nameMatch || sizeMatch || ageMatch || varietyMatch;
+        });
+    }, [allAuctionsList, auctionSearchQuery]);
+
+    // Pagination & Infinite Scroll (Load 10 data pertama, lalu load 10 data berikutnya saat scroll)
+    const [visibleAuctionLimit, setVisibleAuctionLimit] = useState(10);
+    const [isLoadingMoreAuctions, setIsLoadingMoreAuctions] = useState(false);
+    const loadMoreSentinelRef = useRef<HTMLDivElement | null>(null);
+
+    useEffect(() => {
+        setVisibleAuctionLimit(10);
+    }, [auctionSearchQuery]);
+
+    const paginatedAuctions = useMemo(() => {
+        return displayedAuctions.slice(0, visibleAuctionLimit);
+    }, [displayedAuctions, visibleAuctionLimit]);
+
+    const loadNextBatch = useCallback(() => {
+        if (isLoadingMoreAuctions) return;
+        if (visibleAuctionLimit >= displayedAuctions.length) return;
+
+        setIsLoadingMoreAuctions(true);
+        setTimeout(() => {
+            setVisibleAuctionLimit((prev) => Math.min(prev + 10, displayedAuctions.length));
+            setIsLoadingMoreAuctions(false);
+        }, 300);
+    }, [isLoadingMoreAuctions, visibleAuctionLimit, displayedAuctions.length]);
+
+    const handleAuctionListScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+        const el = e.currentTarget;
+        if (!el) return;
+        if (el.scrollHeight - (el.scrollTop + el.clientHeight) < 250) {
+            loadNextBatch();
+        }
+    }, [loadNextBatch]);
+
+    // 1. IntersectionObserver mendeteksi otomatis saat scroll mendekati ujung daftar
+    useEffect(() => {
+        if (typeof window === 'undefined' || !('IntersectionObserver' in window)) return;
+        const sentinel = loadMoreSentinelRef.current;
+        if (!sentinel) return;
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0]?.isIntersecting) {
+                    loadNextBatch();
+                }
+            },
+            {
+                root: null,
+                rootMargin: '150px',
+                threshold: 0,
+            }
+        );
+
+        observer.observe(sentinel);
+        return () => observer.disconnect();
+    }, [loadNextBatch]);
+
+    // 2. Scroll event listener pada #main-screen-router & window
+    useEffect(() => {
+        const routerEl = document.getElementById('main-screen-router');
+
+        const handleScroll = (el: HTMLElement | Window) => {
+            if (currentScreen !== 'highest_auction') return;
+            const scrollTop = el === window ? window.scrollY : (el as HTMLElement).scrollTop;
+            const scrollHeight = el === window ? document.documentElement.scrollHeight : (el as HTMLElement).scrollHeight;
+            const clientHeight = el === window ? window.innerHeight : (el as HTMLElement).clientHeight;
+
+            if (scrollHeight - (scrollTop + clientHeight) < 200) {
+                loadNextBatch();
+            }
+        };
+
+        const onRouterScroll = () => {
+            if (routerEl) handleScroll(routerEl);
+        };
+        const onWindowScroll = () => {
+            handleScroll(window);
+        };
+
+        if (routerEl) routerEl.addEventListener('scroll', onRouterScroll, { passive: true });
+        window.addEventListener('scroll', onWindowScroll, { passive: true });
+
+        return () => {
+            if (routerEl) routerEl.removeEventListener('scroll', onRouterScroll);
+            window.removeEventListener('scroll', onWindowScroll);
+        };
+    }, [currentScreen, loadNextBatch]);
+
     return (
         <div className="relative min-h-[100dvh] sm:min-h-screen h-[100dvh] sm:h-auto bg-slate-950 flex justify-center items-center py-0 sm:py-6 select-none font-sans overflow-hidden sm:overflow-visible">
-            {/* Scoped CSS Rule: Memperbesar Ukuran Tulisan & Kontras Tajam */}
+            {/* Scoped CSS Rule: Memperbesar Ukuran Tulisan & Kontras Tajam (Slider Fluid & Preset) */}
             <style>{`
-                /* MODE BESAR */
-                .font-scale-large .text-\\[8px\\], .font-scale-large .text-\\[9px\\] { font-size: 11.5px !important; line-height: 1.35 !important; }
-                .font-scale-large .text-\\[10px\\] { font-size: 13px !important; line-height: 1.35 !important; }
-                .font-scale-large .text-\\[11px\\] { font-size: 14px !important; line-height: 1.4 !important; }
-                .font-scale-large .text-xs { font-size: 15px !important; line-height: 1.45 !important; }
-                .font-scale-large .text-sm { font-size: 16.5px !important; line-height: 1.45 !important; }
-                .font-scale-large .text-base { font-size: 18.5px !important; line-height: 1.5 !important; }
-                .font-scale-large .text-lg { font-size: 21px !important; }
-                .font-scale-large .text-xl { font-size: 24px !important; }
-                .font-scale-large .text-2xl { font-size: 27px !important; }
-
-                /* MODE SANGAT BESAR */
-                .font-scale-xlarge .text-\\[8px\\], .font-scale-xlarge .text-\\[9px\\] { font-size: 13px !important; line-height: 1.35 !important; }
-                .font-scale-xlarge .text-\\[10px\\] { font-size: 14.5px !important; line-height: 1.4 !important; }
-                .font-scale-xlarge .text-\\[11px\\] { font-size: 15.5px !important; line-height: 1.4 !important; }
-                .font-scale-xlarge .text-xs { font-size: 17px !important; line-height: 1.45 !important; }
-                .font-scale-xlarge .text-sm { font-size: 18.5px !important; line-height: 1.5 !important; }
-                .font-scale-xlarge .text-base { font-size: 20.5px !important; line-height: 1.5 !important; }
-                .font-scale-xlarge .text-lg { font-size: 23px !important; }
-                .font-scale-xlarge .text-xl { font-size: 26px !important; }
-                .font-scale-xlarge .text-2xl { font-size: 30px !important; }
+                /* SLIDER FLUID SCALING (BERDASARKAN PERSENTASE TARIK REALTIME) */
+                .font-scaler-root .text-\\[8px\\], .font-scaler-root .text-\\[8\\.5px\\], .font-scaler-root .text-\\[9px\\] { font-size: calc(9px * var(--f-factor, 1)) !important; line-height: 1.35 !important; }
+                .font-scaler-root .text-\\[9\\.5px\\], .font-scaler-root .text-\\[10px\\] { font-size: calc(10px * var(--f-factor, 1)) !important; line-height: 1.35 !important; }
+                .font-scaler-root .text-\\[11px\\] { font-size: calc(11px * var(--f-factor, 1)) !important; line-height: 1.4 !important; }
+                .font-scaler-root .text-xs { font-size: calc(12px * var(--f-factor, 1)) !important; line-height: 1.4 !important; }
+                .font-scaler-root .text-sm { font-size: calc(14px * var(--f-factor, 1)) !important; line-height: 1.45 !important; }
+                .font-scaler-root .text-base { font-size: calc(16px * var(--f-factor, 1)) !important; line-height: 1.5 !important; }
+                .font-scaler-root .text-lg { font-size: calc(18px * var(--f-factor, 1)) !important; }
+                .font-scaler-root .text-xl { font-size: calc(20px * var(--f-factor, 1)) !important; }
+                .font-scaler-root .text-2xl { font-size: calc(24px * var(--f-factor, 1)) !important; }
 
                 /* KONTRAST TEKS TAJAM */
-                .font-scale-large .text-slate-400, .font-scale-xlarge .text-slate-400 { color: #475569 !important; }
-                .font-scale-large .text-slate-500, .font-scale-xlarge .text-slate-500 { color: #334155 !important; font-weight: 500 !important; }
-                .font-scale-large .text-slate-600, .font-scale-xlarge .text-slate-600 { color: #1e293b !important; font-weight: 600 !important; }
+                .font-scaler-root .text-slate-400 { color: #475569 !important; }
+                .font-scaler-root .text-slate-500 { color: #334155 !important; font-weight: 500 !important; }
+                .font-scaler-root .text-slate-600 { color: #1e293b !important; font-weight: 600 !important; }
             `}</style>
 
             {/* ANDROID DEVICE WRAPPER (Mobile width container with Android aesthetics) */}
-            <div className={`w-full sm:max-w-[420px] h-[100dvh] sm:h-[892px] sm:max-h-[92vh] bg-white sm:rounded-[40px] shadow-2xl overflow-hidden flex flex-col relative border-0 sm:border-[8px] sm:border-slate-800 font-scale-${fontSizeScale}`}>
+            <div 
+                className={`w-full sm:max-w-[420px] h-[100dvh] sm:h-[892px] sm:max-h-[92vh] bg-white sm:rounded-[40px] shadow-2xl overflow-hidden flex flex-col relative border-0 sm:border-[8px] sm:border-slate-800 font-scaler-root font-scale-${fontSizeScale}`}
+                style={{ '--f-factor': fontSizePercent / 100 } as React.CSSProperties}
+            >
 
                 {/* TOAST NOTIFICATION POPUP */}
                 {toastMessage && (
@@ -3910,10 +5464,10 @@ export default function AndroidKoiApp({
                                         <span>Masuk dengan Google</span>
                                     </button>
                                     <button
-                                        onClick={() => navigateTo('home')}
+                                        onClick={() => navigateTo('highest_auction')}
                                         className="w-full py-3 bg-white/10 hover:bg-white/15 border border-white/20 active:scale-[0.99] text-white font-semibold rounded-full transition-all text-xs flex items-center justify-center gap-1.5"
                                     >
-                                        <span>Jelajahi sebagai Tamu</span>
+                                        <span>Jelajahi Bursa Lelang</span>
                                         <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
                                     </button>
                                 </div>
@@ -4021,7 +5575,461 @@ export default function AndroidKoiApp({
                             <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
 
                                 {/* ========================================================= */}
-                                {/* 1. ARTIKEL & EVENT ANNOUNCEMENT SLIDER (SLIDE KE SAMPING) */}
+                                {/* 1. MENU LAYANAN UTAMA (QUICK MENU BUTTON GRID 8 IKON)     */}
+                                {/* ========================================================= */}
+                                <div className="bg-gradient-to-b from-white via-stone-50/40 to-white rounded-3xl p-4.5 border border-stone-200/90 shadow-sm space-y-3.5 relative overflow-hidden">
+                                    {/* Subtle Ambient Gold Sheen */}
+                                    <div className="absolute top-0 right-0 w-36 h-36 bg-amber-500/5 rounded-full blur-2xl pointer-events-none" />
+
+                                    {/* Header Section */}
+                                    <div className="flex items-center justify-between px-0.5 relative z-10">
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-amber-500/20 to-red-500/15 flex items-center justify-center border border-amber-500/30 shadow-2xs">
+                                                <Crown className="w-4 h-4 text-amber-700" />
+                                            </div>
+                                            <div>
+                                                <h4 className="text-xs font-black text-stone-900 tracking-tight">
+                                                    Menu Layanan Utama
+                                                </h4>
+                                                <p className="text-[10px] text-stone-500 font-medium">Akses Cepat Lelang & Kurasi Sultan</p>
+                                            </div>
+                                        </div>
+                                        <span className="text-[10px] font-bold text-amber-800 bg-amber-50/90 px-2.5 py-0.5 rounded-full border border-amber-300/60 shadow-2xs">
+                                            Akses Cepat
+                                        </span>
+                                    </div>
+
+                                    {/* 8-Icon Grid (Koleksi Ikon Realistis 3D Mewah / Skeuomorphic Luxury PNG dengan Background Mewah Khusus) */}
+                                    <div className="grid grid-cols-4 gap-y-4 gap-x-2 relative z-10">
+                                        {/* Menu 1: Bursa Lelang Live (Palu Emas Mahoni Asli) */}
+                                        <button
+                                            onClick={() => {
+                                                setActiveTab('koi');
+                                                navigateTo('highest_auction');
+                                            }}
+                                            className="flex flex-col items-center gap-1.5 group active:scale-95 transition cursor-pointer"
+                                        >
+                                            <div className="relative w-[54px] h-[54px] rounded-[18px] bg-gradient-to-b from-amber-50/90 via-amber-100/40 to-orange-100/50 border border-amber-300/60 ring-1 ring-amber-200/50 shadow-xs shadow-amber-900/10 flex items-center justify-center p-1.5 group-hover:scale-105 group-hover:border-amber-400 group-hover:shadow-md transition-all duration-200">
+                                                <img
+                                                    src="/images/menu_icons/lelang_live.png"
+                                                    alt="Lelang Live"
+                                                    className="w-full h-full object-contain filter drop-shadow-sm group-hover:scale-110 transition-transform duration-300"
+                                                />
+                                            </div>
+                                            <span className="text-[11.5px] font-bold text-stone-800 group-hover:text-amber-800 text-center leading-tight">
+                                                Lelang Live
+                                            </span>
+                                        </button>
+
+                                        {/* Menu 2: Event Spesial (Mahkota Emas Beludru Mewah) */}
+                                        <button
+                                            onClick={() => {
+                                                const el = document.getElementById('beranda-event-spesial-section');
+                                                if (el) {
+                                                    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                                } else {
+                                                    setIsEventDetailModalOpen(true);
+                                                }
+                                            }}
+                                            className="flex flex-col items-center gap-1.5 group active:scale-95 transition cursor-pointer"
+                                        >
+                                            <div className="relative w-[54px] h-[54px] rounded-[18px] bg-gradient-to-b from-rose-50/90 via-rose-100/40 to-red-100/50 border border-rose-300/60 ring-1 ring-rose-200/50 shadow-xs shadow-rose-900/10 flex items-center justify-center p-1.5 group-hover:scale-105 group-hover:border-rose-400 group-hover:shadow-md transition-all duration-200">
+                                                <img
+                                                    src="/images/menu_icons/event_spesial.png"
+                                                    alt="Event Spesial"
+                                                    className="w-full h-full object-contain filter drop-shadow-sm group-hover:scale-110 transition-transform duration-300"
+                                                />
+                                            </div>
+                                            <span className="text-[11.5px] font-bold text-stone-800 group-hover:text-rose-800 text-center leading-tight">
+                                                Event Spesial
+                                            </span>
+                                        </button>
+
+                                        {/* Menu 3: Rekor Harga (Trofi Emas Grand Champion) */}
+                                        <button
+                                            onClick={() => navigateTo('highest_auction')}
+                                            className="flex flex-col items-center gap-1.5 group active:scale-95 transition cursor-pointer"
+                                        >
+                                            <div className="relative w-[54px] h-[54px] rounded-[18px] bg-gradient-to-b from-yellow-50/90 via-amber-100/40 to-yellow-100/50 border border-yellow-300/70 ring-1 ring-yellow-200/50 shadow-xs shadow-yellow-900/10 flex items-center justify-center p-1.5 group-hover:scale-105 group-hover:border-yellow-400 group-hover:shadow-md transition-all duration-200">
+                                                <img
+                                                    src="/images/menu_icons/rekor_harga.png"
+                                                    alt="Rekor Harga"
+                                                    className="w-full h-full object-contain filter drop-shadow-sm group-hover:scale-110 transition-transform duration-300"
+                                                />
+                                            </div>
+                                            <span className="text-[11.5px] font-bold text-stone-800 group-hover:text-amber-800 text-center leading-tight">
+                                                Rekor Harga
+                                            </span>
+                                        </button>
+
+                                        {/* Menu 4: Kategori Koi (Ikan Kohaku Nishikigoi Juara) */}
+                                        <button
+                                            onClick={() => navigateTo('categories')}
+                                            className="flex flex-col items-center gap-1.5 group active:scale-95 transition cursor-pointer"
+                                        >
+                                            <div className="relative w-[54px] h-[54px] rounded-[18px] bg-gradient-to-b from-sky-50/90 via-blue-100/40 to-cyan-100/50 border border-sky-300/60 ring-1 ring-sky-200/50 shadow-xs shadow-sky-900/10 flex items-center justify-center p-1.5 group-hover:scale-105 group-hover:border-sky-400 group-hover:shadow-md transition-all duration-200">
+                                                <img
+                                                    src="/images/menu_icons/kategori_koi.png"
+                                                    alt="Kategori Koi"
+                                                    className="w-full h-full object-contain filter drop-shadow-sm group-hover:scale-110 transition-transform duration-300"
+                                                />
+                                            </div>
+                                            <span className="text-[11.5px] font-bold text-stone-800 group-hover:text-blue-800 text-center leading-tight">
+                                                Kategori Koi
+                                            </span>
+                                        </button>
+
+                                        {/* Menu 5: Farm Mitra (Torii Gate & Kolam Jepang Asli) */}
+                                        <button
+                                            onClick={() => {
+                                                setSelectedStore(OFFICIAL_KOI_GALLERY);
+                                                setStoreActiveTab('gallery');
+                                                navigateTo('store_gallery');
+                                            }}
+                                            className="flex flex-col items-center gap-1.5 group active:scale-95 transition cursor-pointer"
+                                        >
+                                            <div className="relative w-[54px] h-[54px] rounded-[18px] bg-gradient-to-b from-emerald-50/90 via-emerald-100/40 to-teal-100/50 border border-emerald-300/60 ring-1 ring-emerald-200/50 shadow-xs shadow-emerald-900/10 flex items-center justify-center p-1.5 group-hover:scale-105 group-hover:border-emerald-400 group-hover:shadow-md transition-all duration-200">
+                                                <img
+                                                    src="/images/menu_icons/farm_mitra.png"
+                                                    alt="Farm Mitra"
+                                                    className="w-full h-full object-contain filter drop-shadow-sm group-hover:scale-110 transition-transform duration-300"
+                                                />
+                                            </div>
+                                            <span className="text-[11.5px] font-bold text-stone-800 group-hover:text-emerald-800 text-center leading-tight">
+                                                Farm Mitra
+                                            </span>
+                                        </button>
+
+                                        {/* Menu 6: Favorit (Permata Ruby Hati Emas) */}
+                                        <button
+                                            onClick={() => navigateTo('favorite_auction')}
+                                            className="flex flex-col items-center gap-1.5 group active:scale-95 transition cursor-pointer"
+                                        >
+                                            <div className="relative w-[54px] h-[54px] rounded-[18px] bg-gradient-to-b from-pink-50/90 via-rose-100/40 to-pink-100/50 border border-pink-300/60 ring-1 ring-pink-200/50 shadow-xs shadow-rose-900/10 flex items-center justify-center p-1.5 group-hover:scale-105 group-hover:border-pink-400 group-hover:shadow-md transition-all duration-200">
+                                                <img
+                                                    src="/images/menu_icons/favorit.png"
+                                                    alt="Favorit"
+                                                    className="w-full h-full object-contain filter drop-shadow-sm group-hover:scale-110 transition-transform duration-300"
+                                                />
+                                            </div>
+                                            <span className="text-[11.5px] font-bold text-stone-800 group-hover:text-rose-800 text-center leading-tight">
+                                                Favorit
+                                            </span>
+                                        </button>
+
+                                        {/* Menu 7: Pusat Bidder (Medali Perisai Emas VIP Eksekutif) */}
+                                        <button
+                                            onClick={() => {
+                                                setBidderActiveTab('dashboard');
+                                                navigateTo('bidder_center');
+                                            }}
+                                            className="flex flex-col items-center gap-1.5 group active:scale-95 transition cursor-pointer"
+                                        >
+                                            <div className="relative w-[54px] h-[54px] rounded-[18px] bg-gradient-to-b from-amber-50/90 via-stone-100/60 to-yellow-100/50 border border-amber-300/60 ring-1 ring-amber-200/50 shadow-xs shadow-amber-900/10 flex items-center justify-center p-1.5 group-hover:scale-105 group-hover:border-amber-400 group-hover:shadow-md transition-all duration-200">
+                                                <img
+                                                    src="/images/menu_icons/pusat_bidder.png"
+                                                    alt="Pusat Bidder"
+                                                    className="w-full h-full object-contain filter drop-shadow-sm group-hover:scale-110 transition-transform duration-300"
+                                                />
+                                            </div>
+                                            <span className="text-[11.5px] font-bold text-stone-800 group-hover:text-amber-800 text-center leading-tight">
+                                                Pusat Bidder
+                                            </span>
+                                        </button>
+
+                                        {/* Menu 8: Chat & Konsultasi VIP (Balon Telepon Emerald Emas) */}
+                                        <button
+                                            onClick={() => {
+                                                if (!isLoggedIn) {
+                                                    setGoogleLoginReason('chat');
+                                                    setPendingLoginAction({ type: 'navigate', payload: 'chat_list' });
+                                                    setIsGoogleLoginModalOpen(true);
+                                                    triggerToast('🔒 Silakan login terlebih dahulu untuk mengakses Chat');
+                                                    return;
+                                                }
+                                                refreshChatThreads();
+                                                navigateTo('chat_list');
+                                            }}
+                                            className="flex flex-col items-center gap-1.5 group active:scale-95 transition cursor-pointer"
+                                        >
+                                            <div className="relative w-[54px] h-[54px] rounded-[18px] bg-gradient-to-b from-teal-50/90 via-teal-100/40 to-emerald-100/50 border border-teal-300/60 ring-1 ring-teal-200/50 shadow-xs shadow-teal-900/10 flex items-center justify-center p-1.5 group-hover:scale-105 group-hover:border-teal-400 group-hover:shadow-md transition-all duration-200">
+                                                <img
+                                                    src="/images/menu_icons/chat_vip.png"
+                                                    alt="Chat VIP"
+                                                    className="w-full h-full object-contain filter drop-shadow-sm group-hover:scale-110 transition-transform duration-300"
+                                                />
+                                                {totalUnreadChatCount > 0 && (
+                                                    <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 bg-red-600 text-white font-bold text-[8px] rounded-full ring-2 ring-white flex items-center justify-center z-10">
+                                                        {totalUnreadChatCount}
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <span className="text-[11.5px] font-bold text-stone-800 group-hover:text-teal-800 text-center leading-tight">
+                                                Chat
+                                            </span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* ========================================================= */}
+                                {/* SECTION KHUSUS: EVENT & PROMO SPESIAL (LIVE COUNTDOWN & LELANG EVENT) */}
+                                {/* ========================================================= */}
+                                {(() => {
+                                    const currentEvent = SPECIAL_EVENTS_DATA.find(e => e.id === activeSpecialEventId) || SPECIAL_EVENTS_DATA[0];
+                                    const eventAuctions = dynamicTopAuctions.slice(0, 4);
+
+                                    return (
+                                        <div id="beranda-event-spesial-section" className="space-y-3.5 scroll-mt-3">
+                                            {/* Section Header */}
+                                            <div className="flex items-center justify-between px-0.5">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-500 to-red-500 text-white flex items-center justify-center shadow-md shadow-amber-500/20">
+                                                        <Sparkles className="w-4 h-4" />
+                                                    </div>
+                                                    <div>
+                                                        <h3 className="font-extrabold text-xs sm:text-sm text-slate-900 tracking-tight flex items-center gap-1.5">
+                                                            <span>Event & Promo Spesial</span>
+                                                            <span className="px-1.5 py-0.2 bg-red-100 text-red-700 font-black text-[9px] rounded-full border border-red-200">
+                                                                LIVE
+                                                            </span>
+                                                        </h3>
+                                                        <p className="text-[10px] text-slate-500">Lelang akbar kurasi khusus & flash bid terbatas</p>
+                                                    </div>
+                                                </div>
+
+                                                <button
+                                                    onClick={() => setIsEventDetailModalOpen(true)}
+                                                    className="flex items-center gap-1 text-[11px] font-bold text-red-600 hover:text-red-700 active:scale-95 transition bg-red-50 hover:bg-red-100/70 px-2.5 py-1.5 rounded-xl cursor-pointer"
+                                                >
+                                                    <span>Jadwal & Aturan</span>
+                                                    <ChevronRight className="w-3.5 h-3.5" />
+                                                </button>
+                                            </div>
+
+                                            {/* Event Selector Tab Pills */}
+                                            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth pb-0.5 select-none">
+                                                {SPECIAL_EVENTS_DATA.map((evt) => {
+                                                    const isSelected = activeSpecialEventId === evt.id;
+                                                    return (
+                                                        <button
+                                                            key={evt.id}
+                                                            onClick={() => setActiveSpecialEventId(evt.id)}
+                                                            className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all active:scale-95 cursor-pointer ${
+                                                                isSelected
+                                                                    ? 'bg-slate-900 text-white shadow-md shadow-slate-900/20 ring-2 ring-slate-900'
+                                                                    : 'bg-white text-slate-700 border border-slate-200/90 hover:bg-slate-50'
+                                                            }`}
+                                                        >
+                                                            <span className="text-amber-400">★</span>
+                                                            <span>{evt.title.split(':')[0].trim()}</span>
+                                                            <span className={`text-[8px] font-black px-1.5 py-0.2 rounded-full uppercase tracking-wider ${
+                                                                isSelected
+                                                                    ? 'bg-amber-400 text-stone-950'
+                                                                    : 'bg-slate-100 text-slate-600'
+                                                            }`}>
+                                                                {evt.badge}
+                                                            </span>
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+
+                                            {/* Event Hero Showcase Card with Live Countdown */}
+                                            <div className={`relative rounded-3xl overflow-hidden border ${currentEvent.id === 'grand-champion-2026' ? 'border-amber-500/40' : currentEvent.id === 'flash-bid-weekend' ? 'border-red-500/40' : 'border-blue-500/40'} shadow-xl bg-gradient-to-br ${currentEvent.bgGradient} text-white p-4 space-y-3.5 transition-all duration-300`}>
+                                                {/* Background decorative image with overlay */}
+                                                <div className="absolute inset-0 z-0">
+                                                    <img
+                                                        src={currentEvent.bannerImage}
+                                                        alt={currentEvent.title}
+                                                        className="w-full h-full object-cover opacity-25 scale-105"
+                                                    />
+                                                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/80 to-transparent" />
+                                                </div>
+
+                                                <div className="relative z-10 space-y-3">
+                                                    {/* Top Status Badges */}
+                                                    <div className="flex items-center justify-between gap-2">
+                                                        <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-red-600/90 text-white text-[10px] font-black tracking-wider uppercase shadow-xs">
+                                                            <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
+                                                            <span>{currentEvent.statusText}</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-1 text-[10px] text-amber-300 font-semibold bg-white/10 backdrop-blur-md px-2.5 py-0.5 rounded-full border border-white/15">
+                                                            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                                                            <span>Garansi Rekber D.O.A 100%</span>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Title & Tagline */}
+                                                    <div>
+                                                        <h4 className="text-base sm:text-lg font-black text-white leading-tight drop-shadow-sm">
+                                                            {currentEvent.title}
+                                                        </h4>
+                                                        <p className="text-xs text-amber-200/90 font-medium mt-1 leading-snug">
+                                                            {currentEvent.subtitle}
+                                                        </p>
+                                                        <p className="text-[10px] text-slate-300 mt-0.5">
+                                                            {currentEvent.tagline}
+                                                        </p>
+                                                    </div>
+
+                                                    {/* Real-Time Countdown Timer Digital Display */}
+                                                    <div className="p-3 rounded-2xl bg-black/50 backdrop-blur-md border border-white/15 space-y-2">
+                                                        <div className="flex items-center justify-between">
+                                                            <span className="text-[10px] text-slate-300 font-bold uppercase tracking-wider flex items-center gap-1">
+                                                                <Clock className="w-3 h-3 text-amber-400" />
+                                                                <span>Sisa Waktu Penawaran Event:</span>
+                                                            </span>
+                                                            <span className="text-[10px] font-bold text-amber-300">
+                                                                {currentEvent.schedule.split('•')[1]?.trim() || 'Live Bidding'}
+                                                            </span>
+                                                        </div>
+
+                                                        <div className="grid grid-cols-4 gap-2 text-center">
+                                                            <div className="bg-slate-900/90 rounded-xl p-1.5 border border-amber-500/30 shadow-inner">
+                                                                <span className="block text-base sm:text-lg font-black text-amber-400 tracking-wider font-mono">
+                                                                    01
+                                                                </span>
+                                                                <span className="text-[8px] text-slate-400 font-bold uppercase">Hari</span>
+                                                            </div>
+                                                            <div className="bg-slate-900/90 rounded-xl p-1.5 border border-amber-500/30 shadow-inner">
+                                                                <span className="block text-base sm:text-lg font-black text-amber-400 tracking-wider font-mono">
+                                                                    {String(eventTimeLeft.hours).padStart(2, '0')}
+                                                                </span>
+                                                                <span className="text-[8px] text-slate-400 font-bold uppercase">Jam</span>
+                                                            </div>
+                                                            <div className="bg-slate-900/90 rounded-xl p-1.5 border border-amber-500/30 shadow-inner">
+                                                                <span className="block text-base sm:text-lg font-black text-amber-400 tracking-wider font-mono">
+                                                                    {String(eventTimeLeft.minutes).padStart(2, '0')}
+                                                                </span>
+                                                                <span className="text-[8px] text-slate-400 font-bold uppercase">Menit</span>
+                                                            </div>
+                                                            <div className="bg-slate-900/90 rounded-xl p-1.5 border border-amber-500/30 shadow-inner">
+                                                                <span className="block text-base sm:text-lg font-black text-amber-400 tracking-wider font-mono animate-pulse">
+                                                                    {String(eventTimeLeft.seconds).padStart(2, '0')}
+                                                                </span>
+                                                                <span className="text-[8px] text-slate-400 font-bold uppercase">Detik</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Event Perks Pills */}
+                                                    <div className="flex flex-wrap items-center gap-1.5 text-[10px] text-slate-300">
+                                                        <span className="bg-white/10 backdrop-blur-xs px-2 py-0.5 rounded-lg border border-white/10">
+                                                            📜 Sertifikat Resmi ZNA
+                                                        </span>
+                                                        <span className="bg-white/10 backdrop-blur-xs px-2 py-0.5 rounded-lg border border-white/10">
+                                                            🚚 Safe Thermo-Box Double Oxygen
+                                                        </span>
+                                                        <span className="bg-white/10 backdrop-blur-xs px-2 py-0.5 rounded-lg border border-white/10">
+                                                            🎁 Bonus Pakan Khusus 5kg
+                                                        </span>
+                                                    </div>
+
+                                                    {/* Bottom CTA Action Button */}
+                                                    <button
+                                                        onClick={() => setIsEventDetailModalOpen(true)}
+                                                        className="w-full py-2.5 px-4 bg-gradient-to-r from-amber-500 via-orange-500 to-red-600 hover:from-amber-600 hover:to-red-700 active:scale-[0.99] text-white font-extrabold text-xs rounded-xl shadow-lg shadow-amber-500/25 flex items-center justify-center gap-2 transition cursor-pointer"
+                                                    >
+                                                        <Trophy className="w-4 h-4 text-amber-100" />
+                                                        <span>Lihat Syarat & Hadiah Lengkap Event</span>
+                                                        <ArrowUpRight className="w-3.5 h-3.5" />
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            {/* Sub-Section: Curated Event Auction Lots */}
+                                            <div className="space-y-2 pt-1">
+                                                <div className="flex items-center justify-between px-0.5">
+                                                    <h4 className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                                                        <Gavel className="w-3.5 h-3.5 text-red-600" />
+                                                        <span>Ikan Lelang Khusus Event ({eventAuctions.length} Lot Tersedia)</span>
+                                                    </h4>
+                                                    <button
+                                                        onClick={() => {
+                                                            setActiveTab('koi');
+                                                            navigateTo('highest_auction');
+                                                        }}
+                                                        className="text-[11px] font-bold text-red-600 hover:text-red-700 cursor-pointer"
+                                                    >
+                                                        Lihat Semua
+                                                    </button>
+                                                </div>
+
+                                                {/* Horizontal Snap Scroll of Event Koi Cards */}
+                                                <div className="flex items-stretch gap-3 overflow-x-auto no-scrollbar scroll-smooth pb-1 select-none">
+                                                    {eventAuctions.map((auc, aIdx) => {
+                                                        const lotNumber = String(aIdx + 1).padStart(2, '0');
+                                                        return (
+                                                            <div
+                                                                key={auc.id || aIdx}
+                                                                onClick={() => openAuctionDetail(auc)}
+                                                                className="shrink-0 w-[210px] sm:w-[230px] bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden flex flex-col justify-between group hover:border-red-300 hover:shadow-md transition-all active:scale-[0.99] cursor-pointer"
+                                                            >
+                                                                {/* Card Image Container */}
+                                                                <div className="relative aspect-[4/3] bg-slate-100 overflow-hidden">
+                                                                    <img
+                                                                        src={auc.image}
+                                                                        alt={auc.name}
+                                                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                                                    />
+                                                                    {/* Lot Badge */}
+                                                                    <div className="absolute top-2 left-2 px-2 py-0.5 rounded-lg bg-slate-900/90 backdrop-blur-xs text-white text-[9px] font-black tracking-wider uppercase border border-white/20 shadow-xs">
+                                                                        LOT #{lotNumber}
+                                                                    </div>
+                                                                    {/* Event Tag */}
+                                                                    <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded-md bg-amber-500 text-stone-950 text-[8px] font-black uppercase shadow-xs">
+                                                                        SHOW GRADE
+                                                                    </div>
+                                                                    {/* Live Bid Overlay at bottom of image */}
+                                                                    <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-2 text-white">
+                                                                        <div className="flex items-center justify-between text-[10px]">
+                                                                            <span className="text-slate-300">{auc.size} • {auc.age}</span>
+                                                                            <span className="text-amber-300 font-bold">{(auc as any).bidsCount || 12} Bid</span>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+
+                                                                {/* Card Body */}
+                                                                <div className="p-3 space-y-2 flex-1 flex flex-col justify-between">
+                                                                    <div>
+                                                                        <h5 className="font-extrabold text-xs text-slate-900 group-hover:text-red-600 transition-colors line-clamp-1">
+                                                                            {auc.name}
+                                                                        </h5>
+                                                                        <p className="text-[10px] text-slate-500 truncate mt-0.5">
+                                                                            {auc.dealerName}
+                                                                        </p>
+                                                                    </div>
+
+                                                                    {/* Pricing & CTA */}
+                                                                    <div className="pt-1.5 border-t border-slate-100 flex items-center justify-between gap-1">
+                                                                        <div>
+                                                                            <span className="text-[9px] text-slate-400 block font-medium leading-none">Tawaran Tertinggi</span>
+                                                                            <span className="text-xs font-black text-red-600 leading-tight">
+                                                                                Rp {Number(auc.price).toLocaleString('id-ID')}
+                                                                            </span>
+                                                                        </div>
+                                                                        <button
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                openAuctionDetail(auc);
+                                                                            }}
+                                                                            className="px-2.5 py-1.5 bg-red-600 hover:bg-red-700 text-white text-[10px] font-bold rounded-xl shadow-xs active:scale-95 transition"
+                                                                        >
+                                                                            Tawar
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
+
+                                {/* ========================================================= */}
+                                {/* ARTIKEL & EVENT ANNOUNCEMENT SLIDER (SLIDE KE SAMPING)    */}
                                 {/* ========================================================= */}
                                 {homeSliderArticles.length > 0 && (
                                     <div className="space-y-2.5">
@@ -4040,7 +6048,7 @@ export default function AndroidKoiApp({
                                             </span>
                                         </div>
 
-                                        {/* Horizontal Slide / Carousel Cards (Bisa di-slide ke samping) */}
+                                        {/* Horizontal Slide / Carousel Cards */}
                                         <div
                                             className="flex gap-3 overflow-x-auto no-scrollbar scroll-smooth snap-x snap-mandatory pb-1 select-none"
                                             onWheel={(e) => {
@@ -4124,28 +6132,6 @@ export default function AndroidKoiApp({
                                     </div>
                                 )}
 
-                                {/* Hero Banner (KOI PREMIUM) */}
-                                <div className="relative rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-slate-800 p-5 text-white overflow-hidden shadow-lg border border-slate-800">
-                                    <div className="relative z-10 max-w-[62%]">
-                                        <h3 className="text-base font-extrabold tracking-wide uppercase text-white">KOI PREMIUM</h3>
-                                        <p className="text-[11px] text-slate-300 mt-1 mb-3.5 leading-relaxed">
-                                            Kualitas terbaik untuk Koleksi Anda
-                                        </p>
-                                        <button
-                                            onClick={() => navigateTo('highest_auction')}
-                                            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-red-600 hover:bg-red-700 active:scale-95 text-white rounded-full text-[11px] font-semibold transition-all shadow-md shadow-red-600/30"
-                                        >
-                                            <span>Lihat Sekarang</span>
-                                            <ChevronRight className="w-3.5 h-3.5" />
-                                        </button>
-                                    </div>
-                                    <img
-                                        src="/images/koi/kohaku.jpg"
-                                        alt="Koi Banner"
-                                        className="absolute -right-6 -bottom-6 w-44 h-44 object-cover rotate-12 drop-shadow-2xl opacity-90 rounded-full"
-                                    />
-                                </div>
-
                                 {/* Category Icons Bar (Tampilkan SEMUA Kategori, Smooth Scroll, 1 Baris Rapih, Tidak Terpotong) */}
                                 <div
                                     className="flex items-start gap-3 overflow-x-auto no-scrollbar scroll-smooth py-1 select-none"
@@ -4204,88 +6190,59 @@ export default function AndroidKoiApp({
                                     })}
                                 </div>
 
-                                {/* Quick Auction Entry Cards */}
-                                <div className="grid grid-cols-2 gap-2.5">
-                                    <button
-                                        onClick={() => navigateTo('highest_auction')}
-                                        className="p-3 bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200/60 rounded-2xl text-left flex items-center justify-between"
-                                    >
-                                        <div>
-                                            <div className="flex items-center gap-1 text-amber-700 text-[10px] font-bold uppercase">
-                                                <Crown className="w-3.5 h-3.5" />
-                                                <span>Rekor Harga</span>
-                                            </div>
-                                            <h4 className="text-xs font-bold text-slate-900 mt-0.5">Lelang Tertinggi</h4>
-                                        </div>
-                                        <ChevronRight className="w-4 h-4 text-amber-600" />
-                                    </button>
 
-                                    <button
-                                        onClick={() => navigateTo('favorite_auction')}
-                                        className="p-3 bg-gradient-to-br from-red-50 to-pink-50 border border-red-200/60 rounded-2xl text-left flex items-center justify-between"
-                                    >
-                                        <div>
-                                            <div className="flex items-center gap-1 text-red-700 text-[10px] font-bold uppercase">
-                                                <Flame className="w-3.5 h-3.5" />
-                                                <span>Favorit Kolektor</span>
-                                            </div>
-                                            <h4 className="text-xs font-bold text-slate-900 mt-0.5">Lelang Terpopuler</h4>
+                                {/* PENGUMUMAN RESMI PEMENANG LELANG DI BERANDA DASHBOARD */}
+                                {isLoggedIn && userBids.filter(b => b.status === 'won').length > 0 && (
+                                    <div className="rounded-2xl overflow-hidden border border-amber-300/80 bg-gradient-to-br from-amber-500 via-amber-600 to-yellow-600 text-white shadow-md shadow-amber-500/20 relative">
+                                        <div className="absolute top-0 right-0 p-2 opacity-15 pointer-events-none">
+                                            <Trophy className="w-24 h-24 text-white" />
                                         </div>
-                                        <ChevronRight className="w-4 h-4 text-red-600" />
-                                    </button>
-                                </div>
-
-                                {/* Banner Cek Hasil Tawaran Saya */}
-                                <button
-                                    onClick={() => navigateTo('my_bids')}
-                                    className="w-full text-left p-3.5 bg-white border border-slate-200 rounded-2xl hover:border-slate-300 transition-all active:scale-[0.99] group cursor-pointer"
-                                >
-                                    {/* Top Row: Icon, Title & Action */}
-                                    <div className="flex items-center justify-between gap-2">
-                                        <div className="flex items-center gap-2.5 min-w-0">
-                                            <div className="w-9 h-9 rounded-lg bg-emerald-600 text-white flex items-center justify-center shrink-0">
-                                                <Gavel className="w-4.5 h-4.5" />
+                                        <div className="p-3.5 relative z-10 space-y-2.5">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-black/25 backdrop-blur-xs border border-amber-200/40 text-amber-100 text-[10px] font-black uppercase tracking-wider">
+                                                    <Trophy className="w-3.5 h-3.5 text-amber-200 animate-bounce" />
+                                                    <span>Pengumuman Pemenang Lelang Sah</span>
+                                                </div>
+                                                <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-full font-bold">
+                                                    {userBids.filter(b => b.status === 'won').length} Lelang Dimenangkan
+                                                </span>
                                             </div>
-                                            <div className="min-w-0">
-                                                <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Status Penawaran</span>
-                                                <h4 className="text-xs font-bold text-slate-900 mt-0.5 truncate">
-                                                    Hasil Tawaran Saya
-                                                </h4>
-                                            </div>
-                                        </div>
 
-                                        <div className="flex items-center gap-1.5 shrink-0">
-                                            <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[10px] font-semibold whitespace-nowrap">
-                                                {isLoggedIn ? `${userBids.length} Lelang` : 'Login'}
-                                            </span>
-                                            <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-slate-600 transition-colors" />
+                                            {userBids.filter(b => b.status === 'won').map((wonItem) => (
+                                                <div key={wonItem.auctionId} className="p-3 bg-black/25 backdrop-blur-xs rounded-xl border border-white/15 space-y-2">
+                                                    <div className="flex items-center gap-2.5">
+                                                        <img src={wonItem.image} alt={wonItem.name} className="w-13 h-13 object-cover rounded-lg border border-white/20 shrink-0" />
+                                                        <div className="flex-1 min-w-0">
+                                                            <span className="text-[10px] text-amber-200 font-extrabold block truncate">
+                                                                👑 Selamat {authUser?.name || 'Kolektor'}! Anda Pemenang Resmi!
+                                                            </span>
+                                                            <h4 className="text-xs font-black text-white truncate">{wonItem.name}</h4>
+                                                            <p className="text-[10px] text-amber-100/80">{wonItem.variety} • {wonItem.size}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="p-2 rounded-lg bg-black/30 flex items-center justify-between gap-2">
+                                                        <div>
+                                                            <span className="text-[9px] uppercase tracking-wider text-amber-200 block font-semibold">Harga Tertinggi Pemenang</span>
+                                                            <span className="text-xs font-black text-amber-300">
+                                                                Rp {Number(wonItem.winningPrice || wonItem.currentBid || wonItem.myBid).toLocaleString('id-ID')}
+                                                            </span>
+                                                        </div>
+                                                        <button
+                                                            onClick={() => handleCheckoutWonAuction(wonItem)}
+                                                            className="py-1.5 px-3 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-[11px] shadow-xs flex items-center gap-1 active:scale-95 transition cursor-pointer"
+                                                        >
+                                                            <CreditCard className="w-3 h-3" />
+                                                            <span>Bayar Sekarang</span>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            ))}
                                         </div>
                                     </div>
+                                )}
 
-                                    {/* Bottom Row: 3 Status Chips */}
-                                    <div className="flex items-center gap-2 mt-3 pt-2.5 border-t border-slate-100">
-                                        <div className="flex items-center gap-1.5 text-emerald-700 text-[11px] font-semibold">
-                                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
-                                            <span>{userBids.filter(b => b.isLeading && !b.isEnded).length} Memimpin</span>
-                                        </div>
 
-                                        <span className="text-slate-300">·</span>
-
-                                        <div className="flex items-center gap-1.5 text-amber-700 text-[11px] font-semibold">
-                                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"></span>
-                                            <span>{userBids.filter(b => b.status === 'outbid').length} Terlampaui</span>
-                                        </div>
-
-                                        <span className="text-slate-300">·</span>
-
-                                        <div className="flex items-center gap-1.5 text-rose-700 text-[11px] font-semibold">
-                                            <Trophy className="w-3 h-3 text-rose-500 shrink-0" />
-                                            <span>{userBids.filter(b => b.status === 'won').length} Menang</span>
-                                        </div>
-                                    </div>
-                                </button>
-
-                                {/* Section: Lelang Berlangsung (Live Auctions) */}
+                                {/* Section: Daftar Lelang (Slide Carousel Horizontal seperti Kabar & Pengumuman Event) */}
                                 <div>
                                     <div className="flex justify-between items-center mb-3">
                                         <div className="flex items-center gap-2">
@@ -4294,87 +6251,147 @@ export default function AndroidKoiApp({
                                                 <span className="relative inline-flex rounded-full h-2 w-2 bg-red-600"></span>
                                             </span>
                                             <h3 className="font-bold text-sm text-slate-900 flex items-center gap-1.5">
-                                                <span>Lelang Berlangsung</span>
+                                                <span>Daftar Lelang</span>
                                                 <Flame className="w-4 h-4 text-red-600 fill-red-600" />
                                             </h3>
+                                            <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-[10px] font-bold">
+                                                LIVE
+                                            </span>
                                         </div>
-                                        <button
-                                            onClick={() => navigateTo('highest_auction')}
-                                            className="text-[11px] font-semibold text-slate-600 hover:text-red-600 flex items-center"
-                                        >
-                                            <span>Lihat Semua</span>
-                                            <ChevronRight className="w-3.5 h-3.5" />
-                                        </button>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-[10px] font-semibold text-slate-400 flex items-center gap-0.5">
+                                                <span>Geser</span>
+                                                <ChevronRight className="w-3 h-3" />
+                                            </span>
+                                            <button
+                                                onClick={() => navigateTo('highest_auction')}
+                                                className="text-[11px] font-semibold text-red-600 hover:text-red-700 flex items-center ml-1"
+                                            >
+                                                <span>Lihat Semua</span>
+                                                <ChevronRight className="w-3.5 h-3.5" />
+                                            </button>
+                                        </div>
                                     </div>
 
-                                    {/* Horizontal Scroll of Active Auction Cards */}
-                                    <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none">
-                                        {dynamicTopAuctions.slice(0, 5).map((auc, idx) => (
-                                            <div
-                                                key={idx}
-                                                onClick={() => openAuctionDetail(auc)}
-                                                className="w-[230px] shrink-0 bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between"
-                                            >
-                                                <div className="relative aspect-[16/10] bg-slate-950 overflow-hidden">
-                                                    <img
-                                                        src={auc.image}
-                                                        alt={auc.name}
-                                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                                    />
-                                                    <div className="absolute top-2 left-2 px-2 py-0.5 bg-red-600 text-white rounded-full flex items-center gap-1 text-[9px] font-bold shadow">
-                                                        <Radio className="w-2.5 h-2.5 animate-pulse" />
-                                                        <span>LIVE</span>
-                                                    </div>
-                                                    <div className="absolute top-2 right-2 px-2 py-0.5 bg-black/60 backdrop-blur-md text-white rounded-full text-[9px] font-medium flex items-center gap-1 border border-white/10">
-                                                        <Clock className="w-2.5 h-2.5 text-red-400" />
-                                                        <span className="font-mono">{formatTime(secondsLeft)}</span>
-                                                    </div>
-                                                </div>
+                                    {/* Horizontal Slide / Carousel Cards (Sama persis seperti Kabar & Pengumuman Event) */}
+                                    {(filteredAuctions.length === 0 && allAuctionsList.length === 0) ? (
+                                        <div className="py-8 text-center bg-white rounded-2xl border border-dashed border-slate-200 p-5">
+                                            <Gavel className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                                            <p className="text-xs font-semibold text-slate-700">Belum ada sesi lelang aktif</p>
+                                            <p className="text-[11px] text-slate-400 mt-1">Coba pilih kategori koi lainnya</p>
+                                        </div>
+                                    ) : (
+                                        <div
+                                            className="flex gap-3 overflow-x-auto no-scrollbar scroll-smooth snap-x snap-mandatory pb-1 select-none"
+                                            onWheel={(e) => {
+                                                if (e.deltaY !== 0) {
+                                                    e.currentTarget.scrollLeft += e.deltaY;
+                                                }
+                                            }}
+                                        >
+                                            {(filteredAuctions.length > 0 ? filteredAuctions : allAuctionsList).map((auc) => (
+                                                <div
+                                                    key={auc.id || auc.rank}
+                                                    onClick={() => openAuctionDetail(auc)}
+                                                    className="w-[82%] sm:w-[320px] shrink-0 snap-start bg-white rounded-2xl overflow-hidden border border-slate-200/90 shadow-xs hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between active:scale-[0.99]"
+                                                >
+                                                    {/* Auction Banner / Fish Image (16:9 Aspect Ratio) */}
+                                                    <div className="relative aspect-[16/9] w-full overflow-hidden bg-slate-950">
+                                                        <img
+                                                            src={auc.image}
+                                                            alt={auc.name}
+                                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                                        />
+                                                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-black/30" />
 
-                                                <div className="p-3 flex-1 flex flex-col justify-between">
-                                                    <div>
-                                                        <div className="flex items-center justify-between text-xs font-semibold text-slate-600 mb-1">
-                                                            <div className="flex items-center gap-1.5 flex-wrap">
-                                                                <span>{auc.size}</span>
-                                                                <span className="text-[10px] px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-700 font-bold border border-amber-500/20">
-                                                                    {formatAgeInYears(auc.age || (auc as any).auctionRaw?.product?.age)}
-                                                                </span>
-                                                            </div>
-                                                            <span className="text-amber-600 font-bold">{auc.isRecord ? 'Rekor #1' : `Rank #${auc.rank}`}</span>
-                                                        </div>
-                                                        <h4 className="font-bold text-sm text-slate-900 line-clamp-1 leading-snug">{auc.name}</h4>
-                                                    </div>
-
-                                                    <div className="mt-2.5 pt-2 border-t border-slate-100 space-y-1.5">
-                                                        <div className="flex items-center justify-between">
-                                                            <span className="text-[10px] font-bold text-slate-500 uppercase">Tawaran Tertinggi</span>
-                                                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200">
-                                                                {(auc as any).bidsCount || (auc as any).auctionRaw?.bids_count || 14}x bid
+                                                        {/* Top Left: LIVE Badge */}
+                                                        <div className="absolute top-2.5 left-2.5 z-10 flex items-center gap-1.5">
+                                                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-red-600 text-white font-extrabold text-[9px] uppercase tracking-wider shadow-sm">
+                                                                <Radio className="w-2.5 h-2.5 animate-pulse" />
+                                                                <span>LIVE LELANG</span>
                                                             </span>
                                                         </div>
-                                                        <div className="flex items-center justify-between">
-                                                            <span className="text-sm sm:text-[15px] font-black text-red-600 tracking-tight leading-tight block truncate">
-                                                                Rp {auc.price.toLocaleString('id-ID')}
+
+                                                        {/* Top Right: Countdown Timer & Favorite Button */}
+                                                        <div className="absolute top-2.5 right-2.5 z-10 flex items-center gap-1.5">
+                                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md text-white text-[9px] font-mono border border-white/10">
+                                                                <Clock className="w-2.5 h-2.5 text-amber-300" />
+                                                                <span>{formatTime(secondsLeft)}</span>
                                                             </span>
                                                             <button
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
-                                                                    openAuctionDetail(auc);
+                                                                    if (!isLoggedIn) {
+                                                                        setGoogleLoginReason('favorit');
+                                                                        setIsGoogleLoginModalOpen(true);
+                                                                        triggerToast('🔒 Silakan login dengan Google terlebih dahulu untuk menyimpan ke Favorit');
+                                                                        return;
+                                                                    }
+                                                                    const idStr = String(auc.id);
+                                                                    if (favoritesList.includes(idStr)) {
+                                                                        setFavoritesList((prev) => prev.filter((id) => id !== idStr));
+                                                                        triggerToast(`💔 "${auc.name}" dihapus dari favorit`);
+                                                                    } else {
+                                                                        setFavoritesList((prev) => [...prev, idStr]);
+                                                                        triggerToast(`❤️ "${auc.name}" ditambahkan ke favorit`);
+                                                                    }
                                                                 }}
-                                                                className="px-2.5 py-1 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl shadow-xs shadow-red-600/30 active:scale-95 transition-all shrink-0 cursor-pointer"
+                                                                className="w-6 h-6 rounded-full bg-black/50 backdrop-blur-md flex items-center justify-center text-white hover:bg-black/70 transition-colors"
+                                                                title="Favoritkan"
                                                             >
-                                                                <span>Tawar</span>
+                                                                <Heart className={`w-3.5 h-3.5 ${favoritesList.includes(String(auc.id)) ? 'fill-red-500 text-red-500' : 'text-white'}`} />
                                                             </button>
                                                         </div>
-                                                        <div className="flex items-center justify-between text-[10px] text-slate-500 pt-1 border-t border-slate-50">
-                                                            <span><strong>OB:</strong> Rp {(Number((auc as any).startPrice || (auc as any).auctionRaw?.start_price || Math.round(auc.price * 0.75))).toLocaleString('id-ID')}</span>
-                                                            <span className="text-amber-700 font-semibold"><strong>KB:</strong> +Rp {(Number((auc as any).bidIncrement || (auc as any).auctionRaw?.bid_increment || 500000)).toLocaleString('id-ID')}</span>
+
+                                                        {/* Bottom Overlay on Image: Dealer / Farm info */}
+                                                        <div className="absolute bottom-2 inset-x-2.5 z-10 flex items-center justify-between text-white text-[10px]">
+                                                            <span className="text-amber-200 font-semibold truncate max-w-[65%]">
+                                                                {auc.dealerName || 'Koki Nishikigoi Official'}
+                                                            </span>
+                                                            <span className="text-slate-300 font-medium shrink-0">
+                                                                {auc.size} • {formatAgeInYears(auc.age || (auc as any).auctionRaw?.product?.age)}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Card Body: Title, Price, Bids */}
+                                                    <div className="p-3.5 flex-1 flex flex-col justify-between space-y-2">
+                                                        <div>
+                                                            <h4 className="text-xs sm:text-sm font-bold text-slate-900 leading-snug line-clamp-1 group-hover:text-red-600 transition-colors">
+                                                                {auc.name}
+                                                            </h4>
+                                                            <div className="flex items-center justify-between mt-1.5">
+                                                                <div>
+                                                                    <span className="text-[9px] uppercase tracking-wider text-slate-400 block font-medium leading-none">
+                                                                        Tawaran Tertinggi
+                                                                    </span>
+                                                                    <span className="text-xs sm:text-sm font-black text-red-600 tracking-tight leading-tight mt-0.5 block">
+                                                                        Rp {auc.price.toLocaleString('id-ID')}
+                                                                    </span>
+                                                                </div>
+                                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-blue-50 text-blue-700 text-[10px] font-bold border border-blue-100/80">
+                                                                    <Gavel className="w-3 h-3 text-blue-600 shrink-0" />
+                                                                    <span>{(auc as any).bidsCount || (auc as any).auctionRaw?.bids_count || 12} bid</span>
+                                                                </span>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Footer: Tawar Sekarang Link */}
+                                                        <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+                                                            <span className="text-red-600 font-bold text-[11px] flex items-center gap-1 group-hover:text-red-700 transition-colors">
+                                                                <Gavel className="w-3.5 h-3.5" />
+                                                                <span>Tawar Sekarang</span>
+                                                                <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                                                            </span>
+                                                            <span className="text-[10px] text-slate-400 font-medium">
+                                                                Ikuti Bidding
+                                                            </span>
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        ))}
-                                    </div>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* Section: Galeri & Farm Resmi (Single Owner Showroom) */}
@@ -4504,17 +6521,22 @@ export default function AndroidKoiApp({
                                                     }}
                                                 >
                                                     {/* Image & Badges */}
-                                                    <div className="relative aspect-[4/3] bg-slate-900 overflow-hidden">
+                                                    <div className="relative aspect-[3/4] bg-slate-900 overflow-hidden shrink-0">
                                                         <img
                                                             src={prod.images[0]}
                                                             alt={prod.name}
                                                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                                         />
-                                                        {prod.isPremium && (
+                                                        {(prod as any).is_auction_eligible ? (
+                                                            <span className="absolute top-2 left-2 px-2 py-0.5 bg-gradient-to-r from-amber-500 to-amber-600 text-stone-950 text-[9px] font-black rounded-full shadow-sm flex items-center gap-0.5">
+                                                                <Award className="w-2.5 h-2.5 fill-stone-950" />
+                                                                <span>LAYAK LELANG</span>
+                                                            </span>
+                                                        ) : prod.isPremium ? (
                                                             <span className="absolute top-2 left-2 px-2 py-0.5 bg-amber-500 text-white text-[9px] font-bold rounded-full shadow">
                                                                 Premium
                                                             </span>
-                                                        )}
+                                                        ) : null}
                                                         <button
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
@@ -4535,7 +6557,7 @@ export default function AndroidKoiApp({
 
                                                         <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between gap-1.5">
                                                             <div className="min-w-0 flex-1">
-                                                                <div className="text-sm sm:text-[15px] font-black text-red-600 tracking-tight leading-tight truncate">
+                                                                <div className="text-[11px] sm:text-xs font-bold text-red-600 tracking-tight leading-tight truncate">
                                                                     Rp {prod.price.toLocaleString('id-ID')}
                                                                 </div>
                                                                 <div className="text-[11px] font-semibold text-slate-600 mt-1 flex items-center gap-1 truncate">
@@ -4923,122 +6945,372 @@ export default function AndroidKoiApp({
                     )}
 
                     {/* ========================================================================= */}
-                    {/* SCREEN 3: IKAN LELANG TERTINGGI (LEADERBOARD)                           */}
+                    {/* SCREEN 3: BURSA LELANG NISHIKIGOI (LIVE AUCTIONS & RECORD)                */}
                     {/* ========================================================================= */}
                     {currentScreen === 'highest_auction' && (
                         <div className="flex-1 flex flex-col bg-slate-50 pb-20">
-                            {/* Header */}
-                            <div className="px-4 py-3 bg-white border-b border-slate-100 flex items-center gap-3">
-                                <button onClick={goBack} className="p-1.5 hover:bg-slate-100 rounded-full text-slate-800">
-                                    <ArrowLeft className="w-5 h-5" />
-                                </button>
-                                <div>
-                                    <div className="flex items-center gap-1.5">
-                                        <Crown className="w-4 h-4 text-amber-500 fill-amber-500" />
-                                        <h3 className="font-bold text-sm text-slate-900">Ikan Lelang Tertinggi</h3>
+                            {/* Top Bar Header */}
+                            <div className="bg-gradient-to-b from-white via-white to-slate-50/70 border-b border-slate-200/80 shadow-xs z-20 sticky top-0 backdrop-blur-md">
+                                <div className="px-4 py-2.5 flex items-center justify-between gap-3">
+                                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                                        {screenStack.length > 1 && (
+                                            <button 
+                                                onClick={goBack} 
+                                                className="w-8 h-8 flex items-center justify-center hover:bg-slate-100 active:bg-slate-200 rounded-full text-slate-700 -ml-1 shrink-0 transition active:scale-90 cursor-pointer"
+                                                aria-label="Kembali"
+                                            >
+                                                <ArrowLeft className="w-5 h-5" />
+                                            </button>
+                                        )}
+                                        <div className="relative shrink-0">
+                                            <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-red-600 via-rose-500 to-red-500 flex items-center justify-center p-2 shadow-md shadow-red-500/25 ring-2 ring-red-100/80">
+                                                <Gavel className="w-4.5 h-4.5 text-white -rotate-12 drop-shadow-xs" />
+                                            </div>
+                                            <span className="absolute -top-0.5 -right-0.5 flex h-2.5 w-2.5">
+                                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500 ring-2 ring-white"></span>
+                                            </span>
+                                        </div>
+                                        <div className="flex flex-col items-start min-w-0">
+                                            <h3 className="font-extrabold text-[15px] text-slate-900 tracking-tight leading-none truncate">
+                                                Bursa Lelang Koi
+                                            </h3>
+                                            <div className="flex items-center gap-1.5 mt-1">
+                                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-red-600 text-white text-[8px] font-black uppercase tracking-wider shadow-2xs">
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+                                                    LIVE
+                                                </span>
+                                                <span className="text-[9.5px] font-bold text-slate-400 tracking-tight">
+                                                    Realtime Bidding
+                                                </span>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <p className="text-[10px] text-slate-500">Rekor harga tertinggi dari lelang ikan koi</p>
+
+                                    {/* Tombol Pengatur Ukuran Tulisan (Slider Tarik Interaktif) */}
+                                    <div className="relative shrink-0">
+                                        <button
+                                            onClick={() => setIsFontSizeDropdownOpen(prev => !prev)}
+                                            className="h-8 px-2.5 rounded-xl bg-slate-100/90 hover:bg-slate-200/80 active:scale-95 border border-slate-200/90 text-slate-800 flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer group"
+                                            title="Tarik untuk atur ukuran tulisan"
+                                            aria-expanded={isFontSizeDropdownOpen}
+                                        >
+                                            <Type className="w-3.5 h-3.5 text-red-500 group-hover:scale-110 transition-transform shrink-0" />
+                                            <span className="font-extrabold text-[11px] text-slate-800 tracking-tight">
+                                                {fontSizePercent}%
+                                            </span>
+                                            <ChevronDown className={`w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600 transition-transform duration-200 ${isFontSizeDropdownOpen ? 'rotate-180 text-red-600' : ''}`} />
+                                        </button>
+
+                                        {/* Slider Tarik Popover Card */}
+                                        {isFontSizeDropdownOpen && (
+                                            <>
+                                                {/* Backdrop agar klik di luar menutup menu */}
+                                                <div
+                                                    className="fixed inset-0 z-40 bg-transparent"
+                                                    onClick={() => setIsFontSizeDropdownOpen(false)}
+                                                />
+                                                <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-2xl shadow-xl border border-slate-200/90 p-3 z-50 animate-in fade-in zoom-in-95 duration-150">
+                                                    {/* Header Popover */}
+                                                    <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                                                        <div className="flex items-center gap-1.5">
+                                                            <Type className="w-3.5 h-3.5 text-red-600 shrink-0" />
+                                                            <span className="text-[11px] font-black uppercase tracking-wider text-slate-700">
+                                                                Ukuran Teks
+                                                            </span>
+                                                        </div>
+                                                        <div className="flex items-center gap-1">
+                                                            <span className="px-2 py-0.5 rounded-full bg-red-50 text-red-600 text-[11px] font-black border border-red-200/60">
+                                                                {fontSizePercent}%
+                                                            </span>
+                                                            <span className="text-[10px] font-bold text-slate-500">
+                                                                {getFontScaleLabel(fontSizePercent)}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Live Text Preview Box */}
+                                                    <div className="my-2.5 p-2 rounded-xl bg-slate-50 border border-slate-200/70 text-center">
+                                                        <p 
+                                                            className="text-slate-900 font-bold leading-tight transition-all duration-75 truncate"
+                                                            style={{ fontSize: `${Math.round(13 * (fontSizePercent / 100))}px` }}
+                                                        >
+                                                            Lelang Koi Super Kohaku
+                                                        </p>
+                                                        <span className="text-[9px] text-slate-400 font-medium block mt-0.5">
+                                                            Tarik slider di bawah untuk menyesuaikan
+                                                        </span>
+                                                    </div>
+
+                                                    {/* Slider Tarik: A- ────────●──────── A+ */}
+                                                    <div className="space-y-1 py-1">
+                                                        <div className="flex items-center gap-2.5 px-0.5">
+                                                            <span className="font-extrabold text-[11px] text-slate-400 select-none shrink-0">A-</span>
+                                                            <input
+                                                                type="range"
+                                                                min="90"
+                                                                max="140"
+                                                                step="1"
+                                                                value={fontSizePercent}
+                                                                onChange={(e) => handleFontSizePercentChange(Number(e.target.value))}
+                                                                className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-red-600 focus:outline-none"
+                                                            />
+                                                            <span className="font-extrabold text-base text-slate-800 select-none shrink-0">A+</span>
+                                                        </div>
+
+                                                        {/* Quick Touch Preset Markers */}
+                                                        <div className="flex justify-between px-4 text-[8.5px] font-extrabold text-slate-400 select-none">
+                                                            <button 
+                                                                type="button" 
+                                                                onClick={() => handleFontSizePercentChange(90)} 
+                                                                className={`hover:text-red-600 cursor-pointer ${fontSizePercent === 90 ? 'text-red-600 font-black' : ''}`}
+                                                            >
+                                                                90%
+                                                            </button>
+                                                            <button 
+                                                                type="button" 
+                                                                onClick={() => handleFontSizePercentChange(100)} 
+                                                                className={`hover:text-red-600 cursor-pointer ${fontSizePercent === 100 ? 'text-red-600 font-black' : ''}`}
+                                                            >
+                                                                100%
+                                                            </button>
+                                                            <button 
+                                                                type="button" 
+                                                                onClick={() => handleFontSizePercentChange(115)} 
+                                                                className={`hover:text-red-600 cursor-pointer ${fontSizePercent === 115 ? 'text-red-600 font-black' : ''}`}
+                                                            >
+                                                                115%
+                                                            </button>
+                                                            <button 
+                                                                type="button" 
+                                                                onClick={() => handleFontSizePercentChange(130)} 
+                                                                className={`hover:text-red-600 cursor-pointer ${fontSizePercent === 130 ? 'text-red-600 font-black' : ''}`}
+                                                            >
+                                                                130%
+                                                            </button>
+                                                            <button 
+                                                                type="button" 
+                                                                onClick={() => handleFontSizePercentChange(140)} 
+                                                                className={`hover:text-red-600 cursor-pointer ${fontSizePercent === 140 ? 'text-red-600 font-black' : ''}`}
+                                                            >
+                                                                140%
+                                                            </button>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Footer Popover */}
+                                                    <div className="flex items-center justify-between pt-2.5 mt-2 border-t border-slate-100">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleFontSizePercentChange(100)}
+                                                            className="text-[10.5px] font-bold text-slate-500 hover:text-red-600 cursor-pointer transition-colors"
+                                                        >
+                                                            Reset (100%)
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setIsFontSizeDropdownOpen(false)}
+                                                            className="px-3 py-1 bg-red-600 hover:bg-red-700 active:scale-95 text-white rounded-xl text-[11px] font-black cursor-pointer shadow-xs transition"
+                                                        >
+                                                            Selesai
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Search Bar Pengganti Tab Semua Lelang vs Terfavorit */}
+                                <div className="px-4 pb-2.5 pt-1">
+                                    <div className="relative">
+                                        <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                                        <input
+                                            type="text"
+                                            placeholder="Cari lelang koi (nama, jenis, ukuran)..."
+                                            value={auctionSearchQuery}
+                                            onChange={(e) => setAuctionSearchQuery(e.target.value)}
+                                            className="w-full pl-10 pr-9 py-2 bg-slate-100/90 text-xs sm:text-sm font-medium rounded-2xl border border-slate-200/80 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 text-slate-900 placeholder:text-slate-400 transition"
+                                        />
+                                        {auctionSearchQuery && (
+                                            <button
+                                                onClick={() => setAuctionSearchQuery('')}
+                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+                                                title="Hapus pencarian"
+                                            >
+                                                <X className="w-3.5 h-3.5" />
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
 
-                            {/* Scrollable list */}
-                            <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                                {/* Spotlight #1 Card */}
-                                <div
-                                    onClick={() => openAuctionDetail(dynamicTopAuctions[0])}
-                                    className="relative rounded-2xl bg-gradient-to-b from-slate-900 to-slate-950 text-white overflow-hidden p-4 shadow-xl border border-slate-800 cursor-pointer"
-                                >
-                                    <div className="flex justify-between items-start mb-3">
-                                        <div className="w-7 h-7 rounded-full bg-amber-500 text-slate-950 font-black text-xs flex items-center justify-center shadow-lg">
-                                            #1
+                            {/* Scrollable list dengan Infinite Scroll (10 data bertahap) */}
+                            <div
+                                className="flex-1 overflow-y-auto p-4 space-y-4"
+                                onScroll={handleAuctionListScroll}
+                            >
+                                {displayedAuctions.length === 0 ? (
+                                    <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+                                        <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mb-3">
+                                            <Search className="w-6 h-6 text-slate-400" />
                                         </div>
-                                        <span className="px-2.5 py-0.5 bg-amber-400/90 text-slate-950 text-[10px] font-extrabold rounded-full">
-                                            Rekor Tertinggi
-                                        </span>
+                                        <p className="font-bold text-slate-800 text-sm">Tidak ada lelang ditemukan</p>
+                                        <p className="text-xs text-slate-400 mt-1 max-w-[220px]">
+                                            Tidak ada hasil untuk &quot;{auctionSearchQuery}&quot;. Coba kata kunci lain atau reset pencarian.
+                                        </p>
+                                        <button
+                                            onClick={() => setAuctionSearchQuery('')}
+                                            className="mt-3.5 px-4 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl transition cursor-pointer"
+                                        >
+                                            Reset Pencarian
+                                        </button>
                                     </div>
-
-                                    {/* Fish Image */}
-                                    <div className="w-full h-44 rounded-xl overflow-hidden mb-3 relative">
-                                        <img
-                                            src={dynamicTopAuctions[0].image}
-                                            alt={dynamicTopAuctions[0].name}
-                                            className="w-full h-full object-cover"
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <h4 className="text-base font-bold">{dynamicTopAuctions[0].name}</h4>
-                                        <div className="flex items-center gap-2 text-xs text-slate-300 mt-1 flex-wrap">
-                                            <span>{dynamicTopAuctions[0].size}</span>
-                                            <span>•</span>
-                                            <span className="text-amber-300 font-bold">Umur: {formatAgeInYears(dynamicTopAuctions[0].age)}</span>
-                                            <span>•</span>
-                                            <span className="text-blue-300 font-bold">{(dynamicTopAuctions[0] as any).bidsCount || 28}x bid</span>
-                                        </div>
-                                        <div className="text-lg font-black text-white mt-1.5">
-                                            Rp {dynamicTopAuctions[0].price.toLocaleString('id-ID')}
-                                        </div>
-                                        <div className="flex items-center justify-between text-[11px] text-slate-300 mt-1 pt-1 border-t border-slate-800">
-                                            <span>OB: Rp {(Number((dynamicTopAuctions[0] as any).startPrice || Math.round(dynamicTopAuctions[0].price * 0.75))).toLocaleString('id-ID')}</span>
-                                            <span className="text-amber-400 font-semibold">KB: +Rp {(Number((dynamicTopAuctions[0] as any).bidIncrement || 1000000)).toLocaleString('id-ID')}</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Section: Daftar 5 Lelang Tertinggi */}
-                                <div>
-                                    <div className="flex items-center gap-2 mb-2.5">
-                                        <span className="text-slate-500 text-sm">📊</span>
-                                        <h4 className="text-xs font-bold text-slate-800">Daftar Rekor Lelang</h4>
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        {dynamicTopAuctions.map((auc) => (
-                                            <div
-                                                key={auc.rank}
-                                                onClick={() => openAuctionDetail(auc)}
-                                                className="bg-white p-3 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-3 cursor-pointer hover:border-red-200 transition-colors"
-                                            >
-                                                {/* Rank Badge */}
-                                                <div className={`w-6 h-6 rounded-full font-bold text-xs flex items-center justify-center shrink-0 ${auc.rank === 1 ? 'bg-amber-100 text-amber-700' :
-                                                        auc.rank === 2 ? 'bg-slate-100 text-slate-700' :
-                                                            auc.rank === 3 ? 'bg-orange-100 text-orange-700' : 'bg-slate-50 text-slate-500'
-                                                    }`}>
-                                                    {auc.rank}
-                                                </div>
-
-                                                {/* Thumbnail */}
+                                ) : (
+                                    <>
+                                        <div className="grid grid-cols-2 gap-3">
+                                        {paginatedAuctions.map((auc, index) => (
+                                        <React.Fragment key={auc.id || auc.rank || index}>
+                                        <div
+                                            className="bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-xs hover:shadow-md transition-shadow flex flex-col group cursor-pointer h-full"
+                                            onClick={() => openAuctionDetail(auc)}
+                                        >
+                                            {/* Image & Badges */}
+                                            <div className="relative aspect-[3/4] bg-slate-900 overflow-hidden shrink-0">
                                                 <img
                                                     src={auc.image}
                                                     alt={auc.name}
-                                                    className="w-12 h-12 rounded-xl object-cover bg-slate-900 shrink-0"
+                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                                 />
+                                                <div className="absolute top-2 left-2 px-2 py-0.5 bg-red-600 text-white rounded-full flex items-center gap-1 text-[9px] font-bold shadow">
+                                                    <Radio className="w-2.5 h-2.5 animate-pulse" />
+                                                    <span>LIVE</span>
+                                                </div>
+                                                <div className="absolute bottom-2 left-2 px-1.5 py-0.5 bg-black/60 backdrop-blur-md text-white rounded-md text-[9px] font-semibold flex items-center gap-1 border border-white/10">
+                                                    <Clock className="w-2.5 h-2.5 text-amber-400" />
+                                                    <span className="font-mono">{formatTime(secondsLeft)}</span>
+                                                </div>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        if (!isLoggedIn) {
+                                                            setGoogleLoginReason('favorit');
+                                                            setIsGoogleLoginModalOpen(true);
+                                                            triggerToast('🔒 Silakan login dengan Google terlebih dahulu untuk menyimpan ke Favorit');
+                                                            return;
+                                                        }
+                                                        const idStr = String(auc.id);
+                                                        if (favoritesList.includes(idStr)) {
+                                                            setFavoritesList((prev) => prev.filter((id) => id !== idStr));
+                                                            triggerToast(`💔 "${auc.name}" dihapus dari favorit`);
+                                                        } else {
+                                                            setFavoritesList((prev) => [...prev, idStr]);
+                                                            triggerToast(`❤️ "${auc.name}" ditambahkan ke favorit`);
+                                                        }
+                                                    }}
+                                                    className="absolute top-2 right-2 w-6 h-6 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-white hover:bg-black/60 transition-colors"
+                                                >
+                                                    <Heart className={`w-3.5 h-3.5 ${favoritesList.includes(String(auc.id)) ? 'fill-red-500 text-red-500' : 'text-white'}`} />
+                                                </button>
+                                            </div>
 
-                                                {/* Name, Size, Age & Bids */}
-                                                <div className="flex-1 min-w-0">
-                                                    <h5 className="font-bold text-xs text-slate-900 truncate">{auc.name}</h5>
-                                                    <div className="flex items-center gap-1.5 text-[10px] text-slate-500 mt-0.5 flex-wrap">
-                                                        <span>{auc.size}</span>
-                                                        <span>•</span>
-                                                        <span className="text-amber-700 font-semibold">{formatAgeInYears(auc.age || (auc as any).auctionRaw?.product?.age)}</span>
-                                                        <span>•</span>
-                                                        <span className="text-blue-600 font-semibold">{(auc as any).bidsCount || (auc as any).auctionRaw?.bids_count || 14}x bid</span>
+                                            {/* Info */}
+                                            <div className="p-2.5 flex-1 flex flex-col justify-between">
+                                                <div className="space-y-0.5">
+                                                    <h4 className="font-extrabold text-xs sm:text-[13px] text-slate-900 line-clamp-1 leading-snug tracking-tight" title={auc.name || 'Ikan Koi'}>
+                                                        {auc.name || 'Ikan Koi'}
+                                                    </h4>
+                                                    <div className="flex items-center gap-1 text-[10.5px] sm:text-[11px] text-slate-500 font-medium leading-tight whitespace-nowrap overflow-hidden">
+                                                        <span className="text-slate-800 font-semibold shrink-0">{auc.size || '65 cm'}</span>
+                                                        <span className="text-slate-300 shrink-0">•</span>
+                                                        <span className="shrink-0">{formatAgeInYears(auc.age || (auc as any).auctionRaw?.product?.age)}</span>
+                                                        <span className="text-slate-300 shrink-0">•</span>
+                                                        <span className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded bg-blue-50 text-blue-700 text-[9.5px] font-bold border border-blue-100/80 shrink-0">
+                                                            <Gavel className="w-2.5 h-2.5 text-blue-600 shrink-0" />
+                                                            <span>{(auc as any).bidsCount || (auc as any).auctionRaw?.bids_count || 12} bid</span>
+                                                        </span>
+                                                    </div>
+                                                    <div className="text-[11.5px] sm:text-xs font-bold text-red-600 tracking-tight leading-none break-words pt-1">
+                                                        Rp {(Number(auc.price) || 0).toLocaleString('id-ID')}
                                                     </div>
                                                 </div>
 
-                                                {/* Price & OB */}
-                                                <div className="text-right shrink-0">
-                                                    <span className="text-xs font-bold text-red-600 block">
-                                                        Rp {auc.price.toLocaleString('id-ID')}
-                                                    </span>
-                                                    <span className="text-[9px] text-slate-400 block font-medium">
-                                                        OB: Rp {Math.round((auc as any).startPrice || (auc as any).auctionRaw?.start_price || (auc.price * 0.75)).toLocaleString('id-ID')}
-                                                    </span>
-                                                </div>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        openAuctionDetail(auc);
+                                                    }}
+                                                    className="w-full mt-2 py-1.5 px-2 bg-red-600 hover:bg-red-700 active:scale-[0.98] text-white text-xs font-bold rounded-xl shadow-xs shadow-red-600/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap"
+                                                    title="Tawar"
+                                                >
+                                                    <Gavel className="w-3 h-3 shrink-0" />
+                                                    <span className="font-bold">Tawar</span>
+                                                </button>
                                             </div>
-                                        ))}
-                                    </div>
+                                        </div>
+
+                                        {/* Setiap 6 lelang, sisipkan video bersponsor yang autoplays saat discroll */}
+                                        {(index + 1) % 6 === 0 && (
+                                            <KoiCinematicVideoBanner
+                                                variant="in_feed"
+                                                title={
+                                                    Math.floor((index + 1) / 6) === 1
+                                                        ? 'RAJAWALI HIYOTO ADS VOL 2.0'
+                                                        : Math.floor((index + 1) / 6) === 2
+                                                        ? 'BIO-KOKI MINERAL & NUTRISI JUMBO'
+                                                        : 'DOKUMENTASI PANEN RAYA MUDPOND 2026'
+                                                }
+                                                subtitle="Dokumentasi live kolam & pakan nutrisi juara • Autoplay saat discroll"
+                                                badgeText="Video Bersponsor"
+                                                onNavigateToCategories={() => navigateTo('categories')}
+                                            />
+                                        )}
+                                    </React.Fragment>
+                                    ))}
                                 </div>
+
+                                {/* Sentinel Elemen untuk IntersectionObserver Trigger */}
+                                <div ref={loadMoreSentinelRef} className="h-4 w-full pointer-events-none -mt-2" />
+
+                                {/* Tombol Interaktif Muat 10 Lelang Berikutnya */}
+                                {visibleAuctionLimit < displayedAuctions.length && (
+                                    <div className="pt-1 pb-2">
+                                        <button
+                                            onClick={loadNextBatch}
+                                            disabled={isLoadingMoreAuctions}
+                                            className="w-full py-3 px-4 bg-white hover:bg-slate-50 active:scale-[0.98] text-slate-800 text-xs font-bold rounded-2xl border border-slate-200/90 shadow-2xs transition flex items-center justify-center gap-2 cursor-pointer"
+                                        >
+                                            {isLoadingMoreAuctions ? (
+                                                <>
+                                                    <Loader2 className="w-4 h-4 animate-spin text-red-600" />
+                                                    <span>Memuat 10 Lelang Berikutnya...</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <ChevronDown className="w-4 h-4 text-red-600" />
+                                                    <span>Muat 10 Lelang Berikutnya (Tersisa {displayedAuctions.length - visibleAuctionLimit} ikan)</span>
+                                                </>
+                                            )}
+                                        </button>
+                                    </div>
+                                )}
+
+                                {/* Spinner Animasi Memuat 10 Data Berikutnya */}
+                                {isLoadingMoreAuctions && (
+                                    <div className="py-3.5 flex items-center justify-center gap-2 text-slate-600 text-xs font-bold bg-slate-100/90 rounded-2xl border border-slate-200/80 animate-pulse">
+                                        <Loader2 className="w-4 h-4 animate-spin text-red-600 shrink-0" />
+                                        <span>Memuat 10 lelang berikutnya...</span>
+                                    </div>
+                                )}
+
+                                {/* Indikator saat seluruh data selesai dimuat */}
+                                {!isLoadingMoreAuctions && visibleAuctionLimit >= displayedAuctions.length && displayedAuctions.length > 10 && (
+                                    <div className="py-2.5 text-center text-[11px] text-slate-400 font-medium">
+                                        ✓ Semua data lelang ({displayedAuctions.length}) telah dimuat
+                                    </div>
+                                )}
+                                </>
+                                )}
                             </div>
                         </div>
                     )}
@@ -6347,7 +8619,7 @@ export default function AndroidKoiApp({
                                             <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
                                             <div>
                                                 <p className="font-bold text-amber-900 text-[11px]">Belum Terdaftar Peserta Lelang</p>
-                                                <p className="text-[10px] text-amber-700 leading-tight">Bayar biaya pendaftaran Rp 250.000 untuk menawar</p>
+                                                <p className="text-[10px] text-amber-700 leading-tight">Daftar sebagai peserta lelang untuk mulai menawar</p>
                                             </div>
                                         </div>
                                         <button
@@ -6634,107 +8906,252 @@ export default function AndroidKoiApp({
                                     </div>
                                 )}
 
-                                {/* Status Pendaftaran Peserta Lelang Card (Pengganti E-Wallet) */}
-                                <div className={`p-4 rounded-2xl shadow-xl border flex items-center justify-between ${
-                                    isRegisteredParticipant 
-                                        ? 'bg-gradient-to-r from-emerald-950 via-slate-900 to-emerald-900 border-emerald-800 text-white' 
-                                        : 'bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 border-slate-800 text-white'
-                                }`}>
-                                    <div className="flex items-center gap-3">
-                                        <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${
-                                            isRegisteredParticipant ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-white/10 text-amber-400'
-                                        }`}>
-                                            <ShieldCheck className="w-6 h-6" />
-                                        </div>
-                                        <div>
-                                            <div className="flex items-center gap-1.5">
-                                                <p className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Status Peserta Lelang</p>
-                                                {isRegisteredParticipant && (
-                                                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                                                )}
+                                {/* Status & Kemitraan Seller Card */}
+                                {authUser?.role === 'seller' ? (
+                                    <div className="p-4 rounded-2xl shadow-xl border flex items-center justify-between bg-gradient-to-r from-amber-950 via-slate-900 to-amber-900 border-amber-800/80 text-white">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                                                <StoreIcon className="w-6 h-6" />
                                             </div>
-                                            <h4 className="text-sm font-extrabold text-white mt-0.5">
-                                                {isRegisteredParticipant ? 'Terdaftar & Terverifikasi' : 'Belum Terdaftar (Biaya Rp 250.000)'}
-                                            </h4>
-                                            <p className="text-[10px] text-slate-400 mt-0.5">
-                                                {isRegisteredParticipant ? 'Hak tawar lelang KOI PREMIUM aktif' : 'Wajib daftar untuk mengikuti tawaran'}
-                                            </p>
+                                            <div>
+                                                <p className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Akun Seller Terverifikasi</p>
+                                                <h4 className="text-sm font-extrabold text-white mt-0.5">{registeredStoreName || 'Lapak Peternak Resmi'}</h4>
+                                                <p className="text-[10px] text-slate-400 mt-0.5">Beralih ke Mode Seller untuk upload ikan & kelola lelang</p>
+                                            </div>
                                         </div>
+                                        <button
+                                            onClick={() => switchUserRole('seller')}
+                                            className="px-3.5 py-2 active:scale-95 text-xs font-bold rounded-xl transition-all shadow-md shrink-0 cursor-pointer bg-amber-600 hover:bg-amber-700 text-white shadow-amber-600/30 flex items-center gap-1"
+                                        >
+                                            <span>Mode Seller</span>
+                                            <ChevronRight className="w-3.5 h-3.5" />
+                                        </button>
                                     </div>
-                                    <button
-                                        onClick={() => {
-                                            if (!isLoggedIn) {
-                                                setGoogleLoginReason('general');
-                                                setIsGoogleLoginModalOpen(true);
-                                                return;
-                                            }
-                                            setIsTopUpOpen(true);
-                                        }}
-                                        className={`px-3.5 py-2 active:scale-95 text-xs font-bold rounded-xl transition-all shadow-md shrink-0 ${
-                                            isRegisteredParticipant 
-                                                ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/30' 
-                                                : 'bg-red-600 hover:bg-red-700 text-white shadow-red-600/30'
-                                        }`}
-                                    >
-                                        {isRegisteredParticipant ? 'Detail Akses' : 'Daftar Sekarang'}
-                                    </button>
+                                ) : (
+                                    <div className="p-3.5 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-center justify-between">
+                                        <div className="flex items-center gap-2.5">
+                                            <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center shrink-0">
+                                                <StoreIcon className="w-4.5 h-4.5" />
+                                            </div>
+                                            <div>
+                                                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 block">Akses Peternak / Penjual</span>
+                                                <h5 className="text-xs font-bold text-slate-800">Ingin Upload & Jual Ikan Koi?</h5>
+                                                <p className="text-[10px] text-slate-500">Buka lapak & daftarkan farm Anda</p>
+                                            </div>
+                                        </div>
+                                        <button
+                                            onClick={handleOpenSellerRegistration}
+                                            className="px-3.5 py-1.5 bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white text-[11px] font-extrabold rounded-xl active:scale-95 transition shadow-sm cursor-pointer flex items-center gap-1"
+                                        >
+                                            <StoreIcon className="w-3.5 h-3.5" />
+                                            <span>Daftar Seller</span>
+                                        </button>
+                                    </div>
+                                )}
+
+                                {/* Card Highlight: Pusat Bidder Terpadu */}
+                                <div className="p-4 rounded-2xl bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 border border-emerald-500/40 text-white shadow-xl space-y-3 relative overflow-hidden">
+                                    <div className="absolute top-0 right-0 p-3 opacity-10 pointer-events-none">
+                                        <Trophy className="w-24 h-24 text-amber-300" />
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center text-emerald-300">
+                                                <Gavel className="w-4 h-4" />
+                                            </div>
+                                            <div>
+                                                <h4 className="text-xs font-black text-white">Pusat & Dashboard Bidder</h4>
+                                                <p className="text-[10px] text-emerald-300/80">Ikan Saya • Tawaran • Status BNR • History</p>
+                                            </div>
+                                        </div>
+                                        <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-black border border-emerald-400/30">
+                                            Skor 100
+                                        </span>
+                                    </div>
+                                    <div className="grid grid-cols-3 gap-1.5 pt-1">
+                                        <button
+                                            onClick={() => {
+                                                setBidderActiveTab('dashboard');
+                                                navigateTo('bidder_center');
+                                            }}
+                                            className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-center transition cursor-pointer"
+                                        >
+                                            <span className="text-[10px] font-bold text-white block">Dashboard</span>
+                                            <span className="text-[9px] text-emerald-300">Limit Bid</span>
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                setBidderActiveTab('my_koi');
+                                                navigateTo('bidder_center');
+                                            }}
+                                            className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-center transition cursor-pointer"
+                                        >
+                                            <span className="text-[10px] font-bold text-white block">Ikan Saya</span>
+                                            <span className="text-[9px] text-amber-300">{myKoiItems.length} Ekor</span>
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                setBidderActiveTab('bnr');
+                                                navigateTo('bidder_center');
+                                            }}
+                                            className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-center transition cursor-pointer"
+                                        >
+                                            <span className="text-[10px] font-bold text-white block">Anti-BNR</span>
+                                            <span className="text-[9px] text-emerald-400">Bebas BNR</span>
+                                        </button>
+                                    </div>
                                 </div>
 
                                 {/* Menu List */}
-                                <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden divide-y divide-slate-50">
+                                <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden divide-y divide-slate-100">
                                     {[
                                         { 
-                                            label: 'Hasil Tawaran Lelang Saya', 
+                                            label: 'Pusat Bidder',
+                                            sublabel: 'Tawaran, BNR & Riwayat',
                                             icon: Gavel, 
-                                            badge: isLoggedIn ? `${userBids.length} Lelang` : 'Kunci (Login)', 
-                                            badgeColor: 'bg-emerald-50 text-emerald-700 border border-emerald-200', 
-                                            action: () => navigateTo('my_bids') 
+                                            iconBg: 'bg-amber-50 text-amber-700',
+                                            badge: isLoggedIn 
+                                                ? (userBids.filter(b => b.status === 'won').length > 0 
+                                                    ? `🏆 ${userBids.filter(b => b.status === 'won').length} Menang` 
+                                                    : 'Bebas BNR')
+                                                : 'Perlu Login', 
+                                            badgeColor: isLoggedIn 
+                                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200 font-bold' 
+                                                : 'bg-slate-100 text-slate-500 border-slate-200 font-semibold',
+                                            badgeIcon: isLoggedIn ? undefined : Lock,
+                                            action: () => {
+                                                setBidderActiveTab('dashboard');
+                                                navigateTo('bidder_center');
+                                            } 
                                         },
                                         { 
-                                            label: 'Hubungi Customer Care via WhatsApp', 
+                                            label: isRegisteredSeller ? 'Kelola Lapak' : 'Daftar Seller',
+                                            sublabel: isRegisteredSeller ? 'Katalog, pesanan & lelang' : 'Buka lapak & jual koleksi koi',
+                                            icon: StoreIcon, 
+                                            iconBg: isRegisteredSeller ? 'bg-emerald-50 text-emerald-700' : 'bg-orange-50 text-orange-600',
+                                            badge: isRegisteredSeller ? 'Seller Aktif' : 'Buka Lapak',
+                                            badgeColor: isRegisteredSeller 
+                                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200 font-bold' 
+                                                : 'bg-amber-50 text-amber-700 border-amber-200 font-bold',
+                                            action: handleOpenSellerRegistration 
+                                        },
+                                        { 
+                                            label: 'Customer Care',
+                                            sublabel: 'Bantuan WhatsApp 24/7',
                                             icon: MessageCircle, 
+                                            iconBg: 'bg-emerald-50 text-emerald-600',
                                             badge: 'Online 24/7',
-                                            badgeColor: 'bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold',
+                                            badgeColor: 'bg-emerald-50 text-emerald-700 border-emerald-200 font-bold',
                                             action: () => openWhatsApp('+6281288881001', 'Halo Customer Care KoiMart Premium, saya membutuhkan bantuan informasi/transaksi lelang.') 
                                         },
                                         { 
-                                            label: 'Ukuran Tulisan', 
+                                            label: 'Ukuran Teks',
+                                            sublabel: 'Kenyamanan membaca',
                                             icon: ZoomIn, 
+                                            iconBg: 'bg-blue-50 text-blue-600',
                                             badge: fontSizeScale === 'xlarge' ? 'Sangat Besar' : fontSizeScale === 'large' ? 'Besar' : 'Standard',
-                                            badgeColor: 'bg-amber-100 text-amber-900 border border-amber-300 font-black',
+                                            badgeColor: 'bg-blue-50 text-blue-700 border-blue-200 font-bold',
                                             action: () => setIsFontSizeModalOpen(true) 
                                         },
                                         { 
-                                            label: 'Pesanan Saya', 
+                                            label: 'Pesanan Saya',
+                                            sublabel: 'Riwayat & resi pengiriman',
                                             icon: ReceiptText, 
-                                            badge: isLoggedIn ? `${ordersList.length} Pesanan` : 'Kunci (Login)',
-                                            badgeColor: 'bg-red-50 text-red-700 border border-red-200',
+                                            iconBg: 'bg-indigo-50 text-indigo-600',
+                                            badge: isLoggedIn ? `${ordersList.length} Pesanan` : 'Perlu Login',
+                                            badgeColor: isLoggedIn 
+                                                ? 'bg-slate-100 text-slate-700 border-slate-200 font-bold' 
+                                                : 'bg-slate-100 text-slate-500 border-slate-200 font-semibold',
+                                            badgeIcon: isLoggedIn ? undefined : Lock,
                                             action: () => navigateTo('orders') 
                                         },
-                                        { label: 'Favorit Saya', icon: Heart, action: () => isLoggedIn ? navigateTo('favorite') : (setGoogleLoginReason('favorit'), setPendingLoginAction({ type: 'navigate', payload: 'favorite' }), setIsGoogleLoginModalOpen(true)) },
-                                        { label: 'Input Koleksi Koi Baru (Khusus Owner)', icon: StoreIcon, action: () => navigateTo('merchant_add_koi') },
-                                        { label: 'Chat Transaksi & Koordinasi', icon: MessageCircle, action: () => isLoggedIn ? openChatThread('thread-2') : (setGoogleLoginReason('chat'), setPendingLoginAction({ type: 'navigate', payload: 'chat_list' }), setIsGoogleLoginModalOpen(true)) },
-                                        { label: 'Rekor Lelang Tertinggi', icon: Crown, action: () => navigateTo('highest_auction') },
-                                        { label: 'Lelang Terpopuler', icon: Flame, action: () => navigateTo('favorite_auction') },
-                                        { label: 'Metode Pembayaran', icon: CreditCard, action: () => triggerToast('Metode pembayaran: BCA Virtual Account, Transfer Bank, QRIS Instan') },
-                                        { label: 'Tentang Galeri & Farm', icon: Info, action: () => { setSelectedStore(OFFICIAL_KOI_GALLERY); setStoreActiveTab('gallery'); navigateTo('store_gallery'); } },
+                                        { 
+                                            label: 'Favorit Saya',
+                                            sublabel: 'Koleksi yang disimpan',
+                                            icon: Heart, 
+                                            iconBg: 'bg-rose-50 text-rose-600',
+                                            badge: favoritesList.length > 0 ? `${favoritesList.length} Ikan` : undefined,
+                                            badgeColor: 'bg-rose-50 text-rose-700 border-rose-200 font-bold',
+                                            action: () => isLoggedIn ? navigateTo('favorite') : (setGoogleLoginReason('favorit'), setPendingLoginAction({ type: 'navigate', payload: 'favorite' }), setIsGoogleLoginModalOpen(true)) 
+                                        },
+                                        { 
+                                            label: 'Chat Transaksi',
+                                            sublabel: 'Diskusi langsung dengan galeri',
+                                            icon: MessageCircle, 
+                                            iconBg: 'bg-teal-50 text-teal-600',
+                                            badge: totalUnreadChatCount > 0 ? `${totalUnreadChatCount} Baru` : undefined,
+                                            badgeColor: 'bg-red-500 text-white border-red-500 font-bold',
+                                            action: () => isLoggedIn ? openChatThread('thread-2') : (setGoogleLoginReason('chat'), setPendingLoginAction({ type: 'navigate', payload: 'chat_list' }), setIsGoogleLoginModalOpen(true)) 
+                                        },
+                                        { 
+                                            label: 'Rekor Lelang',
+                                            sublabel: 'Hall of Fame juara show',
+                                            icon: Crown, 
+                                            iconBg: 'bg-yellow-50 text-amber-600',
+                                            badge: 'Grand Champion',
+                                            badgeColor: 'bg-amber-50 text-amber-700 border-amber-200 font-bold',
+                                            action: () => navigateTo('highest_auction') 
+                                        },
+                                        { 
+                                            label: 'Lelang Populer',
+                                            sublabel: 'Paling banyak diminati',
+                                            icon: Flame, 
+                                            iconBg: 'bg-red-50 text-red-600',
+                                            badge: 'Trending',
+                                            badgeColor: 'bg-red-50 text-red-700 border-red-200 font-bold',
+                                            action: () => navigateTo('favorite_auction') 
+                                        },
+                                        { 
+                                            label: 'Metode Bayar',
+                                            sublabel: 'Garansi Rekber D.O.A 100%',
+                                            icon: CreditCard, 
+                                            iconBg: 'bg-emerald-50 text-emerald-700',
+                                            badge: 'QRIS & VA',
+                                            badgeColor: 'bg-emerald-50 text-emerald-700 border-emerald-200 font-bold',
+                                            action: () => triggerToast('Metode pembayaran: BCA Virtual Account, Mandiri, Transfer Bank, QRIS Instan Rekber') 
+                                        },
+                                        { 
+                                            label: 'Tentang Galeri',
+                                            sublabel: 'Karantina & aklimatisasi',
+                                            icon: Info, 
+                                            iconBg: 'bg-slate-100 text-slate-600',
+                                            badge: 'APKI & ZNA',
+                                            badgeColor: 'bg-slate-100 text-slate-600 border-slate-200 font-bold',
+                                            action: () => { setSelectedStore(OFFICIAL_KOI_GALLERY); setStoreActiveTab('gallery'); navigateTo('store_gallery'); } 
+                                        },
                                     ].map((item, idx) => (
                                         <button
                                             key={idx}
                                             onClick={item.action}
-                                            className="w-full px-4 py-3.5 flex items-center justify-between text-left hover:bg-slate-50 transition-colors"
+                                            className="w-full px-3.5 py-2.5 flex items-center justify-between text-left hover:bg-slate-50/80 transition-colors group cursor-pointer"
                                         >
-                                            <div className="flex items-center gap-3 text-slate-700">
-                                                <item.icon className="w-4 h-4 text-slate-500" />
-                                                <span className="text-xs font-semibold">{item.label}</span>
+                                            <div className="flex items-center gap-2.5 min-w-0 pr-1.5">
+                                                <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                                                    item.iconBg || 'bg-slate-100 text-slate-600 group-hover:bg-amber-50 group-hover:text-amber-600'
+                                                }`}>
+                                                    <item.icon className="w-4 h-4" />
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <p className="text-xs font-bold text-slate-800 group-hover:text-slate-950 truncate">
+                                                        {item.label}
+                                                    </p>
+                                                    {item.sublabel && (
+                                                        <p className="text-[10px] text-slate-400 truncate mt-0.5">
+                                                            {item.sublabel}
+                                                        </p>
+                                                    )}
+                                                </div>
                                             </div>
-                                            <div className="flex items-center gap-2">
-                                                {(item as any).badge && (
-                                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${(item as any).badgeColor || 'bg-slate-100 text-slate-600'}`}>
-                                                        {(item as any).badge}
+                                            <div className="flex items-center gap-1.5 shrink-0">
+                                                {item.badge && (
+                                                    <span className={`inline-flex items-center gap-1 text-[9.5px] px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 border ${
+                                                        item.badgeColor || 'bg-slate-100 text-slate-600 border-slate-200'
+                                                    }`}>
+                                                        {item.badgeIcon && <item.badgeIcon className="w-2.5 h-2.5 shrink-0" />}
+                                                        <span>{item.badge}</span>
                                                     </span>
                                                 )}
-                                                <ChevronRight className="w-4 h-4 text-slate-400" />
+                                                <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-500 transition-colors shrink-0" />
                                             </div>
                                         </button>
                                     ))}
@@ -6743,12 +9160,18 @@ export default function AndroidKoiApp({
                                     {isLoggedIn ? (
                                         <button
                                             onClick={handleLogout}
-                                            className="w-full px-4 py-3.5 flex items-center justify-between text-left hover:bg-red-50 text-red-600 transition-colors"
+                                            className="w-full px-4 py-3.5 flex items-center justify-between text-left hover:bg-rose-50 text-rose-600 transition-colors group cursor-pointer"
                                         >
-                                            <div className="flex items-center gap-3">
-                                                <LogOut className="w-4 h-4 text-red-600" />
-                                                <span className="text-xs font-bold">Keluar Akun Google</span>
+                                            <div className="flex items-center gap-3 min-w-0 pr-2">
+                                                <div className="w-9 h-9 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 group-hover:bg-rose-100 transition-colors">
+                                                    <LogOut className="w-4.5 h-4.5" />
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <p className="text-xs font-extrabold text-rose-600">Keluar Akun</p>
+                                                    <p className="text-[10px] text-slate-400 truncate">{userEmail}</p>
+                                                </div>
                                             </div>
+                                            <ChevronRight className="w-4 h-4 text-rose-300 group-hover:text-rose-500 transition-colors shrink-0" />
                                         </button>
                                     ) : (
                                         <button
@@ -6756,13 +9179,23 @@ export default function AndroidKoiApp({
                                                 setGoogleLoginReason('general');
                                                 setIsGoogleLoginModalOpen(true);
                                             }}
-                                            className="w-full px-4 py-3.5 flex items-center justify-between text-left hover:bg-amber-50 text-amber-700 transition-colors"
+                                            className="w-full px-4 py-3.5 flex items-center justify-between text-left hover:bg-amber-50/70 text-amber-800 transition-colors group cursor-pointer bg-gradient-to-r from-amber-50/30 via-white to-amber-50/10"
                                         >
-                                            <div className="flex items-center gap-3">
-                                                <LogIn className="w-4 h-4 text-amber-600" />
-                                                <span className="text-xs font-bold">Masuk ke Akun (Google / Email)</span>
+                                            <div className="flex items-center gap-3 min-w-0 pr-2">
+                                                <div className="w-9 h-9 rounded-2xl bg-amber-500 text-slate-950 flex items-center justify-center shrink-0 shadow-xs shadow-amber-500/20">
+                                                    <LogIn className="w-4.5 h-4.5" />
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <p className="text-xs font-black text-amber-950">Masuk ke Akun (Google / Email)</p>
+                                                    <p className="text-[10px] text-amber-700/80 truncate">Akses penuh fitur lelang, favorit & pesanan</p>
+                                                </div>
                                             </div>
-                                            <ChevronRight className="w-4 h-4 text-amber-400" />
+                                            <div className="flex items-center gap-1.5 shrink-0">
+                                                <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300 whitespace-nowrap">
+                                                    Masuk
+                                                </span>
+                                                <ChevronRight className="w-4 h-4 text-amber-500 group-hover:translate-x-0.5 transition-transform shrink-0" />
+                                            </div>
                                         </button>
                                     )}
                                 </div>
@@ -7571,28 +10004,70 @@ export default function AndroidKoiApp({
                     {/* SCREEN: MERCHANT ADD KOI & KURASI OPERATOR (STEPS 1, 2, 3, 4, 5)          */}
                     {/* ========================================================================= */}
                     {currentScreen === 'merchant_add_koi' && (
-                        <div className="flex-1 flex flex-col bg-slate-50 pb-20">
-                            {/* Header */}
-                            <div className="px-4 py-3 bg-white border-b border-slate-100 flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <button onClick={() => navigateTo('profile')} className="p-1.5 hover:bg-slate-100 rounded-full text-slate-800">
-                                        <ArrowLeft className="w-5 h-5" />
-                                    </button>
-                                    <div>
-                                        <h3 className="font-bold text-sm text-slate-900">Input Koleksi Koi (Owner)</h3>
-                                        <p className="text-[10px] text-slate-400">Tambah Katalog & Lelang Resmi Farm</p>
-                                    </div>
+                        userAccessRole !== 'seller' ? (
+                            <div className="flex-1 flex flex-col bg-slate-50 items-center justify-center p-6 text-center">
+                                <div className="w-16 h-16 rounded-3xl bg-amber-100 text-amber-700 flex items-center justify-center mb-4 shadow-sm">
+                                    <StoreIcon className="w-8 h-8" />
                                 </div>
-                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-700">
-                                    Step 1 - 5
+                                <span className="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-black uppercase tracking-wider mb-2">
+                                    Akses Khusus Seller
                                 </span>
+                                <h3 className="text-base font-extrabold text-slate-900 mb-1">
+                                    Fitur Upload Ikan Khusus Seller
+                                </h3>
+                                <p className="text-xs text-slate-500 max-w-xs leading-relaxed mb-6">
+                                    Akun Bidder hanya dapat melakukan bid dan membeli ikan. Fitur upload ikan dan pasang lelang khusus untuk akun Mitra Peternak (Seller).
+                                </p>
+                                <div className="w-full max-w-xs space-y-2">
+                                    <button
+                                        onClick={() => navigateTo('highest_auction')}
+                                        className="w-full py-3 px-4 bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs rounded-xl shadow-md transition active:scale-95 cursor-pointer"
+                                    >
+                                        Kembali ke Lelang Koi (Mode Bidder)
+                                    </button>
+                                    {authUser?.role === 'seller' ? (
+                                        <button
+                                            onClick={() => switchUserRole('seller')}
+                                            className="w-full py-2.5 px-4 bg-white border border-slate-200 text-slate-800 font-bold text-xs rounded-xl transition active:scale-95 cursor-pointer"
+                                        >
+                                            Beralih ke Mode Seller
+                                        </button>
+                                    ) : (
+                                        <button
+                                            onClick={() => {
+                                                setPendingLoginAction({ type: 'navigate', payload: 'merchant_add_koi' });
+                                                setIsGoogleLoginModalOpen(true);
+                                            }}
+                                            className="w-full py-2.5 px-4 bg-white border border-slate-200 text-slate-800 font-bold text-xs rounded-xl transition active:scale-95 cursor-pointer"
+                                        >
+                                            Masuk sebagai Akun Seller
+                                        </button>
+                                    )}
+                                </div>
                             </div>
+                        ) : (
+                            <div className="flex-1 flex flex-col bg-slate-50 pb-20">
+                                {/* Header */}
+                                <div className="px-4 py-3 bg-white border-b border-slate-100 flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <button onClick={() => navigateTo('seller_center')} className="p-1.5 hover:bg-slate-100 rounded-full text-slate-800 cursor-pointer">
+                                            <ArrowLeft className="w-5 h-5" />
+                                        </button>
+                                        <div>
+                                            <h3 className="font-bold text-sm text-slate-900">Upload Ikan & Pasang Lelang</h3>
+                                            <p className="text-[10px] text-slate-400">Mode Seller • Mitra Peternak Terverifikasi</p>
+                                        </div>
+                                    </div>
+                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-700">
+                                        Upload Koi (Step 1-5)
+                                    </span>
+                                </div>
 
                             {/* Content */}
                             <div className="flex-1 overflow-y-auto p-4 space-y-4">
                                 {/* Status Kurasi Banner */}
                                 {curationStep === 'submitted_push_notif' && (
-                                    <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 space-y-2">
+                                    <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 space-y-3">
                                         <div className="flex items-center gap-2 text-amber-800 font-bold text-xs">
                                             <AlertTriangle className="w-4 h-4 text-amber-600" />
                                             <span>Step 3: Menunggu Kurasi Operator KoiMart</span>
@@ -7600,41 +10075,76 @@ export default function AndroidKoiApp({
                                         <p className="text-[11px] text-amber-700 leading-relaxed">
                                             Data koi telah disubmit ke Server API. Push Notifikasi telah dikirimkan ke Operator untuk kurasi kualitas, kesehatan, dan keaslian sertifikat.
                                         </p>
-                                        <button
-                                            onClick={handleOperatorApproveListing}
-                                            className="w-full mt-2 py-2.5 bg-amber-600 hover:bg-amber-700 active:scale-98 text-white font-bold text-xs rounded-xl shadow-xs flex items-center justify-center gap-1.5 transition"
-                                        >
-                                            <CheckCircle2 className="w-4 h-4" />
-                                            <span>Simulasi: Operator Approve & Publish ke Katalog</span>
-                                        </button>
+                                        <div className="grid grid-cols-2 gap-2 pt-1">
+                                            <button
+                                                type="button"
+                                                onClick={handleOperatorApproveListing}
+                                                className="py-2.5 px-3 bg-amber-600 hover:bg-amber-700 active:scale-98 text-white font-bold text-[11px] rounded-xl shadow-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
+                                            >
+                                                <CheckCircle2 className="w-4 h-4" />
+                                                <span>Approve Instan</span>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={handleResetMerchantKoiForm}
+                                                className="py-2.5 px-3 bg-white border border-amber-300 text-amber-900 hover:bg-amber-100/60 active:scale-98 font-bold text-[11px] rounded-xl shadow-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
+                                            >
+                                                <Plus className="w-4 h-4 text-amber-700" />
+                                                <span>Upload Ikan Lain</span>
+                                            </button>
+                                        </div>
                                     </div>
                                 )}
 
                                 {curationStep === 'approved_published' && (
-                                    <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-center space-y-2">
+                                    <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-center space-y-3">
                                         <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">
                                             <Check className="w-5 h-5 stroke-[3]" />
                                         </div>
-                                        <h4 className="font-bold text-xs text-emerald-800">
-                                            Step 5: Produk Berhasil Terbit di Katalog!
-                                        </h4>
-                                        <p className="text-[11px] text-emerald-700">
-                                            Ikan koi telah disetujui kurator dan sekarang dapat dilihat serta dibeli langsung oleh customer.
-                                        </p>
-                                        <button
-                                            onClick={() => navigateTo('home')}
-                                            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs"
-                                        >
-                                            Lihat di Beranda Katalog
-                                        </button>
+                                        <div>
+                                            <h4 className="font-bold text-xs text-emerald-800">
+                                                Step 5: Produk Berhasil Terbit di Katalog!
+                                            </h4>
+                                            <p className="text-[11px] text-emerald-700 mt-1">
+                                                Ikan koi telah disetujui kurator dan sekarang dapat dilihat serta dibeli langsung oleh customer.
+                                            </p>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-2 pt-1">
+                                            <button
+                                                type="button"
+                                                onClick={() => navigateTo('home')}
+                                                className="py-2 px-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] rounded-xl shadow-xs cursor-pointer flex items-center justify-center gap-1"
+                                            >
+                                                <Eye className="w-3.5 h-3.5" />
+                                                <span>Lihat di Katalog</span>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={handleResetMerchantKoiForm}
+                                                className="py-2 px-3 bg-white border border-emerald-300 text-emerald-800 hover:bg-emerald-100/60 font-bold text-[11px] rounded-xl shadow-xs cursor-pointer flex items-center justify-center gap-1"
+                                            >
+                                                <Plus className="w-3.5 h-3.5" />
+                                                <span>Upload Ikan Lain</span>
+                                            </button>
+                                        </div>
                                     </div>
                                 )}
 
                                 {/* Form Input Ikan Koi (Step 1) */}
                                 <form onSubmit={handleMerchantSubmitKoi} className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-3 text-xs">
-                                    <h4 className="text-xs font-bold text-slate-900 border-b pb-2">
-                                        Step 1: Input Data Koi & Set Harga Pas
-                                    </h4>
+                                    <div className="flex items-center justify-between border-b pb-2">
+                                        <h4 className="text-xs font-bold text-slate-900">
+                                            Step 1: Input Data Koi & Set Harga Pas
+                                        </h4>
+                                        <button
+                                            type="button"
+                                            onClick={handleResetMerchantKoiForm}
+                                            className="text-[10px] text-red-600 hover:text-red-700 font-bold flex items-center gap-1 cursor-pointer"
+                                        >
+                                            <RefreshCw className="w-3 h-3" />
+                                            <span>Reset Form</span>
+                                        </button>
+                                    </div>
 
                                     <div>
                                         <label className="block text-[11px] font-semibold text-slate-700 mb-1">Nama Ikan Koi</label>
@@ -7689,12 +10199,111 @@ export default function AndroidKoiApp({
                                         />
                                     </div>
 
-                                    <div>
-                                        <label className="block text-[11px] font-semibold text-slate-700 mb-1">Foto & Sertifikat Breeder</label>
-                                        <div className="p-3 border-2 border-dashed border-slate-200 rounded-xl text-center space-y-1">
-                                            <UploadCloud className="w-6 h-6 text-slate-400 mx-auto" />
-                                            <p className="text-[10px] text-slate-500 font-semibold">Foto Utama & Dokumen Sertifikat Telah Dipilih</p>
-                                            <p className="text-[9px] text-slate-400">Format JPG, PNG, atau Video MP4</p>
+                                    {/* UPLOAD FOTO IKAN KOI & SERTIFIKAT BREEDER */}
+                                    <div className="space-y-3 pt-1">
+                                        {/* 1. Upload Foto Utama Ikan Koi */}
+                                        <div>
+                                            <div className="flex items-center justify-between mb-1.5">
+                                                <label className="text-[11px] font-bold text-slate-800 flex items-center gap-1.5">
+                                                    <Camera className="w-3.5 h-3.5 text-red-600" />
+                                                    Foto Utama Ikan Koi <span className="text-red-500">*</span>
+                                                </label>
+                                                <span className="text-[9px] text-slate-400 font-medium">JPG / PNG / WEBP</span>
+                                            </div>
+                                            <label className="block relative border-2 border-dashed border-red-300 hover:border-red-500 rounded-2xl bg-red-50/30 hover:bg-red-50/60 cursor-pointer transition overflow-hidden group">
+                                                {merchantKoiForm.image ? (
+                                                    <div className="relative w-full h-40 bg-slate-900/5 flex items-center justify-center overflow-hidden">
+                                                        <img
+                                                            src={merchantKoiForm.image}
+                                                            alt="Preview Ikan Koi"
+                                                            className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                                                        />
+                                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 text-white">
+                                                            <span className="px-3 py-1.5 bg-black/70 backdrop-blur-xs rounded-xl text-[11px] font-bold flex items-center gap-1.5 shadow-md">
+                                                                <Camera className="w-3.5 h-3.5 text-amber-400" />
+                                                                Ganti Foto Ikan
+                                                            </span>
+                                                        </div>
+                                                        <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-emerald-600 text-white text-[9px] font-black shadow-md flex items-center gap-1">
+                                                            <Check className="w-3 h-3 stroke-[3]" />
+                                                            Foto Terpilih
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="p-4 text-center space-y-1.5">
+                                                        <div className="w-10 h-10 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto shadow-xs">
+                                                            <Camera className="w-5 h-5" />
+                                                        </div>
+                                                        <p className="text-[11px] font-bold text-slate-800">Pilih / Ambil Foto Ikan Koi</p>
+                                                        <p className="text-[9px] text-slate-500">Klik untuk upload foto ikan (kompresi otomatis)</p>
+                                                    </div>
+                                                )}
+                                                <input
+                                                    type="file"
+                                                    accept="image/*"
+                                                    onChange={handleKoiPhotoUpload}
+                                                    className="hidden"
+                                                />
+                                            </label>
+                                        </div>
+
+                                        {/* 2. Upload Dokumen / Foto Sertifikat Breeder */}
+                                        <div>
+                                            <div className="flex items-center justify-between mb-1.5">
+                                                <label className="text-[11px] font-bold text-slate-800 flex items-center gap-1.5">
+                                                    <Award className="w-3.5 h-3.5 text-amber-600" />
+                                                    Sertifikat Breeder / Silsilah
+                                                </label>
+                                                <span className="text-[9px] text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded-full font-bold">
+                                                    APKI / ZNA
+                                                </span>
+                                            </div>
+                                            <label className="block relative border-2 border-dashed border-amber-300 hover:border-amber-500 rounded-2xl bg-amber-50/30 hover:bg-amber-50/60 cursor-pointer transition overflow-hidden group">
+                                                {merchantKoiForm.certificateImage ? (
+                                                    <div className="relative w-full h-36 bg-amber-50/60 flex items-center justify-center overflow-hidden">
+                                                        <img
+                                                            src={merchantKoiForm.certificateImage}
+                                                            alt="Preview Sertifikat"
+                                                            className="w-full h-full object-contain p-2 group-hover:scale-105 transition duration-300"
+                                                        />
+                                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
+                                                            <span className="px-3 py-1.5 bg-black/70 backdrop-blur-xs rounded-xl text-[11px] font-bold flex items-center gap-1.5 shadow-md">
+                                                                <FileText className="w-3.5 h-3.5 text-amber-400" />
+                                                                Ganti Sertifikat
+                                                            </span>
+                                                        </div>
+                                                        <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-amber-600 text-white text-[9px] font-black shadow-md flex items-center gap-1">
+                                                            <Check className="w-3 h-3 stroke-[3]" />
+                                                            Sertifikat Terlampir
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="p-4 text-center space-y-1.5">
+                                                        <div className="w-10 h-10 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center mx-auto shadow-xs">
+                                                            <Award className="w-5 h-5" />
+                                                        </div>
+                                                        <p className="text-[11px] font-bold text-slate-800">Upload Dokumen Sertifikat Keaslian</p>
+                                                        <p className="text-[9px] text-slate-500">Foto sertifikat silsilah resmi breeder atau APKI</p>
+                                                    </div>
+                                                )}
+                                                <input
+                                                    type="file"
+                                                    accept="image/*,application/pdf"
+                                                    onChange={handleKoiCertificateUpload}
+                                                    className="hidden"
+                                                />
+                                            </label>
+
+                                            {/* Nomor Seri Sertifikat */}
+                                            <div className="mt-2">
+                                                <input
+                                                    type="text"
+                                                    value={merchantKoiForm.certificateNo || ''}
+                                                    onChange={(e) => setMerchantKoiForm({ ...merchantKoiForm, certificateNo: e.target.value })}
+                                                    placeholder="Nomor Seri Sertifikat (cth: APKI-2026-0881)"
+                                                    className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-amber-500 bg-white font-mono"
+                                                />
+                                            </div>
                                         </div>
                                     </div>
 
@@ -7710,18 +10319,29 @@ export default function AndroidKoiApp({
 
                                     <button
                                         type="submit"
-                                        disabled={curationStep !== 'input'}
-                                        className={`w-full py-3 text-white font-bold rounded-xl transition flex items-center justify-center gap-2 shadow-md ${curationStep === 'input'
-                                                ? 'bg-red-600 hover:bg-red-700 active:scale-98 shadow-red-600/30'
-                                                : 'bg-slate-400 cursor-not-allowed'
-                                            }`}
+                                        disabled={isSubmittingMerchantKoi}
+                                        className={`w-full py-3.5 text-white font-black text-xs rounded-xl transition flex items-center justify-center gap-2 shadow-lg cursor-pointer ${
+                                            isSubmittingMerchantKoi
+                                                ? 'bg-slate-400 cursor-not-allowed opacity-80'
+                                                : 'bg-gradient-to-r from-red-600 via-rose-600 to-amber-600 hover:from-red-700 hover:to-amber-700 active:scale-98 shadow-red-600/30'
+                                        }`}
                                     >
-                                        <Send className="w-4 h-4" />
-                                        <span>Step 2: Submit Data Koi ke Server API</span>
+                                        {isSubmittingMerchantKoi ? (
+                                            <>
+                                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                                <span>Sedang Mengunggah & Menyimpan ke Server...</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Send className="w-4 h-4" />
+                                                <span>🚀 Upload Ikan Koi Sekarang (Simpan ke Server)</span>
+                                            </>
+                                        )}
                                     </button>
                                 </form>
                             </div>
                         </div>
+                        )
                     )}
 
                     {/* ========================================================================= */}
@@ -9035,9 +11655,14 @@ export default function AndroidKoiApp({
                                                                 </div>
                                                             )}
                                                             {isWon && (
-                                                                <div className="p-2 rounded-xl bg-rose-50/80 border border-rose-100 flex items-center gap-2 text-[10px] text-rose-800">
-                                                                    <Trophy className="w-3.5 h-3.5 text-rose-600 shrink-0" />
-                                                                    <span>Selamat! Anda memenangkan lelang ini. Selesaikan proses pembayaran sebelum tagihan kedaluwarsa.</span>
+                                                                <div className="p-3 rounded-xl bg-gradient-to-r from-amber-50 to-rose-50 border border-amber-200/90 space-y-1 text-slate-800">
+                                                                    <div className="flex items-center gap-1.5 text-xs font-black text-amber-700">
+                                                                        <Trophy className="w-4 h-4 text-amber-600 animate-bounce" />
+                                                                        <span>PENGUMUMAN RESMI PEMENANG LELANG</span>
+                                                                    </div>
+                                                                    <p className="text-[11px] leading-relaxed">
+                                                                        Selamat kepada <strong>{authUser?.name || bid.highestBidder}</strong>! Anda resmi menjadi pemenang lelang ikan koi ini dengan penawaran harga tertinggi <strong>Rp {Number(bid.winningPrice || bid.currentBid).toLocaleString('id-ID')}</strong>. Selesaikan proses pembayaran sekarang!
+                                                                    </p>
                                                                 </div>
                                                             )}
 
@@ -9114,41 +11739,2323 @@ export default function AndroidKoiApp({
                         );
                     })()}
 
+                    {/* ========================================================================= */}
+                    {/* SCREEN 21: PUSAT BIDDER (BIDDER CENTER / DASHBOARD BIDDER)                 */}
+                    {/* ========================================================================= */}
+                    {currentScreen === 'bidder_center' && (
+                        !isLoggedIn ? (
+                            <LockedAccessCard
+                                title="Pusat Bidder Memerlukan Login"
+                                description="Akses portofolio lelang, total belanja yang telah dibayarkan, dan riwayat penawaran live hanya dapat diakses setelah Anda masuk ke akun terdaftar Anda."
+                                icon={Gavel}
+                                onLoginClick={() => {
+                                    setGoogleLoginReason('tawaran');
+                                    setPendingLoginAction({ type: 'navigate', payload: 'bidder_center' });
+                                    setIsGoogleLoginModalOpen(true);
+                                }}
+                                onBackClick={() => navigateTo('highest_auction')}
+                            />
+                        ) : (() => {
+                        const leadingBids = userBids.filter(b => b.isLeading && !b.isEnded);
+                        const outbidBids = userBids.filter(b => b.status === 'outbid' && !b.isEnded);
+                        const wonBids = userBids.filter(b => b.status === 'won');
+
+                        const filteredMyKoi = myKoiItems.filter(item => {
+                            if (myKoiFilter === 'all') return true;
+                            return item.status === myKoiFilter;
+                        });
+
+                        const filteredBidHistory = bidHistoryItems.filter(item => {
+                            if (bidHistoryFilter === 'all') return true;
+                            if (bidHistoryFilter === 'won') return item.status === 'won';
+                            if (bidHistoryFilter === 'outbid') return item.status === 'outbid';
+                            return true;
+                        });
+
+                        interface BidderNavButtonItem {
+                            id: string;
+                            label: string;
+                            iconSrc: string;
+                            squircleBg: string;
+                            icon?: any;
+                            iconBg?: string;
+                            activeIconBg?: string;
+                            desc: string;
+                            badge?: number | string;
+                            badgeText?: string;
+                            action?: () => void;
+                        }
+
+                        const bidderNavButtons: BidderNavButtonItem[] = [
+                            { 
+                                id: 'dashboard', 
+                                label: 'Dashboard', 
+                                iconSrc: '/images/menu_icons/pusat_bidder.png',
+                                squircleBg: 'from-amber-50/90 via-amber-100/40 to-yellow-100/50 border-amber-300/60 ring-1 ring-amber-200/50 shadow-amber-900/10',
+                                desc: 'Ringkasan & Limit'
+                            },
+                            { 
+                                id: 'profile', 
+                                label: 'Profil', 
+                                iconSrc: '/images/menu_icons/farm_mitra.png',
+                                squircleBg: 'from-sky-50/90 via-blue-100/40 to-cyan-100/50 border-sky-300/60 ring-1 ring-sky-200/50 shadow-sky-900/10',
+                                desc: 'Identitas & Kolam'
+                            },
+                            { 
+                                id: 'my_koi', 
+                                label: 'Ikan Saya', 
+                                iconSrc: '/images/menu_icons/kategori_koi.png',
+                                squircleBg: 'from-rose-50/90 via-rose-100/40 to-red-100/50 border-rose-300/60 ring-1 ring-rose-200/50 shadow-rose-900/10',
+                                badge: myKoiItems.length > 0 ? myKoiItems.length : undefined,
+                                desc: 'Ikan Dimenangkan'
+                            },
+                            { 
+                                id: 'my_bids', 
+                                label: 'Bid Saya', 
+                                iconSrc: '/images/menu_icons/lelang_live.png',
+                                squircleBg: 'from-amber-50/90 via-amber-100/40 to-orange-100/50 border-amber-300/60 ring-1 ring-amber-200/50 shadow-amber-900/10',
+                                badge: userBids.length > 0 ? userBids.length : undefined,
+                                desc: 'Tawaran Aktif'
+                            },
+                            { 
+                                id: 'bnr', 
+                                label: 'BNR', 
+                                iconSrc: '/images/menu_icons/bnr.png',
+                                squircleBg: 'from-emerald-50/90 via-emerald-100/40 to-teal-100/50 border-emerald-300/60 ring-1 ring-emerald-200/50 shadow-emerald-900/10',
+                                badgeText: 'Bebas',
+                                desc: 'Anti Bid & Run'
+                            },
+                            { 
+                                id: 'history', 
+                                label: 'History Bid', 
+                                iconSrc: '/images/menu_icons/rekor_harga.png',
+                                squircleBg: 'from-yellow-50/90 via-amber-100/40 to-yellow-100/50 border-yellow-300/70 ring-1 ring-yellow-200/50 shadow-yellow-900/10',
+                                desc: 'Riwayat Tawaran'
+                            },
+                            { 
+                                id: 'others', 
+                                label: 'Lainnya', 
+                                iconSrc: '/images/menu_icons/event_spesial.png',
+                                squircleBg: 'from-purple-50/90 via-fuchsia-100/40 to-rose-100/50 border-purple-300/60 ring-1 ring-purple-200/50 shadow-purple-900/10',
+                                desc: 'Garansi D.O.A'
+                            },
+                            { 
+                                id: 'wa_help', 
+                                label: 'Bantuan CS', 
+                                iconSrc: '/images/menu_icons/chat_vip.png',
+                                squircleBg: 'from-teal-50/90 via-teal-100/40 to-emerald-100/50 border-teal-300/60 ring-1 ring-teal-200/50 shadow-teal-900/10',
+                                badgeText: '24/7',
+                                desc: 'Chat Panitia',
+                                action: () => openWhatsApp('+6281288881001', 'Halo Admin Panitia Lelang KoiMart, saya membutuhkan bantuan informasi/transaksi lelang.')
+                            },
+                        ];
+
+                        return (
+                            <div className="flex-1 flex flex-col bg-slate-50 pb-20">
+                                {/* Top Sticky Header */}
+                                <div className="px-4 py-3 bg-white border-b border-slate-100 flex items-center justify-between sticky top-0 z-20 shadow-xs">
+                                    <div className="flex items-center gap-2.5">
+                                        <button onClick={goBack} className="p-1.5 hover:bg-slate-100 rounded-full text-slate-800 transition active:scale-95 cursor-pointer">
+                                            <ArrowLeft className="w-5 h-5" />
+                                        </button>
+                                        <div>
+                                            <div className="flex items-center gap-1.5">
+                                                <h3 className="font-extrabold text-sm text-slate-900">Pusat Bidder</h3>
+                                                <span className={`px-1.5 py-0.2 font-black text-[8px] rounded-full uppercase tracking-wider shadow-2xs ${
+                                                    userAccessRole === 'bidder' ? 'bg-amber-400 text-stone-950' : 'bg-slate-200 text-slate-700'
+                                                }`}>
+                                                    {userAccessRole === 'bidder' ? 'ROLE: BIDDER' : 'VIEW: BIDDER'}
+                                                </span>
+                                            </div>
+                                            <p className="text-[10px] text-slate-500">Ruang Kendali & Portofolio Lelang Kolektor</p>
+                                        </div>
+                                    </div>
+
+                                    {/* Action WA & Refresh */}
+                                    <div className="flex items-center gap-1">
+                                        <button
+                                            onClick={() => openWhatsApp('+6281288881001', 'Halo Admin Panitia Lelang KoiMart, saya ingin konsultasi mengenai status akun bidder saya.')}
+                                            className="p-1.5 hover:bg-emerald-50 text-emerald-600 rounded-full transition active:scale-95 cursor-pointer"
+                                            title="Chat WA Panitia"
+                                        >
+                                            <MessageCircle className="w-4 h-4" />
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                fetchUserBids();
+                                                triggerToast('🔄 Data Pusat Bidder berhasil diperbarui');
+                                            }}
+                                            className="p-1.5 hover:bg-slate-100 text-slate-600 rounded-full transition active:scale-95 cursor-pointer"
+                                            title="Segarkan Data"
+                                        >
+                                            <RefreshCw className="w-4 h-4 text-slate-500" />
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Scrollable Content Area */}
+                                <div className="flex-1 overflow-y-auto p-4 space-y-4">
+
+
+
+
+
+                                    {/* 1. TOP EXECUTIVE BIDDER CARD (DASHBOARD CARD) - Hanya tampil jika sudah login */}
+                                    {isLoggedIn && (
+                                        <div className="rounded-3xl p-4 bg-gradient-to-br from-slate-900 via-slate-950 to-emerald-950 text-white border border-emerald-500/30 shadow-xl relative overflow-hidden">
+                                            <div className="absolute top-0 right-0 p-3 opacity-10 pointer-events-none">
+                                                <Trophy className="w-28 h-28 text-amber-300" />
+                                            </div>
+                                            <div className="relative z-10 space-y-3.5">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-2.5">
+                                                        <img
+                                                            src={userAvatar}
+                                                            alt={bidderProfile.fullName}
+                                                            className="w-12 h-12 rounded-full object-cover ring-2 ring-emerald-500 shadow-md"
+                                                        />
+                                                        <div>
+                                                            <div className="flex items-center gap-1.5">
+                                                                <h4 className="font-extrabold text-sm text-white truncate max-w-[150px]">{bidderProfile.fullName}</h4>
+                                                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                                                            </div>
+                                                            <p className="text-[10px] text-emerald-300/80 font-medium">
+                                                                ID: #BID-882910 • {bidderProfile.memberTier}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-black border border-emerald-400/40 flex items-center gap-1 shadow-xs">
+                                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                                                        Hak Tawar Aktif
+                                                    </span>
+                                                </div>
+
+                                                {/* Balance & Limit 2-Col Grid */}
+                                                <div className="grid grid-cols-2 gap-2 pt-1 border-t border-white/10">
+                                                    <div className="p-2.5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xs">
+                                                        <div className="flex items-center justify-between">
+                                                            <span className="text-[10px] text-slate-300 font-medium">Saldo Belanja Dibayarkan</span>
+                                                            <ReceiptText className="w-3.5 h-3.5 text-amber-400" />
+                                                        </div>
+                                                        <span className="text-sm font-black text-amber-300 block mt-1">
+                                                            Rp {totalPaidShoppingAmount.toLocaleString('id-ID')}
+                                                        </span>
+                                                        <button
+                                                            onClick={() => navigateTo('orders')}
+                                                            className="text-[9px] font-bold text-emerald-300 hover:text-emerald-200 mt-1 inline-flex items-center gap-0.5 cursor-pointer"
+                                                        >
+                                                            <span>Lihat Pesanan Saya →</span>
+                                                        </button>
+                                                    </div>
+
+                                                    <div className="p-2.5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xs">
+                                                        <div className="flex items-center justify-between">
+                                                            <span className="text-[10px] text-slate-300 font-medium">Limit Penawaran Aktif</span>
+                                                            <Crown className="w-3.5 h-3.5 text-emerald-400" />
+                                                        </div>
+                                                        <span className="text-sm font-black text-white block mt-1">
+                                                            Rp {bidderProfile.bidLimit.toLocaleString('id-ID')}
+                                                        </span>
+                                                        <span className="text-[9px] text-slate-400 mt-1 block">
+                                                            Garansi D.O.A 100%
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* 2. PANEL MENU TOMBOL BIDDER (POSISI DI BAWAH DASHBOARD - TAMPILAN LEBIH RAPI & BERSIH) */}
+                                    <div className="bg-white rounded-3xl p-3.5 border border-slate-200/80 shadow-xs space-y-2.5">
+                                        <div className="flex items-center justify-between px-1">
+                                            <div className="flex items-center gap-1.5">
+                                                <span className="w-2 h-2 rounded-full bg-red-600 animate-pulse"></span>
+                                                <span className="text-[11px] font-extrabold text-slate-900 uppercase tracking-wider">
+                                                    Menu Layanan Bidder
+                                                </span>
+                                            </div>
+                                            <span className="text-[10px] text-slate-400 font-medium">
+                                                Ketuk tombol untuk buka menu
+                                            </span>
+                                        </div>
+
+                                        <div className="grid grid-cols-4 gap-y-3.5 gap-x-2 pt-1">
+                                            {bidderNavButtons.map((btn) => {
+                                                const isActive = bidderActiveTab === btn.id;
+                                                return (
+                                                    <button
+                                                        key={btn.id}
+                                                        onClick={() => {
+                                                            if ('action' in btn && btn.action) {
+                                                                btn.action();
+                                                            } else {
+                                                                setBidderActiveTab(btn.id as any);
+                                                            }
+                                                        }}
+                                                        className="flex flex-col items-center gap-1.5 group active:scale-95 transition cursor-pointer"
+                                                    >
+                                                        {/* 3D Squircle Icon Container */}
+                                                        <div className={`relative w-[54px] h-[54px] rounded-[18px] bg-gradient-to-b ${btn.squircleBg} flex items-center justify-center p-1.5 transition-all duration-200 ${
+                                                            isActive
+                                                                ? 'ring-2 ring-amber-500 border-amber-400 shadow-md shadow-amber-500/25 scale-105'
+                                                                : 'group-hover:scale-105 group-hover:border-amber-400 group-hover:shadow-md'
+                                                        }`}>
+                                                            <img
+                                                                src={btn.iconSrc}
+                                                                alt={btn.label}
+                                                                className="w-full h-full object-contain filter drop-shadow-sm group-hover:scale-110 transition-transform duration-300"
+                                                            />
+
+                                                            {/* Badge Angka Notifikasi (Rapi & Jelas) */}
+                                                            {btn.badge !== undefined && (
+                                                                <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full font-black text-[8px] bg-red-600 text-white flex items-center justify-center shadow-xs ring-1 ring-white z-10">
+                                                                    {btn.badge}
+                                                                </span>
+                                                            )}
+
+                                                            {/* Badge Teks Khusus (24/7 atau Bebas) */}
+                                                            {btn.badgeText && (
+                                                                <span className="absolute -top-1 -right-1 px-1.5 py-0.2 rounded-full font-black text-[7.5px] uppercase shadow-xs ring-1 ring-white z-10 bg-emerald-600 text-white">
+                                                                    {btn.badgeText}
+                                                                </span>
+                                                            )}
+                                                        </div>
+
+                                                        {/* Text Label */}
+                                                        <span className={`text-[11px] text-center leading-tight transition-colors ${
+                                                            isActive
+                                                                ? 'font-black text-amber-900'
+                                                                : 'font-bold text-stone-800 group-hover:text-amber-800'
+                                                        }`}>
+                                                            {btn.label}
+                                                        </span>
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+
+                                    {/* Indikator Bagian Konten yang Ditampilkan */}
+                                    <div className="flex items-center justify-between px-1 pt-0.5">
+                                        <div className="flex items-center gap-1.5">
+                                            <span className="text-[11px] font-black text-slate-800 uppercase tracking-wider flex items-center gap-1">
+                                                <span>Konten:</span>
+                                                <span className="text-red-600 underline decoration-red-400 decoration-2 underline-offset-4">
+                                                    {bidderNavButtons.find(b => b.id === bidderActiveTab)?.label || 'Dashboard'}
+                                                </span>
+                                            </span>
+                                        </div>
+                                        <span className="text-[9px] font-medium text-slate-400">
+                                            {bidderNavButtons.find(b => b.id === bidderActiveTab)?.desc}
+                                        </span>
+                                    </div>
+
+                                    {/* ========================================================= */}
+                                    {/* TAB 1: DASHBOARD DETAIL                                   */}
+                                    {/* ========================================================= */}
+                                    {bidderActiveTab === 'dashboard' && (
+                                        <div className="space-y-4">
+
+                                            {/* Status Kepatuhan BNR Mini Banner */}
+                                            <div
+                                                onClick={() => setBidderActiveTab('bnr')}
+                                                className="p-3 bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 border border-emerald-200 rounded-2xl flex items-center justify-between cursor-pointer hover:border-emerald-300 transition-all shadow-xs"
+                                            >
+                                                <div className="flex items-center gap-2.5">
+                                                    <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                                                        <ShieldCheck className="w-5 h-5" />
+                                                    </div>
+                                                    <div>
+                                                        <div className="flex items-center gap-1.5">
+                                                            <span className="text-xs font-black text-emerald-950">Status Anti-BNR: Bersih (100%)</span>
+                                                            <span className="text-[9px] px-1.5 bg-emerald-200 text-emerald-900 rounded font-black">Score 100</span>
+                                                        </div>
+                                                        <p className="text-[10px] text-emerald-700 mt-0.5">
+                                                            0 Kasus BNR • Pelunasan selalu tepat waktu & tepercaya
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <ChevronRight className="w-4 h-4 text-emerald-600 shrink-0" />
+                                            </div>
+
+                                            {/* 4 KPI Grid Cards */}
+                                            <div>
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider">Ringkasan Aktivitas Bid</h4>
+                                                    <span className="text-[10px] text-slate-400 font-medium">Bulan Ini</span>
+                                                </div>
+                                                <div className="grid grid-cols-4 gap-2">
+                                                    <div
+                                                        onClick={() => setBidderActiveTab('my_bids')}
+                                                        className="p-2.5 rounded-2xl bg-white border border-slate-200/80 text-center cursor-pointer hover:shadow-xs transition"
+                                                    >
+                                                        <span className="text-base font-black text-slate-900 block">{userBids.length + 8}</span>
+                                                        <span className="text-[9px] font-semibold text-slate-500 block mt-0.5">Total Bid</span>
+                                                    </div>
+                                                    <div
+                                                        onClick={() => setBidderActiveTab('my_bids')}
+                                                        className="p-2.5 rounded-2xl bg-emerald-50/80 border border-emerald-200 text-center cursor-pointer hover:shadow-xs transition"
+                                                    >
+                                                        <span className="text-base font-black text-emerald-700 block">{leadingBids.length}</span>
+                                                        <span className="text-[9px] font-bold text-emerald-700 block mt-0.5">Memimpin</span>
+                                                    </div>
+                                                    <div
+                                                        onClick={() => setBidderActiveTab('my_bids')}
+                                                        className="p-2.5 rounded-2xl bg-amber-50/80 border border-amber-200 text-center cursor-pointer hover:shadow-xs transition"
+                                                    >
+                                                        <span className="text-base font-black text-amber-700 block">{outbidBids.length}</span>
+                                                        <span className="text-[9px] font-bold text-amber-700 block mt-0.5">Outbid</span>
+                                                    </div>
+                                                    <div
+                                                        onClick={() => setBidderActiveTab('my_koi')}
+                                                        className="p-2.5 rounded-2xl bg-rose-50/80 border border-rose-200 text-center cursor-pointer hover:shadow-xs transition"
+                                                    >
+                                                        <span className="text-base font-black text-rose-700 block">{myKoiItems.length}</span>
+                                                        <span className="text-[9px] font-bold text-rose-700 block mt-0.5">Ikan Saya</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Quick Portofolio Ikan Saya Preview */}
+                                            <div className="bg-white rounded-2xl border border-slate-200/80 p-3.5 space-y-3 shadow-xs">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-2">
+                                                        <Fish className="w-4 h-4 text-red-600" />
+                                                        <h4 className="text-xs font-black text-slate-900">Koleksi Ikan Saya Terkini</h4>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => setBidderActiveTab('my_koi')}
+                                                        className="text-[11px] font-bold text-red-600 hover:text-red-700 flex items-center gap-0.5 cursor-pointer"
+                                                    >
+                                                        <span>Lihat Semua ({myKoiItems.length})</span>
+                                                        <ChevronRight className="w-3.5 h-3.5" />
+                                                    </button>
+                                                </div>
+
+                                                <div className="space-y-2">
+                                                    {myKoiItems.length > 0 ? (
+                                                        myKoiItems.slice(0, 2).map((koi) => (
+                                                            <div key={koi.id} className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center gap-3">
+                                                                <img src={koi.image} alt={koi.name} className="w-13 h-13 rounded-lg object-cover border border-slate-200 shrink-0" />
+                                                                <div className="flex-1 min-w-0">
+                                                                    <div className="flex items-center justify-between gap-1">
+                                                                        <h5 className="font-bold text-xs text-slate-900 truncate">{koi.name}</h5>
+                                                                        <span className={`text-[8px] px-1.5 py-0.2 rounded-full uppercase shrink-0 ${koi.statusBadgeColor}`}>
+                                                                            {koi.status.replace('_', ' ')}
+                                                                        </span>
+                                                                    </div>
+                                                                    <p className="text-[10px] text-slate-500">{koi.variety} • {koi.size}</p>
+                                                                    <span className="text-[11px] font-black text-slate-900 block mt-0.5">
+                                                                        Rp {koi.price.toLocaleString('id-ID')}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        ))
+                                                    ) : (
+                                                        <div className="py-6 px-4 text-center rounded-xl bg-slate-50 border border-dashed border-slate-200">
+                                                            <Fish className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                                                            <p className="text-xs font-bold text-slate-700">Belum Ada Ikan yang Dimenangkan</p>
+                                                            <p className="text-[10px] text-slate-400 mt-1 max-w-[260px] mx-auto">
+                                                                Ikan yang berhasil Anda menangkan dari lelang resmi akan tampil otomatis di sini.
+                                                            </p>
+                                                            <button
+                                                                onClick={() => navigateTo('highest_auction')}
+                                                                className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white font-bold text-[10px] rounded-lg shadow-xs cursor-pointer active:scale-95 transition"
+                                                            >
+                                                                <Gavel className="w-3 h-3" />
+                                                                <span>Ikuti Lelang Sekarang</span>
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {/* Quick Actions Grid */}
+                                            <div className="grid grid-cols-2 gap-2.5">
+                                                <button
+                                                    onClick={() => navigateTo('highest_auction')}
+                                                    className="p-3 rounded-2xl bg-gradient-to-br from-red-600 to-rose-600 text-white font-bold text-xs flex items-center justify-between shadow-md shadow-red-600/20 active:scale-98 transition cursor-pointer"
+                                                >
+                                                    <div className="text-left">
+                                                        <span className="text-[9px] uppercase tracking-wider text-rose-200 block font-semibold">Cari Ikan Baru</span>
+                                                        <span className="text-xs font-black">Bursa Lelang Live</span>
+                                                    </div>
+                                                    <Gavel className="w-5 h-5 text-white/90" />
+                                                </button>
+
+                                                <button
+                                                    onClick={() => setBidderActiveTab('history')}
+                                                    className="p-3 rounded-2xl bg-white border border-slate-200 text-slate-800 font-bold text-xs flex items-center justify-between shadow-xs hover:border-slate-300 active:scale-98 transition cursor-pointer"
+                                                >
+                                                    <div className="text-left">
+                                                        <span className="text-[9px] uppercase tracking-wider text-slate-400 block font-semibold">Rekam Jejak</span>
+                                                        <span className="text-xs font-black text-slate-900">History Bid</span>
+                                                    </div>
+                                                    <Clock className="w-5 h-5 text-slate-600" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* ========================================================= */}
+                                    {/* TAB 2: PROFIL BIDDER                                      */}
+                                    {/* ========================================================= */}
+                                    {bidderActiveTab === 'profile' && (
+                                        <div className="space-y-4">
+                                            {/* Profil Card */}
+                                            <div className="bg-white rounded-2xl border border-slate-200/90 p-4 space-y-3.5 shadow-xs">
+                                                <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                                                    <div className="flex items-center gap-3">
+                                                        <img src={userAvatar} alt={bidderProfile.fullName} className="w-13 h-13 rounded-full object-cover ring-2 ring-emerald-500 shadow-xs" />
+                                                        <div>
+                                                            <div className="flex items-center gap-1.5">
+                                                                <h4 className="font-extrabold text-sm text-slate-900">{bidderProfile.fullName}</h4>
+                                                                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                                                            </div>
+                                                            <span className="text-[10px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.2 rounded-full font-bold inline-block mt-0.5">
+                                                                KTP Terverifikasi APKI
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => setIsEditingBidderProfile(!isEditingBidderProfile)}
+                                                        className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition cursor-pointer"
+                                                    >
+                                                        {isEditingBidderProfile ? 'Batal' : 'Edit Profil'}
+                                                    </button>
+                                                </div>
+
+                                                {/* Form Fields / Data Info */}
+                                                <div className="space-y-2.5 text-xs">
+                                                    <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                                                        <span className="text-[10px] text-slate-400 block font-semibold uppercase">Email Akun Google</span>
+                                                        <span className="font-bold text-slate-800">{bidderProfile.email}</span>
+                                                    </div>
+
+                                                    <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                                                        <span className="text-[10px] text-slate-400 block font-semibold uppercase">Nomor WhatsApp Aktif</span>
+                                                        {isEditingBidderProfile ? (
+                                                            <input
+                                                                type="text"
+                                                                value={bidderProfile.phone}
+                                                                onChange={(e) => setBidderProfile(prev => ({ ...prev, phone: e.target.value }))}
+                                                                className="w-full mt-1 px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-800 focus:outline-emerald-500"
+                                                            />
+                                                        ) : (
+                                                            <span className="font-bold text-slate-800">{bidderProfile.phone}</span>
+                                                        )}
+                                                    </div>
+
+                                                    <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                                                        <span className="text-[10px] text-slate-400 block font-semibold uppercase">Alamat Pengiriman Kolam (Tujuan Ikan)</span>
+                                                        {isEditingBidderProfile ? (
+                                                            <div className="space-y-1.5 mt-1">
+                                                                <input
+                                                                    type="text"
+                                                                    value={bidderProfile.address}
+                                                                    onChange={(e) => setBidderProfile(prev => ({ ...prev, address: e.target.value }))}
+                                                                    placeholder="Alamat Jalan / Rumah"
+                                                                    className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-800 focus:outline-emerald-500"
+                                                                />
+                                                                <div className="grid grid-cols-2 gap-1.5">
+                                                                    <input
+                                                                        type="text"
+                                                                        value={bidderProfile.city}
+                                                                        onChange={(e) => setBidderProfile(prev => ({ ...prev, city: e.target.value }))}
+                                                                        placeholder="Kota/Kabupaten"
+                                                                        className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-800 focus:outline-emerald-500"
+                                                                    />
+                                                                    <input
+                                                                        type="text"
+                                                                        value={bidderProfile.postalCode}
+                                                                        onChange={(e) => setBidderProfile(prev => ({ ...prev, postalCode: e.target.value }))}
+                                                                        placeholder="Kode Pos"
+                                                                        className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-800 focus:outline-emerald-500"
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        ) : (
+                                                            <p className="font-bold text-slate-800 leading-relaxed mt-0.5">
+                                                                {bidderProfile.address}, {bidderProfile.city}, {bidderProfile.province} {bidderProfile.postalCode}
+                                                            </p>
+                                                        )}
+                                                    </div>
+
+                                                    <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                                                        <span className="text-[10px] text-slate-400 block font-semibold uppercase">Stasiun / Bandara Kargo Terdekat</span>
+                                                        <span className="font-bold text-slate-800">{bidderProfile.nearestDestination}</span>
+                                                    </div>
+
+                                                    <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                                                        <span className="text-[10px] text-slate-400 block font-semibold uppercase">Kapasitas & Tipe Kolam</span>
+                                                        <span className="font-bold text-slate-800">{bidderProfile.pondType}</span>
+                                                    </div>
+
+                                                    <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                                                        <span className="text-[10px] text-slate-400 block font-semibold uppercase">Rekening Refund & Penarikan Jaminan</span>
+                                                        <span className="font-bold text-slate-800">{bidderProfile.bankName} - {bidderProfile.bankAccount} (a/n {bidderProfile.fullName})</span>
+                                                    </div>
+                                                </div>
+
+                                                {isEditingBidderProfile && (
+                                                    <button
+                                                        onClick={() => {
+                                                            setIsEditingBidderProfile(false);
+                                                            triggerToast('✅ Profil & Alamat Kolam berhasil disimpan');
+                                                        }}
+                                                        className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md transition active:scale-98 cursor-pointer text-xs"
+                                                    >
+                                                        Simpan Perubahan
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* ========================================================= */}
+                                    {/* TAB 3: IKAN SAYA                                          */}
+                                    {/* ========================================================= */}
+                                    {bidderActiveTab === 'my_koi' && (
+                                        <div className="space-y-3.5">
+                                            {/* Subfilter Pills */}
+                                            <div className="flex gap-1.5 overflow-x-auto no-scrollbar scroll-smooth pb-1">
+                                                {[
+                                                    { id: 'all', label: 'Semua', count: myKoiItems.length },
+                                                    { id: 'menunggu_bayar', label: 'Perlu Bayar', count: myKoiItems.filter(k => k.status === 'menunggu_bayar').length },
+                                                    { id: 'karantina', label: 'Karantina', count: myKoiItems.filter(k => k.status === 'karantina').length },
+                                                    { id: 'dikirim', label: 'Pengiriman', count: myKoiItems.filter(k => k.status === 'dikirim').length },
+                                                    { id: 'selesai', label: 'Di Kolam', count: myKoiItems.filter(k => k.status === 'selesai').length },
+                                                ].map((pill) => (
+                                                    <button
+                                                        key={pill.id}
+                                                        onClick={() => setMyKoiFilter(pill.id as any)}
+                                                        className={`px-3 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap transition cursor-pointer ${
+                                                            myKoiFilter === pill.id
+                                                                ? 'bg-slate-900 text-white'
+                                                                : 'bg-white text-slate-600 border border-slate-200/80 hover:bg-slate-100'
+                                                        }`}
+                                                    >
+                                                        {pill.label} ({pill.count})
+                                                    </button>
+                                                ))}
+                                            </div>
+
+                                            {/* List of Ikan Saya */}
+                                            <div className="space-y-3">
+                                                {filteredMyKoi.length > 0 ? (
+                                                    filteredMyKoi.map((koi) => (
+                                                    <div key={koi.id} className="bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-xs">
+                                                        <div className="relative aspect-[16/9] w-full bg-slate-900">
+                                                            <img src={koi.image} alt={koi.name} className="w-full h-full object-cover" />
+                                                            <div className="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider shadow-xs backdrop-blur-xs text-white bg-black/60 border border-white/20">
+                                                                {koi.variety}
+                                                            </div>
+                                                            <div className={`absolute top-2.5 right-2.5 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider shadow-xs ${koi.statusBadgeColor}`}>
+                                                                {koi.status.replace('_', ' ')}
+                                                            </div>
+                                                            <div className="absolute bottom-2 inset-x-2.5 flex items-center justify-between text-white text-[10px] bg-black/50 backdrop-blur-xs px-2 py-1 rounded-lg">
+                                                                <span>{koi.farm}</span>
+                                                                <span className="font-bold text-amber-300">{koi.size} • {koi.age}</span>
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="p-3.5 space-y-2.5">
+                                                            <div className="flex items-start justify-between gap-2">
+                                                                <div>
+                                                                    <h4 className="font-extrabold text-xs text-slate-900 line-clamp-1">{koi.name}</h4>
+                                                                    <p className="text-[10px] text-slate-500 mt-0.5">Sertifikat: {koi.certificateNo}</p>
+                                                                </div>
+                                                                <div className="text-right shrink-0">
+                                                                    <span className="text-[9px] text-slate-400 block">Harga Menang</span>
+                                                                    <span className="text-xs font-black text-slate-900">Rp {koi.price.toLocaleString('id-ID')}</span>
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Status Box */}
+                                                            <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
+                                                                <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-800">
+                                                                    <PackageCheck className="w-3.5 h-3.5 text-emerald-600" />
+                                                                    <span>{koi.statusText}</span>
+                                                                </div>
+                                                                <p className="text-[10px] text-slate-500 leading-relaxed">{koi.note}</p>
+                                                            </div>
+
+                                                            {/* Action Buttons */}
+                                                            <div className="flex items-center gap-2 pt-1">
+                                                                {koi.status === 'menunggu_bayar' && (
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            triggerToast(`🛒 Membuka pelunasan ${koi.name}`);
+                                                                            navigateTo('orders');
+                                                                        }}
+                                                                        className="flex-1 py-2 px-3 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl shadow-md shadow-red-600/25 transition active:scale-98 cursor-pointer flex items-center justify-center gap-1.5"
+                                                                    >
+                                                                        <CreditCard className="w-3.5 h-3.5" />
+                                                                        <span>{koi.actionLabel}</span>
+                                                                    </button>
+                                                                )}
+                                                                {koi.status === 'karantina' && (
+                                                                    <button
+                                                                        onClick={() => openWhatsApp('+6281288881001', `Halo Admin Farm, saya ingin update video kondisi karantina ikan saya: *${koi.name}* (No Sertifikat: ${koi.certificateNo}).`)}
+                                                                        className="flex-1 py-2 px-3 bg-cyan-600 hover:bg-cyan-700 text-white font-bold text-xs rounded-xl shadow-md shadow-cyan-600/25 transition active:scale-98 cursor-pointer flex items-center justify-center gap-1.5"
+                                                                    >
+                                                                        <Play className="w-3.5 h-3.5" />
+                                                                        <span>{koi.actionLabel}</span>
+                                                                    </button>
+                                                                )}
+                                                                {koi.status === 'dikirim' && (
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            triggerToast('📦 Membuka pelacakan kargo KAI Logistik');
+                                                                            navigateTo('orders');
+                                                                        }}
+                                                                        className="flex-1 py-2 px-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-md shadow-indigo-600/25 transition active:scale-98 cursor-pointer flex items-center justify-center gap-1.5"
+                                                                    >
+                                                                        <Truck className="w-3.5 h-3.5" />
+                                                                        <span>{koi.actionLabel}</span>
+                                                                    </button>
+                                                                )}
+                                                                {koi.status === 'selesai' && (
+                                                                    <button
+                                                                        onClick={() => triggerToast(`📜 Sertifikat digital resmi ${koi.certificateNo} terverifikasi asli!`)}
+                                                                        className="flex-1 py-2 px-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-md shadow-emerald-600/25 transition active:scale-98 cursor-pointer flex items-center justify-center gap-1.5"
+                                                                    >
+                                                                        <Award className="w-3.5 h-3.5" />
+                                                                        <span>{koi.actionLabel}</span>
+                                                                    </button>
+                                                                )}
+
+                                                                <button
+                                                                    onClick={() => openWhatsApp('+6281288881001', `Halo Admin, saya ingin info terkait ikan ${koi.name}.`)}
+                                                                    className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition cursor-pointer"
+                                                                    title="Hubungi Diler"
+                                                                >
+                                                                    <MessageCircle className="w-4 h-4" />
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <div className="py-12 px-4 text-center rounded-2xl bg-white border border-dashed border-slate-200 shadow-xs">
+                                                    <div className="w-14 h-14 rounded-full bg-rose-50 text-red-600 flex items-center justify-center mx-auto mb-3">
+                                                        <Fish className="w-7 h-7" />
+                                                    </div>
+                                                    <h4 className="text-sm font-black text-slate-900">Belum Ada Ikan Dimenangkan</h4>
+                                                    <p className="text-xs text-slate-500 mt-1.5 max-w-xs mx-auto leading-relaxed">
+                                                        {myKoiFilter === 'all'
+                                                            ? 'Anda belum memiliki ikan dari hasil lelang. Ikuti lelang Nishikigoi langsung dan menangkan ikan koi impian Anda!'
+                                                            : `Tidak ada koleksi ikan dengan status filter "${myKoiFilter.replace('_', ' ')}".`}
+                                                    </p>
+                                                    <button
+                                                        onClick={() => navigateTo('highest_auction')}
+                                                        className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white font-extrabold text-xs rounded-xl shadow-md shadow-red-600/20 cursor-pointer active:scale-95 transition"
+                                                    >
+                                                        <Gavel className="w-4 h-4" />
+                                                        <span>Buka Bursa Lelang Live</span>
+                                                    </button>
+                                                </div>
+                                            )}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* ========================================================= */}
+                                    {/* TAB 4: BID SAYA                                           */}
+                                    {/* ========================================================= */}
+                                    {bidderActiveTab === 'my_bids' && (
+                                        <div className="space-y-3.5">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-2">
+                                                    <Gavel className="w-4 h-4 text-emerald-600" />
+                                                    <h4 className="text-xs font-black text-slate-900">Sesi Lelang Aktif Diikuti</h4>
+                                                </div>
+                                                <button
+                                                    onClick={() => navigateTo('my_bids')}
+                                                    className="text-[11px] font-bold text-emerald-700 hover:underline cursor-pointer"
+                                                >
+                                                    Tampilan Khusus
+                                                </button>
+                                            </div>
+
+                                            {userBids.length > 0 ? (
+                                                <div className="space-y-3">
+                                                    {userBids.map((bid) => (
+                                                        <div key={bid.id} className="p-3.5 bg-white rounded-2xl border border-slate-200/90 shadow-xs space-y-3">
+                                                            <div className="flex items-center gap-3">
+                                                                <img src={bid.image} alt={bid.name} className="w-14 h-14 rounded-xl object-cover border border-slate-200 shrink-0" />
+                                                                <div className="flex-1 min-w-0">
+                                                                    <div className="flex items-center justify-between">
+                                                                        <h5 className="font-extrabold text-xs text-slate-900 truncate">{bid.name}</h5>
+                                                                        {bid.isLeading && !bid.isEnded ? (
+                                                                            <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[9px] font-black">MEMIMPIN</span>
+                                                                        ) : bid.status === 'outbid' ? (
+                                                                            <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[9px] font-black">OUTBID</span>
+                                                                        ) : (
+                                                                            <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 text-[9px] font-black">MENANG</span>
+                                                                        )}
+                                                                    </div>
+                                                                    <p className="text-[10px] text-slate-500 mt-0.5">{bid.variety} • {bid.size}</p>
+                                                                    <div className="flex items-center justify-between text-xs mt-1">
+                                                                        <span className="text-slate-500 text-[10px]">Tawaran Anda: <strong className="text-slate-900">Rp {bid.myBid.toLocaleString('id-ID')}</strong></span>
+                                                                        <span className="font-black text-emerald-700">Rp {bid.currentBid.toLocaleString('id-ID')}</span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
+                                                                <button
+                                                                    onClick={() => openAuctionDetail(bid)}
+                                                                    className="flex-1 py-1.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition cursor-pointer"
+                                                                >
+                                                                    Pantau / Tawar Lagi
+                                                                </button>
+                                                                {bid.status === 'won' && (
+                                                                    <button
+                                                                        onClick={() => handleCheckoutWonAuction(bid)}
+                                                                        className="flex-1 py-1.5 px-3 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs transition cursor-pointer"
+                                                                    >
+                                                                        Bayar Sekarang
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <div className="p-8 text-center bg-white rounded-2xl border border-slate-200/80 space-y-2">
+                                                    <Gavel className="w-8 h-8 text-slate-300 mx-auto" />
+                                                    <h5 className="font-bold text-xs text-slate-800">Belum Ada Tawaran Aktif</h5>
+                                                    <p className="text-[10px] text-slate-400">Ikuti sesi lelang live sekarang di bursa koi.</p>
+                                                    <button
+                                                        onClick={() => navigateTo('highest_auction')}
+                                                        className="px-4 py-2 bg-red-600 text-white font-bold text-xs rounded-xl shadow-xs cursor-pointer mt-1"
+                                                    >
+                                                        Jelajahi Lelang Live
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* ========================================================= */}
+                                    {/* TAB 5: BNR (ANTI BID AND RUN CENTER)                      */}
+                                    {/* ========================================================= */}
+                                    {bidderActiveTab === 'bnr' && (
+                                        <div className="space-y-4">
+                                            {/* Status Badge Besar Bebas BNR */}
+                                            <div className="p-5 rounded-2xl bg-gradient-to-br from-emerald-600 via-teal-700 to-emerald-800 text-white shadow-xl relative overflow-hidden space-y-3">
+                                                <div className="absolute top-0 right-0 p-2 opacity-15 pointer-events-none">
+                                                    <ShieldCheck className="w-32 h-32 text-white" />
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-xs flex items-center justify-center text-white">
+                                                        <ShieldCheck className="w-6 h-6 text-amber-300" />
+                                                    </div>
+                                                    <div>
+                                                        <span className="text-[10px] font-black uppercase tracking-wider text-emerald-200">Kredibilitas Kolektor</span>
+                                                        <h4 className="text-base font-black text-white">100% Bebas BNR (Clean)</h4>
+                                                    </div>
+                                                </div>
+
+                                                <div className="grid grid-cols-3 gap-2 pt-2 border-t border-white/20 text-center">
+                                                    <div className="p-2 rounded-xl bg-black/20">
+                                                        <span className="text-base font-black text-amber-300 block">100</span>
+                                                        <span className="text-[9px] text-emerald-100 font-semibold">Skor Disiplin</span>
+                                                    </div>
+                                                    <div className="p-2 rounded-xl bg-black/20">
+                                                        <span className="text-base font-black text-white block">0</span>
+                                                        <span className="text-[9px] text-emerald-100 font-semibold">Kasus BNR</span>
+                                                    </div>
+                                                    <div className="p-2 rounded-xl bg-black/20">
+                                                        <span className="text-base font-black text-white block">100%</span>
+                                                        <span className="text-[9px] text-emerald-100 font-semibold">Tepat Waktu</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Edukasi & Regulasi BNR Komunitas Koi */}
+                                            <div className="bg-white rounded-2xl border border-slate-200/90 p-4 space-y-3 shadow-xs">
+                                                <div className="flex items-center gap-2">
+                                                    <AlertTriangle className="w-4 h-4 text-amber-600" />
+                                                    <h4 className="text-xs font-black text-slate-900 uppercase tracking-wide">Aturan Ketat Anti-BNR (Bid and Run)</h4>
+                                                </div>
+                                                <p className="text-[11px] text-slate-600 leading-relaxed">
+                                                    Di komunitas pecinta ikan koi Indonesia, <strong>BNR (Bid and Run)</strong> adalah pelanggaran berat di mana peserta menawar hingga menang tetapi kabur atau menolak melunasi.
+                                                </p>
+
+                                                <div className="space-y-2 pt-1 text-xs text-slate-700">
+                                                    <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex items-start gap-2.5">
+                                                        <span className="w-5 h-5 rounded-full bg-slate-900 text-white font-bold text-[10px] flex items-center justify-center shrink-0">1</span>
+                                                        <div>
+                                                            <strong className="text-slate-900">Batas Waktu Pelunasan 1x24 Jam</strong>
+                                                            <p className="text-[10px] text-slate-500 mt-0.5">Setelah palu lelang diketuk, pemenang wajib menyelesaikan pembayaran maksimal 24 jam demi kesehatan ikan yang segera dikarantina.</p>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex items-start gap-2.5">
+                                                        <span className="w-5 h-5 rounded-full bg-slate-900 text-white font-bold text-[10px] flex items-center justify-center shrink-0">2</span>
+                                                        <div>
+                                                            <strong className="text-slate-900">Sanksi Blacklist Permanen & Uang Hangus</strong>
+                                                            <p className="text-[10px] text-slate-500 mt-0.5">Bidder yang terbukti BNR akan kehilangan seluruh saldo deposit jaminan dan akun serta nomor telepon diblokir dari seluruh asosiasi lelang se-Indonesia.</p>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex items-start gap-2.5">
+                                                        <span className="w-5 h-5 rounded-full bg-slate-900 text-white font-bold text-[10px] flex items-center justify-center shrink-0">3</span>
+                                                        <div>
+                                                            <strong className="text-slate-900">Perlindungan Force Majeure</strong>
+                                                            <p className="text-[10px] text-slate-500 mt-0.5">Bila terjadi kendala perbankan atau darurat, segera hubungi admin panitia sebelum batas 24 jam habis untuk penjadwalan dispensasi resmi.</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <button
+                                                    onClick={() => openWhatsApp('+6281288881001', 'Halo Admin Panitia, saya ingin konsultasi mengenai ketentuan pelunasan & aturan Anti-BNR lelang.')}
+                                                    className="w-full py-2.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-md transition active:scale-98 cursor-pointer flex items-center justify-center gap-1.5 mt-2"
+                                                >
+                                                    <MessageCircle className="w-4 h-4" />
+                                                    <span>Bantuan Kendala / Konsultasi Panitia WA</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* ========================================================= */}
+                                    {/* TAB 6: HISTORY BID                                        */}
+                                    {/* ========================================================= */}
+                                    {bidderActiveTab === 'history' && (
+                                        <div className="space-y-3.5">
+                                            {/* Subfilter Pills */}
+                                            <div className="flex gap-1.5">
+                                                {[
+                                                    { id: 'all', label: 'Semua History' },
+                                                    { id: 'won', label: 'Menang' },
+                                                    { id: 'outbid', label: 'Outbid / Kalah' },
+                                                ].map((pill) => (
+                                                    <button
+                                                        key={pill.id}
+                                                        onClick={() => setBidHistoryFilter(pill.id as any)}
+                                                        className={`px-3 py-1.5 rounded-full text-xs font-bold transition cursor-pointer ${
+                                                            bidHistoryFilter === pill.id
+                                                                ? 'bg-slate-900 text-white'
+                                                                : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
+                                                        }`}
+                                                    >
+                                                        {pill.label}
+                                                    </button>
+                                                ))}
+                                            </div>
+
+                                            {/* History Entries */}
+                                            <div className="space-y-2.5">
+                                                {filteredBidHistory.map((item) => (
+                                                    <div key={item.id} className="p-3 bg-white rounded-2xl border border-slate-200/90 shadow-xs flex items-center gap-3">
+                                                        <img src={item.image} alt={item.name} className="w-12 h-12 rounded-xl object-cover border border-slate-200 shrink-0" />
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="flex items-center justify-between">
+                                                                <h5 className="font-extrabold text-xs text-slate-900 truncate">{item.name}</h5>
+                                                                <span className={`text-[8px] font-black px-1.5 py-0.2 rounded-full uppercase ${
+                                                                    item.status === 'won' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'
+                                                                }`}>
+                                                                    {item.statusText}
+                                                                </span>
+                                                            </div>
+                                                            <p className="text-[10px] text-slate-400 mt-0.5">{item.date} • {item.dealer}</p>
+                                                            <span className="text-xs font-black text-slate-900 block mt-1">
+                                                                Tawaran: Rp {item.bidAmount.toLocaleString('id-ID')}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* ========================================================= */}
+                                    {/* TAB 7: LAINNYA                                            */}
+                                    {/* ========================================================= */}
+                                    {bidderActiveTab === 'others' && (
+                                        <div className="space-y-3">
+                                            <div className="bg-white rounded-2xl border border-slate-200/90 divide-y divide-slate-100 overflow-hidden shadow-xs">
+                                                <div className="p-3.5 space-y-1">
+                                                    <div className="flex items-center gap-2">
+                                                        <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                                                        <h4 className="text-xs font-black text-slate-900">Garansi D.O.A 100% (Death On Arrival)</h4>
+                                                    </div>
+                                                    <p className="text-[11px] text-slate-500 leading-relaxed">
+                                                        Seluruh pembayaran disimpan aman di Rekening Bersama (Escrow) platform dan baru diteruskan ke peternak setelah ikan tiba hidup dan sehat di kolam Anda.
+                                                    </p>
+                                                </div>
+
+                                                <div className="p-3.5 space-y-1">
+                                                    <div className="flex items-center gap-2">
+                                                        <Fish className="w-4 h-4 text-cyan-600" />
+                                                        <h4 className="text-xs font-black text-slate-900">Karantina Standar Dokter Hewan</h4>
+                                                    </div>
+                                                    <p className="text-[11px] text-slate-500 leading-relaxed">
+                                                        Ikan koi dipuasakan dan dikarantina minimal 7 hari dengan parameter air terkontrol untuk mencegah stres perjalanan jauh.
+                                                    </p>
+                                                </div>
+
+                                                <div className="p-3.5 space-y-1">
+                                                    <div className="flex items-center gap-2">
+                                                        <Award className="w-4 h-4 text-amber-600" />
+                                                        <h4 className="text-xs font-black text-slate-900">Keeping Contest & Mudpond Mitra</h4>
+                                                    </div>
+                                                    <p className="text-[11px] text-slate-500 leading-relaxed">
+                                                        Ingin ikan dibesarkan terlebih dahulu di kolam lumpur (mudpond) Blitar atau Sukabumi? Konsultasikan program keeping dengan tim kurator.
+                                                    </p>
+                                                </div>
+
+                                                <div className="p-3.5 space-y-1">
+                                                    <div className="flex items-center gap-2">
+                                                        <FileText className="w-4 h-4 text-indigo-600" />
+                                                        <h4 className="text-xs font-black text-slate-900">Microchip & Sertifikat Digital Asli</h4>
+                                                    </div>
+                                                    <p className="text-[11px] text-slate-500 leading-relaxed">
+                                                        Setiap koi lelang grade show dilengkapi nomor seri sertifikat resmi dan sertifikat fisik yang disertakan dalam boks pengiriman.
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <button
+                                                onClick={() => openWhatsApp('+6281288881001', 'Halo Customer Support KoiMart, saya membutuhkan panduan lengkap mengenai fitur Pusat Bidder.')}
+                                                className="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-2xl shadow-md transition active:scale-98 cursor-pointer flex items-center justify-center gap-2"
+                                            >
+                                                <MessageCircle className="w-4 h-4" />
+                                                <span>Hubungi Customer Care WhatsApp (24/7)</span>
+                                            </button>
+                                        </div>
+                                    )}
+
+                                </div>
+                            </div>
+                        );
+                    })())}
+
+                    {/* ========================================================================= */}
+                    {/* SCREEN 22: DASHBOARD SELLER & FARM (SELLER CENTER / PUSAT PENJUAL)        */}
+                    {/* ========================================================================= */}
+                    {currentScreen === 'seller_center' && (() => {
+                        // GUARD ROLE: Jika bukan role seller aktif, sediakan opsi beralih ke Mode Seller
+                        if (userAccessRole !== 'seller') {
+                            return (
+                                <div className="h-full flex flex-col bg-slate-50 items-center justify-center p-6 text-center">
+                                    <div className="w-16 h-16 rounded-3xl bg-amber-100 text-amber-700 flex items-center justify-center mb-4 shadow-sm">
+                                        <StoreIcon className="w-8 h-8" />
+                                    </div>
+                                    <span className="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-black uppercase tracking-wider mb-2">
+                                        Role Akses: Bidder
+                                    </span>
+                                    <h3 className="text-base font-extrabold text-slate-900 mb-1">
+                                        Mode Seller (Mitra Peternak)
+                                    </h3>
+                                    <p className="text-xs text-slate-500 max-w-xs leading-relaxed mb-6">
+                                        Anda sedang berada di mode Bidder. Anda dapat beralih ke mode Seller untuk mengelola etalase, pesanan, dan lelang lapak.
+                                    </p>
+                                    <div className="w-full max-w-xs space-y-2">
+                                        <button
+                                            onClick={() => switchUserRole('seller')}
+                                            className="w-full py-3 px-4 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs rounded-xl shadow-md transition active:scale-98 flex items-center justify-center gap-2 cursor-pointer"
+                                        >
+                                            <StoreIcon className="w-4 h-4" />
+                                            <span>Aktifkan Mode Seller Sekarang</span>
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                setActiveTab('bidder');
+                                                navigateTo('bidder_center');
+                                            }}
+                                            className="w-full py-2.5 px-4 bg-white border border-slate-200 text-slate-700 font-bold text-xs rounded-xl transition active:scale-98 cursor-pointer"
+                                        >
+                                            Kembali ke Pusat Bidder
+                                        </button>
+                                    </div>
+                                </div>
+                            );
+                        }
+
+                        const liveAuctions = sellerAuctionsList.filter(a => a.status === 'live');
+                        const soldAuctions = sellerAuctionsList.filter(a => a.status === 'sold');
+                        const pendingShipOrders = sellerOrdersList.filter(o => o.shippingStatus === 'perlu_kirim');
+
+                        const filteredListings = sellerAuctionsList.filter(a => {
+                            if (sellerListingFilter === 'live') return a.status === 'live';
+                            if (sellerListingFilter === 'sold') return a.status === 'sold';
+                            return true;
+                        });
+
+                        // Fungsi Menghapus Ikan Koi dari Listing Toko Seller
+                        const handleDeleteSellerFish = async (item: any) => {
+                            const isConfirm = window.confirm(`Apakah Anda yakin ingin menghapus ikan koi "${item.name}" dari katalog & lelang toko Anda?`);
+                            if (!isConfirm) return;
+
+                            // 1. Hapus seketika dari state listing lelang seller
+                            setSellerAuctionsList((prev) => prev.filter((a) => a.id !== item.id));
+
+                            // 2. Hapus juga dari state katalog umum jika terdaftar
+                            setAllCatalogProducts((prev) => prev.filter((p) => p.id !== item.id && p.name !== item.name));
+
+                            // 3. Jika memiliki ID database numerik, lakukan request delete ke API backend
+                            const rawId = typeof item.id === 'string' ? item.id.replace('s-auc-', '') : item.id;
+                            const numId = parseInt(rawId, 10);
+                            if (!isNaN(numId) && numId > 0 && numId < 1000000) {
+                                try {
+                                    await fetch(`/seller/products/${numId}`, {
+                                        method: 'DELETE',
+                                        headers: {
+                                            'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
+                                            'Accept': 'application/json'
+                                        }
+                                    });
+                                } catch (e) {
+                                    console.error('Gagal menghapus produk di backend:', e);
+                                }
+                            }
+
+                            triggerToast(`🗑️ Ikan "${item.name}" berhasil dihapus dari listing toko.`);
+                        };
+
+                        interface SellerNavButtonItem {
+                            id: string;
+                            label: string;
+                            iconSrc: string;
+                            squircleBg: string;
+                            desc: string;
+                            badge?: number | string;
+                            badgeText?: string;
+                            badgeBg?: string;
+                            action?: () => void;
+                        }
+
+                        const sellerNavButtons: SellerNavButtonItem[] = [
+                            {
+                                id: 'add_koi',
+                                label: 'Pasang Lelang',
+                                iconSrc: '/images/menu_icons/event_spesial.png',
+                                squircleBg: 'from-rose-50/90 via-rose-100/40 to-red-100/50 border-rose-300/60 ring-1 ring-rose-200/50 shadow-rose-900/10',
+                                badgeText: 'Baru',
+                                badgeBg: 'bg-amber-400 text-stone-950',
+                                desc: 'Upload Ikan Koi',
+                                action: () => {
+                                    triggerToast('📸 Membuka formulir pasang lelang ikan koi baru...');
+                                    navigateTo('merchant_add_koi');
+                                }
+                            },
+                            {
+                                id: 'listings',
+                                label: 'Lelang Saya',
+                                iconSrc: '/images/menu_icons/lelang_live.png',
+                                squircleBg: 'from-amber-50/90 via-orange-100/40 to-red-100/50 border-amber-300/60 ring-1 ring-amber-200/50 shadow-amber-900/10',
+                                badge: sellerAuctionsList.length > 0 ? sellerAuctionsList.length : undefined,
+                                desc: 'Katalog & Stok Toko',
+                                action: () => setSellerActiveTab('listings')
+                            },
+                            {
+                                id: 'orders',
+                                label: 'Pesanan Masuk',
+                                iconSrc: '/images/menu_icons/pusat_bidder.png',
+                                squircleBg: 'from-amber-50/90 via-amber-100/40 to-yellow-100/50 border-amber-300/60 ring-1 ring-amber-200/50 shadow-amber-900/10',
+                                badge: pendingShipOrders.length > 0 ? pendingShipOrders.length : undefined,
+                                desc: 'Perlu Pengiriman',
+                                action: () => setSellerActiveTab('orders')
+                            },
+                            {
+                                id: 'live_bids',
+                                label: 'Tawaran Live',
+                                iconSrc: '/images/menu_icons/rekor_harga.png',
+                                squircleBg: 'from-red-50/90 via-rose-100/40 to-orange-100/50 border-red-300/60 ring-1 ring-red-200/50 shadow-red-900/10',
+                                badge: liveAuctions.length > 0 ? liveAuctions.length : undefined,
+                                desc: 'Aktivitas Bidding',
+                                action: () => setSellerActiveTab('live_bids')
+                            },
+                            {
+                                id: 'wallet',
+                                label: 'Dompet & WD',
+                                iconSrc: '/images/menu_icons/bnr.png',
+                                squircleBg: 'from-emerald-50/90 via-emerald-100/40 to-teal-100/50 border-emerald-300/60 ring-1 ring-emerald-200/50 shadow-emerald-900/10',
+                                badgeText: 'WD',
+                                badgeBg: 'bg-emerald-600 text-white',
+                                desc: 'Tarik Saldo Rekber',
+                                action: () => setSellerActiveTab('wallet')
+                            },
+                            {
+                                id: 'profile',
+                                label: 'Profil Farm',
+                                iconSrc: '/images/menu_icons/farm_mitra.png',
+                                squircleBg: 'from-sky-50/90 via-blue-100/40 to-cyan-100/50 border-sky-300/60 ring-1 ring-sky-200/50 shadow-sky-900/10',
+                                desc: 'Legalitas & Info Farm',
+                                action: () => setSellerActiveTab('profile')
+                            },
+                            {
+                                id: 'reviews',
+                                label: 'Ulasan Bidder',
+                                iconSrc: '/images/menu_icons/favorit.png',
+                                squircleBg: 'from-yellow-50/90 via-amber-100/40 to-yellow-100/50 border-yellow-300/70 ring-1 ring-yellow-200/50 shadow-yellow-900/10',
+                                badgeText: '4.9 ★',
+                                badgeBg: 'bg-amber-400 text-stone-950',
+                                desc: '320 Ulasan Terverifikasi',
+                                action: () => triggerToast('⭐ Rating Farm: 4.9/5.0 dari 320 ulasan bidder terverifikasi!')
+                            },
+                            {
+                                id: 'cs_panitia',
+                                label: 'CS Panitia',
+                                iconSrc: '/images/menu_icons/chat_vip.png',
+                                squircleBg: 'from-teal-50/90 via-teal-100/40 to-emerald-100/50 border-teal-300/60 ring-1 ring-teal-200/50 shadow-teal-900/10',
+                                badgeText: '24/7',
+                                badgeBg: 'bg-teal-600 text-white',
+                                desc: 'WhatsApp Mitra Panitia',
+                                action: () => openWhatsApp('+6281288881001', 'Halo Panitia KoiMart, saya Seller mitra ingin konsultasi pencairan saldo / pengiriman.')
+                            },
+                        ];
+
+                        return (
+                            <div className="flex-1 flex flex-col bg-slate-50 pb-20">
+                                {/* Top Sticky Header */}
+                                <div className="px-3.5 py-2.5 bg-white/95 backdrop-blur-md border-b border-slate-200/80 flex items-center justify-between sticky top-0 z-20 shadow-xs">
+                                    <div className="flex items-center gap-2 min-w-0">
+                                        <button
+                                            onClick={goBack}
+                                            className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition-all active:scale-95 cursor-pointer shrink-0 shadow-2xs"
+                                            title="Kembali"
+                                        >
+                                            <ArrowLeft className="w-4.5 h-4.5" />
+                                        </button>
+                                        <div className="flex flex-col min-w-0">
+                                            <div className="flex items-center gap-1.5 flex-wrap">
+                                                <h3 className="font-black text-sm text-slate-900 tracking-tight leading-tight truncate">
+                                                    Dashboard Seller
+                                                </h3>
+                                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-red-50 text-red-600 border border-red-200/80 font-black text-[8px] uppercase tracking-wider leading-none shrink-0 shadow-2xs">
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse" />
+                                                    <span>Seller</span>
+                                                </span>
+                                            </div>
+                                            <p className="text-[10px] text-slate-400 font-medium leading-tight mt-0.5 truncate">
+                                                Ruang Kendali Farm & Toko
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {/* Action Group: Mode Bidder Switcher & Quick Controls */}
+                                    <div className="flex items-center gap-1.5 shrink-0 pl-1">
+                                        {/* Switch Mode Bidder Button */}
+                                        <button
+                                            onClick={() => switchUserRole('bidder')}
+                                            className="h-7.5 px-2.5 bg-gradient-to-r from-amber-500/15 via-amber-500/20 to-orange-500/20 hover:from-amber-500/25 hover:to-orange-500/25 text-amber-900 border border-amber-300/80 text-[10px] font-extrabold rounded-full flex items-center gap-1.5 shadow-2xs transition-all active:scale-95 cursor-pointer shrink-0"
+                                            title="Beralih ke Tampilan Mode Bidder"
+                                        >
+                                            <div className="w-4 h-4 rounded-full bg-amber-500 text-stone-950 flex items-center justify-center shadow-xs shrink-0">
+                                                <Gavel className="w-2.5 h-2.5 -rotate-12" />
+                                            </div>
+                                            <span className="tracking-tight">Mode Bidder</span>
+                                        </button>
+
+                                        {/* Divider */}
+                                        <span className="w-px h-4.5 bg-slate-200/90 mx-0.5 shrink-0" />
+
+                                        {/* Quick Actions (WA, Refresh, Logout) */}
+                                        <div className="flex items-center gap-1 shrink-0">
+                                            <button
+                                                onClick={() => openWhatsApp('+6281288881001', 'Halo Admin Panitia KoiMart, saya dari Blitar Koi Farm ingin berdiskusi mengenai lelang saya.')}
+                                                className="w-7.5 h-7.5 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-200/70 flex items-center justify-center transition-all active:scale-95 cursor-pointer shadow-2xs"
+                                                title="Chat WA Panitia"
+                                            >
+                                                <MessageCircle className="w-3.5 h-3.5" />
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    triggerToast('🔄 Data Dashboard Seller berhasil diperbarui');
+                                                }}
+                                                className="w-7.5 h-7.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200 flex items-center justify-center transition-all active:scale-95 cursor-pointer shadow-2xs"
+                                                title="Segarkan Data"
+                                            >
+                                                <RefreshCw className="w-3.5 h-3.5 text-slate-600" />
+                                            </button>
+                                            <button
+                                                onClick={handleLogout}
+                                                className="w-7.5 h-7.5 rounded-full bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200/70 flex items-center justify-center transition-all active:scale-95 cursor-pointer shadow-2xs"
+                                                title="Keluar / Logout Akun"
+                                            >
+                                                <LogOut className="w-3.5 h-3.5" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Scrollable Content Area */}
+                                <div className="flex-1 overflow-y-auto p-4 space-y-4">
+
+                                    {/* EXECUTIVE SELLER CARD: Profil Toko & Dompet Siap WD */}
+                                    <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-red-950 p-5 text-white shadow-xl border border-red-900/40">
+                                        {/* Subtle pattern background */}
+                                        <div className="absolute top-0 right-0 -mr-8 -mt-8 w-44 h-44 rounded-full bg-red-600/10 blur-2xl pointer-events-none" />
+                                        <div className="absolute bottom-0 left-0 -ml-8 -mb-8 w-40 h-40 rounded-full bg-amber-500/10 blur-2xl pointer-events-none" />
+
+                                        {/* Top Row: Store Info & Verification Badge */}
+                                        <div className="relative z-10 flex items-start justify-between gap-3">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-red-600 to-amber-500 p-0.5 shadow-md flex items-center justify-center shrink-0">
+                                                    <div className="w-full h-full rounded-[14px] bg-slate-900 flex items-center justify-center">
+                                                        <StoreIcon className="w-6 h-6 text-amber-400" />
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <div className="flex items-center gap-1.5 flex-wrap">
+                                                        <h4 className="font-black text-sm tracking-wide text-white">Blitar Koi Farm Official</h4>
+                                                        <CheckCircle2 className="w-4 h-4 text-blue-400 shrink-0" />
+                                                    </div>
+                                                    <p className="text-[11px] text-slate-300 flex items-center gap-1 mt-0.5">
+                                                        <MapPin className="w-3 h-3 text-red-400" />
+                                                        <span>Blitar, Jawa Timur</span>
+                                                        <span className="text-slate-500">•</span>
+                                                        <span className="text-amber-300 font-bold">4.9 ★ (320 Review)</span>
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <span className="px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30 text-[9px] font-black uppercase tracking-wider shrink-0 flex items-center gap-1">
+                                                <Award className="w-3 h-3" />
+                                                <span>Mitra Resmi</span>
+                                            </span>
+                                        </div>
+
+                                        {/* Saldo & Rekber Box */}
+                                        <div className="relative z-10 mt-4 p-3.5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xs space-y-3">
+                                            <div className="flex items-end justify-between gap-2">
+                                                <div>
+                                                    <span className="text-[10px] text-slate-400 uppercase tracking-wider font-bold block">
+                                                        Saldo Penjualan
+                                                    </span>
+                                                    <div className="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-1.5 mt-0.5">
+                                                        <span className="text-red-400 text-sm font-bold">Rp</span>
+                                                        <span>148.500.000</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="pt-2 border-t border-white/10 flex items-center justify-between text-[11px]">
+                                                <div className="flex items-center gap-1 text-slate-300">
+                                                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                                                    <span>Dana Rekber Escrow (Tertahan):</span>
+                                                </div>
+                                                <span className="font-extrabold text-emerald-400">Rp 42.000.000</span>
+                                            </div>
+                                        </div>
+
+                                        {/* 3 Quick Performance Metrics */}
+                                        <div className="relative z-10 grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-white/10 text-center">
+                                            <div className="p-2 rounded-xl bg-white/5">
+                                                <span className="text-[9px] text-slate-400 uppercase block font-semibold">Ikan Terjual</span>
+                                                <p className="text-xs font-black text-white mt-0.5">142 Ekor</p>
+                                            </div>
+                                            <div className="p-2 rounded-xl bg-white/5">
+                                                <span className="text-[9px] text-slate-400 uppercase block font-semibold">Perlu Kirim</span>
+                                                <p className="text-xs font-black text-amber-400 mt-0.5">{pendingShipOrders.length} Pesanan</p>
+                                            </div>
+                                            <div className="p-2 rounded-xl bg-white/5">
+                                                <span className="text-[9px] text-slate-400 uppercase block font-semibold">Omzet Bulan Ini</span>
+                                                <p className="text-xs font-black text-emerald-400 mt-0.5">Rp 215 Jt</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* 2. PANEL MENU OPERASIONAL SELLER (PERSIS DENGAN GAYA MENU BIDDER) */}
+                                    <div className="bg-white rounded-3xl p-3.5 border border-slate-200/80 shadow-xs space-y-2.5">
+                                        <div className="flex items-center justify-between px-1">
+                                            <div className="flex items-center gap-1.5">
+                                                <span className="w-2 h-2 rounded-full bg-red-600 animate-pulse"></span>
+                                                <span className="text-[11px] font-extrabold text-slate-900 uppercase tracking-wider">
+                                                    Menu Operasional Seller
+                                                </span>
+                                            </div>
+                                            <span className="text-[10px] text-slate-400 font-medium">
+                                                Ketuk tombol untuk buka menu
+                                            </span>
+                                        </div>
+
+                                        <div className="grid grid-cols-4 gap-y-3.5 gap-x-2 pt-1">
+                                            {sellerNavButtons.map((btn) => {
+                                                const isActive = sellerActiveTab === btn.id;
+
+                                                return (
+                                                    <button
+                                                        key={btn.id}
+                                                        onClick={() => {
+                                                            if (btn.action) {
+                                                                btn.action();
+                                                            } else {
+                                                                setSellerActiveTab(btn.id as any);
+                                                            }
+                                                        }}
+                                                        className="flex flex-col items-center gap-1.5 group active:scale-95 transition cursor-pointer"
+                                                    >
+                                                        {/* 3D Squircle Icon Container (Identik dengan Pusat Bidder) */}
+                                                        <div className={`relative w-[54px] h-[54px] rounded-[18px] bg-gradient-to-b ${btn.squircleBg} flex items-center justify-center p-1.5 transition-all duration-200 ${
+                                                            isActive
+                                                                ? 'ring-2 ring-red-500 border-red-400 shadow-md shadow-red-500/25 scale-105'
+                                                                : 'group-hover:scale-105 group-hover:border-red-400 group-hover:shadow-md'
+                                                        }`}>
+                                                            <img
+                                                                src={btn.iconSrc}
+                                                                alt={btn.label}
+                                                                className="w-full h-full object-contain filter drop-shadow-sm group-hover:scale-110 transition-transform duration-300"
+                                                            />
+
+                                                            {/* Badge Angka Notifikasi */}
+                                                            {btn.badge !== undefined && (
+                                                                <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full font-black text-[8px] bg-red-600 text-white flex items-center justify-center shadow-xs ring-1 ring-white z-10">
+                                                                    {btn.badge}
+                                                                </span>
+                                                            )}
+
+                                                            {/* Badge Teks Khusus */}
+                                                            {btn.badgeText && !btn.badge && (
+                                                                <span className={`absolute -top-1 -right-1 px-1.5 py-0.2 rounded-full font-black text-[7.5px] uppercase shadow-xs ring-1 ring-white z-10 ${btn.badgeBg || 'bg-amber-400 text-stone-950'}`}>
+                                                                    {btn.badgeText}
+                                                                </span>
+                                                            )}
+                                                        </div>
+
+                                                        {/* Text Label Bersih Rapi Tanpa Truncate Canggung */}
+                                                        <span className={`text-[11px] text-center leading-tight transition-colors ${
+                                                            isActive
+                                                                ? 'font-black text-red-900'
+                                                                : 'font-bold text-stone-800 group-hover:text-red-800'
+                                                        }`}>
+                                                            {btn.label}
+                                                        </span>
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+
+                                    {/* Indikator Bagian Konten yang Ditampilkan */}
+                                    <div className="flex items-center justify-between px-1 pt-0.5">
+                                        <div className="flex items-center gap-1.5">
+                                            <span className="text-[11px] font-black text-slate-800 uppercase tracking-wider flex items-center gap-1">
+                                                <span>Konten:</span>
+                                                <span className="text-red-600 underline decoration-red-400 decoration-2 underline-offset-4">
+                                                    {sellerNavButtons.find(b => b.id === sellerActiveTab)?.label || 'Ikhtisar'}
+                                                </span>
+                                            </span>
+                                        </div>
+                                        <span className="text-[9px] font-medium text-slate-400">
+                                            {sellerNavButtons.find(b => b.id === sellerActiveTab)?.desc}
+                                        </span>
+                                    </div>
+
+                                    {/* SUB-TAB NAVIGATOR (Horizontal Pills Rapi) */}
+                                    <div className="flex items-center gap-1.5 p-1 bg-slate-200/80 rounded-2xl overflow-x-auto no-scrollbar">
+                                        {[
+                                            { id: 'dashboard', label: 'Ikhtisar', count: undefined },
+                                            { id: 'live_bids', label: 'Lelang Live', count: liveAuctions.length },
+                                            { id: 'listings', label: 'Semua Ikan', count: sellerAuctionsList.length },
+                                            { id: 'orders', label: 'Pesanan', count: pendingShipOrders.length },
+                                            { id: 'wallet', label: 'Dompet & WD', count: undefined },
+                                            { id: 'profile', label: 'Profil Farm', count: undefined },
+                                        ].map(tab => (
+                                            <button
+                                                key={tab.id}
+                                                onClick={() => setSellerActiveTab(tab.id as any)}
+                                                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap flex items-center gap-1.5 cursor-pointer shrink-0 ${
+                                                    sellerActiveTab === tab.id
+                                                        ? 'bg-white text-slate-900 shadow-xs'
+                                                        : 'text-slate-600 hover:text-slate-900 hover:bg-white/40'
+                                                }`}
+                                            >
+                                                <span>{tab.label}</span>
+                                                {tab.count !== undefined && (
+                                                    <span className={`text-[9px] font-black px-1.5 py-0.2 rounded-full ${
+                                                        sellerActiveTab === tab.id ? 'bg-red-100 text-red-600' : 'bg-slate-300/80 text-slate-700'
+                                                    }`}>
+                                                        {tab.count}
+                                                    </span>
+                                                )}
+                                            </button>
+                                        ))}
+                                    </div>
+
+                                    {/* TAB CONTENT: DASHBOARD (IKHTISAR) */}
+                                    {sellerActiveTab === 'dashboard' && (
+                                        <div className="space-y-3.5">
+                                            {/* Quick Overview Summary Counters */}
+                                            <div className="grid grid-cols-3 gap-2">
+                                                <div className="p-2.5 rounded-2xl bg-white border border-slate-100 shadow-2xs text-center">
+                                                    <span className="text-[9.5px] font-bold text-slate-400 block leading-tight">Live Aktif</span>
+                                                    <span className="text-base font-black text-red-600 mt-0.5 block">{liveAuctions.length}</span>
+                                                </div>
+                                                <div className="p-2.5 rounded-2xl bg-white border border-slate-100 shadow-2xs text-center">
+                                                    <span className="text-[9.5px] font-bold text-slate-400 block leading-tight">Total Ikan</span>
+                                                    <span className="text-base font-black text-slate-800 mt-0.5 block">{sellerAuctionsList.length}</span>
+                                                </div>
+                                                <div className="p-2.5 rounded-2xl bg-white border border-slate-100 shadow-2xs text-center">
+                                                    <span className="text-[9.5px] font-bold text-slate-400 block leading-tight">Terjual</span>
+                                                    <span className="text-base font-black text-emerald-600 mt-0.5 block">{soldAuctions.length}</span>
+                                                </div>
+                                            </div>
+
+                                            {/* Banner Pesanan Perlu Dikirim */}
+                                            {pendingShipOrders.length > 0 && (
+                                                <div className="p-3 bg-amber-50/90 border border-amber-200 rounded-2xl flex items-center justify-between gap-2.5 shadow-xs">
+                                                    <div className="flex items-center gap-2.5 min-w-0">
+                                                        <div className="w-9 h-9 rounded-xl bg-amber-500 text-stone-950 flex items-center justify-center shrink-0 shadow-xs">
+                                                            <Truck className="w-4.5 h-4.5" />
+                                                        </div>
+                                                        <div className="min-w-0">
+                                                            <h5 className="font-black text-xs text-amber-950 truncate">
+                                                                {pendingShipOrders.length} Ikan Menunggu Kirim!
+                                                            </h5>
+                                                            <p className="text-[10px] text-amber-800/90 mt-0.5 leading-snug line-clamp-1">
+                                                                Pemenang telah lunas. Segera kirim resi.
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => setSellerActiveTab('orders')}
+                                                        className="px-3 py-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-stone-950 font-black text-xs rounded-xl shadow-xs transition active:scale-95 shrink-0 cursor-pointer whitespace-nowrap"
+                                                    >
+                                                        Cek Order
+                                                    </button>
+                                                </div>
+                                            )}
+
+                                            {/* Header Section Ikhtisar */}
+                                            <div className="flex items-center justify-between gap-2 pt-0.5">
+                                                <h4 className="font-extrabold text-xs text-slate-800 flex items-center gap-1.5 truncate">
+                                                    <Flame className="w-4 h-4 text-red-600 fill-red-600 animate-pulse shrink-0" />
+                                                    <span className="truncate">Lelang Live Anda ({liveAuctions.length})</span>
+                                                </h4>
+                                                <button
+                                                    onClick={() => navigateTo('merchant_add_koi')}
+                                                    className="px-2.5 py-1 bg-red-50 hover:bg-red-100 text-red-600 font-bold text-[11px] rounded-full border border-red-200 flex items-center gap-1 transition active:scale-95 shrink-0 whitespace-nowrap cursor-pointer shadow-2xs"
+                                                >
+                                                    <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                                                    <span>Tambah Lelang</span>
+                                                </button>
+                                            </div>
+
+                                            {/* Live Auctions Grid (Dua Kolom Rapi) */}
+                                            {liveAuctions.length === 0 ? (
+                                                <div className="bg-white rounded-2xl border border-slate-100 p-8 text-center space-y-2 shadow-xs">
+                                                    <Fish className="w-10 h-10 text-slate-300 mx-auto" />
+                                                    <h5 className="font-black text-xs text-slate-800">Tidak Ada Lelang Live Aktif</h5>
+                                                    <p className="text-[10px] text-slate-400">
+                                                        Katalog lelang toko Anda belum memiliki ikan yang sedang live.
+                                                    </p>
+                                                    <button
+                                                        onClick={() => navigateTo('merchant_add_koi')}
+                                                        className="mt-2 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition active:scale-95 inline-flex items-center gap-1.5 cursor-pointer"
+                                                    >
+                                                        <Plus className="w-3.5 h-3.5" />
+                                                        <span>Tambah Lelang Sekarang</span>
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <div className="grid grid-cols-2 gap-2.5">
+                                                    {liveAuctions.map((auc) => (
+                                                        <div
+                                                            key={auc.id}
+                                                            className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-xs flex flex-col justify-between transition-all hover:border-slate-200 group"
+                                                        >
+                                                            {/* Image & Floating Badges Container */}
+                                                            <div className="relative aspect-4/3 w-full bg-slate-100 overflow-hidden">
+                                                                <img
+                                                                    src={auc.image}
+                                                                    alt={auc.name}
+                                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                                                    onError={(e) => {
+                                                                        (e.target as HTMLImageElement).src = '/images/koi/kohaku.jpg';
+                                                                    }}
+                                                                />
+
+                                                                {/* Floating Live Badge */}
+                                                                <div className="absolute top-2 left-2 z-10">
+                                                                    <span className="px-2 py-0.5 rounded-full bg-red-600/90 text-white font-black text-[8.5px] shadow-xs backdrop-blur-xs flex items-center gap-1">
+                                                                        <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                                                                        <span>LIVE</span>
+                                                                    </span>
+                                                                </div>
+
+                                                                {/* Floating Variety Tag */}
+                                                                <div className="absolute top-2 right-2 z-10">
+                                                                    <span className="px-1.5 py-0.5 rounded-full bg-black/60 text-white font-bold text-[8.5px] backdrop-blur-xs">
+                                                                        {auc.variety}
+                                                                    </span>
+                                                                </div>
+
+                                                                {/* Floating Time Left Tag */}
+                                                                <div className="absolute bottom-1.5 left-1.5 z-10">
+                                                                    <span className="px-1.5 py-0.5 rounded-md bg-black/70 text-amber-300 font-bold text-[8px] backdrop-blur-xs flex items-center gap-1">
+                                                                        <Clock className="w-2.5 h-2.5 text-amber-400" />
+                                                                        <span>{auc.timeLeft}</span>
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Card Body */}
+                                                            <div className="p-2.5 flex-1 flex flex-col justify-between space-y-2">
+                                                                <div>
+                                                                    <h5 className="font-black text-xs text-slate-900 leading-snug line-clamp-2" title={auc.name}>
+                                                                        {auc.name}
+                                                                    </h5>
+                                                                    <p className="text-[10px] text-slate-400 font-medium mt-0.5 truncate">
+                                                                        {auc.size || 'Show Grade'} {auc.breeder ? `• ${auc.breeder}` : ''}
+                                                                    </p>
+                                                                </div>
+
+                                                                {/* Bid Info */}
+                                                                <div className="pt-1.5 border-t border-slate-100">
+                                                                    <span className="text-[9px] text-slate-400 block font-semibold leading-none">
+                                                                        Tawaran Tertinggi:
+                                                                    </span>
+                                                                    <div className="text-xs font-black text-red-600 mt-0.5 leading-tight">
+                                                                        Rp {auc.currentBid.toLocaleString('id-ID')}
+                                                                    </div>
+                                                                    <div className="text-[9.5px] text-slate-500 font-bold mt-0.5 flex items-center justify-between">
+                                                                        <span>{auc.bidCount} Tawaran</span>
+                                                                        <span className="text-emerald-600 font-bold text-[9px] truncate max-w-[70px]" title={auc.highestBidder}>
+                                                                            👑 {auc.highestBidder}
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+
+                                                                {/* Action Buttons: Hapus & Promosikan */}
+                                                                <div className="flex items-center gap-1.5 pt-1">
+                                                                    <button
+                                                                        onClick={() => handleDeleteSellerFish(auc)}
+                                                                        className="flex-1 py-1.5 px-2 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200/80 rounded-xl font-extrabold text-[10px] flex items-center justify-center gap-1 transition-all active:scale-95 cursor-pointer shadow-2xs"
+                                                                        title={`Hapus lelang ${auc.name}`}
+                                                                    >
+                                                                        <Trash2 className="w-3 h-3 text-rose-600" />
+                                                                        <span>Hapus</span>
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={() => triggerToast(`📢 Link lelang ${auc.name} berhasil disalin ke clipboard!`)}
+                                                                        className="py-1.5 px-2 bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200 rounded-xl font-extrabold text-[10px] flex items-center justify-center gap-1 transition-all active:scale-95 cursor-pointer shadow-2xs"
+                                                                        title={`Promosikan ${auc.name}`}
+                                                                    >
+                                                                        <Share2 className="w-3 h-3 text-slate-500" />
+                                                                        <span className="hidden xs:inline">Share</span>
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* TAB CONTENT: LIVE BIDS (LELANG LIVE) */}
+                                    {sellerActiveTab === 'live_bids' && (
+                                        <div className="space-y-3.5">
+                                            {/* Header Lelang Live */}
+                                            <div className="flex items-center justify-between gap-2">
+                                                <div className="flex items-center gap-1.5 truncate">
+                                                    <span className="w-2.5 h-2.5 rounded-full bg-red-600 animate-ping inline-block shrink-0" />
+                                                    <h4 className="font-extrabold text-xs text-slate-800 truncate">
+                                                        Katalog Lelang Live Berlangsung ({liveAuctions.length})
+                                                    </h4>
+                                                </div>
+                                                <button
+                                                    onClick={() => navigateTo('merchant_add_koi')}
+                                                    className="px-2.5 py-1 bg-red-50 hover:bg-red-100 text-red-600 font-bold text-[11px] rounded-full border border-red-200 flex items-center gap-1 transition active:scale-95 shrink-0 whitespace-nowrap cursor-pointer shadow-2xs"
+                                                >
+                                                    <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                                                    <span>Tambah Lelang</span>
+                                                </button>
+                                            </div>
+
+                                            {/* Live Auctions Grid (Dua Kolom Rapi) */}
+                                            {liveAuctions.length === 0 ? (
+                                                <div className="bg-white rounded-2xl border border-slate-100 p-8 text-center space-y-2 shadow-xs">
+                                                    <Fish className="w-10 h-10 text-slate-300 mx-auto" />
+                                                    <h5 className="font-black text-xs text-slate-800">Tidak Ada Lelang Live</h5>
+                                                    <p className="text-[10px] text-slate-400">
+                                                        Saat ini semua lelang live telah selesai atau belum dimulai.
+                                                    </p>
+                                                    <button
+                                                        onClick={() => navigateTo('merchant_add_koi')}
+                                                        className="mt-2 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition active:scale-95 inline-flex items-center gap-1.5 cursor-pointer"
+                                                    >
+                                                        <Plus className="w-3.5 h-3.5" />
+                                                        <span>Mulai Lelang Baru</span>
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <div className="grid grid-cols-2 gap-2.5">
+                                                    {liveAuctions.map((auc) => (
+                                                        <div
+                                                            key={auc.id}
+                                                            className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-xs flex flex-col justify-between transition-all hover:border-slate-200 group"
+                                                        >
+                                                            {/* Image & Floating Badges Container */}
+                                                            <div className="relative aspect-4/3 w-full bg-slate-100 overflow-hidden">
+                                                                <img
+                                                                    src={auc.image}
+                                                                    alt={auc.name}
+                                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                                                    onError={(e) => {
+                                                                        (e.target as HTMLImageElement).src = '/images/koi/kohaku.jpg';
+                                                                    }}
+                                                                />
+
+                                                                {/* Floating Live Badge */}
+                                                                <div className="absolute top-2 left-2 z-10">
+                                                                    <span className="px-2 py-0.5 rounded-full bg-red-600/90 text-white font-black text-[8.5px] shadow-xs backdrop-blur-xs flex items-center gap-1">
+                                                                        <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                                                                        <span>LIVE</span>
+                                                                    </span>
+                                                                </div>
+
+                                                                {/* Floating Variety Tag */}
+                                                                <div className="absolute top-2 right-2 z-10">
+                                                                    <span className="px-1.5 py-0.5 rounded-full bg-black/60 text-white font-bold text-[8.5px] backdrop-blur-xs">
+                                                                        {auc.variety}
+                                                                    </span>
+                                                                </div>
+
+                                                                {/* Floating Time Left Tag */}
+                                                                <div className="absolute bottom-1.5 left-1.5 z-10">
+                                                                    <span className="px-1.5 py-0.5 rounded-md bg-black/70 text-amber-300 font-bold text-[8px] backdrop-blur-xs flex items-center gap-1">
+                                                                        <Clock className="w-2.5 h-2.5 text-amber-400" />
+                                                                        <span>{auc.timeLeft}</span>
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Card Body */}
+                                                            <div className="p-2.5 flex-1 flex flex-col justify-between space-y-2">
+                                                                <div>
+                                                                    <h5 className="font-black text-xs text-slate-900 leading-snug line-clamp-2" title={auc.name}>
+                                                                        {auc.name}
+                                                                    </h5>
+                                                                    <p className="text-[10px] text-slate-400 font-medium mt-0.5 truncate">
+                                                                        {auc.size || 'Show Grade'} {auc.breeder ? `• ${auc.breeder}` : ''}
+                                                                    </p>
+                                                                </div>
+
+                                                                {/* Bid Info */}
+                                                                <div className="pt-1.5 border-t border-slate-100">
+                                                                    <span className="text-[9px] text-slate-400 block font-semibold leading-none">
+                                                                        Tawaran Tertinggi:
+                                                                    </span>
+                                                                    <div className="text-xs font-black text-red-600 mt-0.5 leading-tight">
+                                                                        Rp {auc.currentBid.toLocaleString('id-ID')}
+                                                                    </div>
+                                                                    <div className="text-[9.5px] text-slate-500 font-bold mt-0.5 flex items-center justify-between">
+                                                                        <span>{auc.bidCount} Tawaran</span>
+                                                                        <span className="text-emerald-600 font-bold text-[9px] truncate max-w-[70px]" title={auc.highestBidder}>
+                                                                            👑 {auc.highestBidder}
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+
+                                                                {/* Action Buttons: Hapus & Promosikan */}
+                                                                <div className="flex items-center gap-1.5 pt-1">
+                                                                    <button
+                                                                        onClick={() => handleDeleteSellerFish(auc)}
+                                                                        className="flex-1 py-1.5 px-2 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200/80 rounded-xl font-extrabold text-[10px] flex items-center justify-center gap-1 transition-all active:scale-95 cursor-pointer shadow-2xs"
+                                                                        title={`Hapus lelang ${auc.name}`}
+                                                                    >
+                                                                        <Trash2 className="w-3 h-3 text-rose-600" />
+                                                                        <span>Hapus</span>
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={() => triggerToast(`📢 Link lelang ${auc.name} berhasil disalin ke clipboard!`)}
+                                                                        className="py-1.5 px-2 bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200 rounded-xl font-extrabold text-[10px] flex items-center justify-center gap-1 transition-all active:scale-95 cursor-pointer shadow-2xs"
+                                                                        title={`Promosikan ${auc.name}`}
+                                                                    >
+                                                                        <Share2 className="w-3 h-3 text-slate-500" />
+                                                                        <span className="hidden xs:inline">Share</span>
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* TAB CONTENT: LISTINGS (SEMUA IKAN) */}
+                                    {sellerActiveTab === 'listings' && (
+                                        <div className="space-y-3">
+                                            {/* Filter Chips */}
+                                            <div className="flex items-center gap-2">
+                                                {[
+                                                    { id: 'all', label: `Semua (${sellerAuctionsList.length})` },
+                                                    { id: 'live', label: `Live Aktif (${liveAuctions.length})` },
+                                                    { id: 'sold', label: `Terjual (${soldAuctions.length})` },
+                                                ].map((chip) => (
+                                                    <button
+                                                        key={chip.id}
+                                                        onClick={() => setSellerListingFilter(chip.id as any)}
+                                                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                                                            sellerListingFilter === chip.id
+                                                                ? 'bg-red-600 text-white shadow-xs'
+                                                                : 'bg-white text-slate-600 border border-slate-200'
+                                                        }`}
+                                                    >
+                                                        {chip.label}
+                                                    </button>
+                                                ))}
+                                            </div>
+
+                                            {/* Listings Grid (Dua Kolom / Dua Baris Rapi Sesuai Permintaan) */}
+                                            {filteredListings.length === 0 ? (
+                                                <div className="bg-white rounded-2xl border border-slate-100 p-8 text-center space-y-2 shadow-xs">
+                                                    <Fish className="w-10 h-10 text-slate-300 mx-auto" />
+                                                    <h5 className="font-black text-xs text-slate-800">Tidak Ada Ikan Ditemukan</h5>
+                                                    <p className="text-[10px] text-slate-400">
+                                                        {sellerListingFilter === 'all'
+                                                            ? 'Katalog lelang toko Anda kosong. Silakan upload ikan baru.'
+                                                            : 'Tidak ada ikan koi pada filter status ini.'}
+                                                    </p>
+                                                </div>
+                                            ) : (
+                                                <div className="grid grid-cols-2 gap-2.5">
+                                                    {filteredListings.map(item => (
+                                                        <div
+                                                            key={item.id}
+                                                            className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-xs flex flex-col justify-between transition-all hover:border-slate-200 group"
+                                                        >
+                                                            {/* Image & Badges Container */}
+                                                            <div className="relative aspect-4/3 w-full bg-slate-100 overflow-hidden">
+                                                                <img
+                                                                    src={item.image}
+                                                                    alt={item.name}
+                                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                                                    onError={(e) => {
+                                                                        (e.target as HTMLImageElement).src = '/images/koi/kohaku.jpg';
+                                                                    }}
+                                                                />
+
+                                                                {/* Status Badge Over Image */}
+                                                                <div className="absolute top-2 left-2 z-10">
+                                                                    <span className={`px-2 py-0.5 rounded-full font-black text-[8.5px] shadow-xs backdrop-blur-xs flex items-center gap-1 ${
+                                                                        item.status === 'live'
+                                                                            ? 'bg-red-600/90 text-white'
+                                                                            : 'bg-emerald-600/90 text-white'
+                                                                    }`}>
+                                                                        {item.status === 'live' && <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />}
+                                                                        <span>{item.status === 'live' ? 'LIVE' : 'TERJUAL'}</span>
+                                                                    </span>
+                                                                </div>
+
+                                                                {/* Variety Tag Over Image */}
+                                                                <div className="absolute top-2 right-2 z-10">
+                                                                    <span className="px-2 py-0.5 rounded-full bg-black/60 text-white font-bold text-[8.5px] backdrop-blur-xs">
+                                                                        {item.variety}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Card Content */}
+                                                            <div className="p-2.5 flex-1 flex flex-col justify-between space-y-2">
+                                                                <div>
+                                                                    <h5 className="font-black text-xs text-slate-900 leading-snug line-clamp-2" title={item.name}>
+                                                                        {item.name}
+                                                                    </h5>
+                                                                    <p className="text-[10px] text-slate-400 font-medium mt-0.5 truncate">
+                                                                        {item.size || 'Show Grade'} {item.breeder ? `• ${item.breeder}` : ''}
+                                                                    </p>
+                                                                </div>
+
+                                                                {/* Price & Bid Count */}
+                                                                <div className="pt-1.5 border-t border-slate-100">
+                                                                    <span className="text-[9px] text-slate-400 block font-semibold leading-none">
+                                                                        {item.status === 'live' ? 'Tawaran Tertinggi:' : 'Harga Terjual:'}
+                                                                    </span>
+                                                                    <div className="text-xs font-black text-red-600 mt-0.5 leading-tight">
+                                                                        Rp {item.currentBid.toLocaleString('id-ID')}
+                                                                    </div>
+                                                                    <div className="text-[9.5px] text-slate-500 font-bold mt-0.5 flex items-center justify-between">
+                                                                        <span>{item.bidCount} Tawaran</span>
+                                                                        {item.status === 'live' && (
+                                                                            <span className="text-emerald-600 font-bold text-[9px] flex items-center gap-0.5">
+                                                                                <Clock className="w-2.5 h-2.5" />
+                                                                                <span>Aktif</span>
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+
+                                                                {/* Action Buttons: Hapus & Promosikan */}
+                                                                <div className="flex items-center gap-1.5 pt-1">
+                                                                    <button
+                                                                        onClick={() => handleDeleteSellerFish(item)}
+                                                                        className="flex-1 py-1.5 px-2 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200/80 rounded-xl font-extrabold text-[10px] flex items-center justify-center gap-1 transition-all active:scale-95 cursor-pointer shadow-2xs"
+                                                                        title={`Hapus ikan ${item.name}`}
+                                                                    >
+                                                                        <Trash2 className="w-3 h-3 text-rose-600" />
+                                                                        <span>Hapus</span>
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={() => triggerToast(`📢 Link ikan ${item.name} berhasil disalin ke clipboard!`)}
+                                                                        className="py-1.5 px-2 bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200 rounded-xl font-extrabold text-[10px] flex items-center justify-center gap-1 transition-all active:scale-95 cursor-pointer shadow-2xs"
+                                                                        title={`Promosikan ${item.name}`}
+                                                                    >
+                                                                        <Share2 className="w-3 h-3 text-slate-500" />
+                                                                        <span className="hidden xs:inline">Share</span>
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* TAB CONTENT: ORDERS (PESANAN MASUK & KIRIM IKAN) */}
+                                    {sellerActiveTab === 'orders' && (
+                                        <div className="space-y-3.5">
+                                            <div className="p-3 bg-blue-50 border border-blue-200 rounded-2xl flex items-start gap-2.5">
+                                                <ShieldCheck className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+                                                <p className="text-[11px] text-blue-900 leading-relaxed">
+                                                    <strong>Sistem Rekber Aman:</strong> Dana pemenang lelang 100% sudah disetor ke rekening bersama KoiMart. Dana akan langsung dicairkan ke saldo Anda setelah nomor resi kargo terverifikasi.
+                                                </p>
+                                            </div>
+
+                                            {/* Header Pesanan */}
+                                            <div className="flex items-center justify-between gap-2 pt-0.5">
+                                                <h4 className="font-extrabold text-xs text-slate-800 flex items-center gap-1.5 truncate">
+                                                    <Truck className="w-4 h-4 text-amber-600 shrink-0" />
+                                                    <span className="truncate">Daftar Pesanan ({sellerOrdersList.length})</span>
+                                                </h4>
+                                                <span className="text-[10px] font-bold text-amber-700 bg-amber-100/80 px-2 py-0.5 rounded-full">
+                                                    {pendingShipOrders.length} Perlu Kirim
+                                                </span>
+                                            </div>
+
+                                            {/* Orders Grid (Dua Kolom Rapi) */}
+                                            {sellerOrdersList.length === 0 ? (
+                                                <div className="bg-white rounded-2xl border border-slate-100 p-8 text-center space-y-2 shadow-xs">
+                                                    <Truck className="w-10 h-10 text-slate-300 mx-auto" />
+                                                    <h5 className="font-black text-xs text-slate-800">Belum Ada Pesanan Masuk</h5>
+                                                    <p className="text-[10px] text-slate-400">
+                                                        Pesanan pemenang lelang akan tercatat di sini setelah bidding selesai.
+                                                    </p>
+                                                </div>
+                                            ) : (
+                                                <div className="grid grid-cols-2 gap-2.5">
+                                                    {sellerOrdersList.map(order => (
+                                                        <div
+                                                            key={order.id}
+                                                            className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-xs flex flex-col justify-between transition-all hover:border-slate-200 group"
+                                                        >
+                                                            {/* Image & Status Badge Over Image */}
+                                                            <div className="relative aspect-4/3 w-full bg-slate-100 overflow-hidden">
+                                                                <img
+                                                                    src={order.image}
+                                                                    alt={order.auctionTitle}
+                                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                                                    onError={(e) => {
+                                                                        (e.target as HTMLImageElement).src = '/images/koi/kohaku.jpg';
+                                                                    }}
+                                                                />
+
+                                                                {/* Status Badge */}
+                                                                <div className="absolute top-2 left-2 z-10">
+                                                                    <span className={`px-2 py-0.5 rounded-full font-black text-[8px] shadow-xs backdrop-blur-xs flex items-center gap-1 ${
+                                                                        order.shippingStatus === 'perlu_kirim'
+                                                                            ? 'bg-amber-500 text-stone-950 font-black'
+                                                                            : 'bg-emerald-600/90 text-white'
+                                                                    }`}>
+                                                                        {order.shippingStatus === 'perlu_kirim' ? '⚠️ Perlu Kirim' : '✓ Terkirim'}
+                                                                    </span>
+                                                                </div>
+
+                                                                {/* Order ID Tag */}
+                                                                <div className="absolute top-2 right-2 z-10">
+                                                                    <span className="px-1.5 py-0.5 rounded-md bg-black/60 text-white font-mono font-bold text-[8px] backdrop-blur-xs">
+                                                                        {order.id}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Order Body */}
+                                                            <div className="p-2.5 flex-1 flex flex-col justify-between space-y-2">
+                                                                <div>
+                                                                    <h5 className="font-black text-xs text-slate-900 leading-snug line-clamp-2" title={order.auctionTitle}>
+                                                                        {order.auctionTitle}
+                                                                    </h5>
+                                                                    <p className="text-[10px] text-slate-600 font-medium mt-1 truncate">
+                                                                        Pemenang: <strong className="text-slate-800 font-bold">{order.winnerName}</strong>
+                                                                    </p>
+                                                                    <p className="text-[9.5px] text-slate-400 mt-0.5 flex items-center gap-0.5 truncate">
+                                                                        <MapPin className="w-2.5 h-2.5 text-red-500 shrink-0" />
+                                                                        <span>{order.city}</span>
+                                                                    </p>
+                                                                </div>
+
+                                                                {/* Price & Shipping Action */}
+                                                                <div className="pt-1.5 border-t border-slate-100">
+                                                                    <span className="text-[9px] text-slate-400 block font-semibold leading-none">
+                                                                        Harga Lelang:
+                                                                    </span>
+                                                                    <div className="text-xs font-black text-red-600 mt-0.5 leading-tight">
+                                                                        Rp {order.price.toLocaleString('id-ID')}
+                                                                    </div>
+
+                                                                    {order.shippingStatus === 'perlu_kirim' ? (
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                setSelectedOrderToShip(order);
+                                                                                setIsSellerShipModalOpen(true);
+                                                                            }}
+                                                                            className="w-full mt-2 py-1.5 px-2 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 text-white font-extrabold text-[10px] rounded-xl shadow-2xs transition active:scale-95 cursor-pointer flex items-center justify-center gap-1"
+                                                                        >
+                                                                            <Truck className="w-3 h-3" />
+                                                                            <span>Input Resi</span>
+                                                                        </button>
+                                                                    ) : (
+                                                                        <div className="mt-2 p-1.5 rounded-lg bg-slate-50 border border-slate-100 text-[9px] space-y-0.5">
+                                                                            <div className="flex items-center justify-between text-slate-500">
+                                                                                <span>Kurir:</span>
+                                                                                <strong className="text-slate-700">{order.courier}</strong>
+                                                                            </div>
+                                                                            <div className="flex items-center justify-between text-slate-500">
+                                                                                <span>Resi:</span>
+                                                                                <strong className="font-mono text-emerald-700 truncate max-w-[70px]">{order.resi}</strong>
+                                                                            </div>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* TAB CONTENT: WALLET & PENCAIRAN DANA */}
+                                    {sellerActiveTab === 'wallet' && (
+                                        <div className="space-y-4">
+                                            {/* Saldo Details Card */}
+                                            <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-3">
+                                                <h5 className="font-extrabold text-xs text-slate-900 uppercase tracking-wider">
+                                                    Ringkasan Saldo Rekening Penjual
+                                                </h5>
+                                                <div className="space-y-2">
+                                                    <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50">
+                                                        <span className="text-xs text-slate-600 font-semibold">Saldo Siap Tarik (Available):</span>
+                                                        <span className="text-base font-black text-slate-900">Rp 148.500.000</span>
+                                                    </div>
+                                                    <div className="flex items-center justify-between p-3 rounded-xl bg-amber-50">
+                                                        <span className="text-xs text-amber-900 font-semibold">Saldo Escrow Rekber (Pending):</span>
+                                                        <span className="text-sm font-black text-amber-900">Rp 42.000.000</span>
+                                                    </div>
+                                                    <div className="flex items-center justify-between p-3 rounded-xl bg-emerald-50">
+                                                        <span className="text-xs text-emerald-900 font-semibold">Total Omzet Bersih:</span>
+                                                        <span className="text-sm font-black text-emerald-900">Rp 890.000.000</span>
+                                                    </div>
+                                                </div>
+
+                                                <button
+                                                    onClick={() => setIsSellerWithdrawModalOpen(true)}
+                                                    className="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs rounded-xl shadow-md transition active:scale-98 cursor-pointer flex items-center justify-center gap-2"
+                                                >
+                                                    <Wallet className="w-4 h-4" />
+                                                    <span>Tarik Saldo ke Rekening Bank</span>
+                                                </button>
+                                            </div>
+
+                                            {/* Riwayat Penarikan Saldo */}
+                                            <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs space-y-2.5">
+                                                <h5 className="font-extrabold text-xs text-slate-900 uppercase tracking-wider">
+                                                    Riwayat Penarikan Dana Terbaru
+                                                </h5>
+                                                <div className="space-y-2">
+                                                    {[
+                                                        { date: '24 Okt 2026, 14:15 WIB', bank: 'BCA •••• 9912', amount: 50000000, status: 'Berhasil' },
+                                                        { date: '18 Okt 2026, 11:30 WIB', bank: 'Mandiri •••• 4421', amount: 35000000, status: 'Berhasil' },
+                                                        { date: '10 Okt 2026, 09:20 WIB', bank: 'BCA •••• 9912', amount: 75000000, status: 'Berhasil' },
+                                                    ].map((item, idx) => (
+                                                        <div key={idx} className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 text-xs">
+                                                            <div>
+                                                                <span className="font-bold text-slate-800 block">{item.bank}</span>
+                                                                <span className="text-[10px] text-slate-600">{item.date}</span>
+                                                            </div>
+                                                            <div className="text-right">
+                                                                <span className="font-black text-slate-900 block">Rp {item.amount.toLocaleString('id-ID')}</span>
+                                                                <span className="text-[10px] font-black text-emerald-600">✓ {item.status}</span>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* TAB CONTENT: PROFILE FARM */}
+                                    {sellerActiveTab === 'profile' && (
+                                        <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs space-y-4 text-xs">
+                                            <div className="flex items-center gap-3 border-b border-slate-100 pb-3">
+                                                <div className="w-12 h-12 rounded-2xl bg-red-100 text-red-600 flex items-center justify-center font-black text-xl">
+                                                    BKF
+                                                </div>
+                                                <div>
+                                                    <h5 className="font-black text-sm text-slate-900">Blitar Koi Farm Official</h5>
+                                                    <p className="text-[11px] text-slate-500">Izin Usaha Peternakan: IUP-BTR/2023/0081</p>
+                                                </div>
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <h6 className="font-extrabold text-slate-800 uppercase tracking-wider text-[11px]">Fasilitas & Jaminan Farm</h6>
+                                                <div className="p-3 bg-slate-50 rounded-xl space-y-1.5 text-slate-700 text-[11px]">
+                                                    <p>• <strong>12 Kolam Karantina:</strong> Terstandar filtrasi biologis & ozon sterilisasi.</p>
+                                                    <p>• <strong>Mudpond Blitar:</strong> Kolam pembesaran tanah vulkanik mineral tinggi seluas 4 Hektar.</p>
+                                                    <p>• <strong>Garansi D.O.A 100%:</strong> Video unboxing saat penerimaan menjamin pengembalian dana penuh.</p>
+                                                    <p>• <strong>Sertifikat APKI:</strong> Registrasi silsilah & breeder resmi Jepang (Sakai, Dainichi, Isa).</p>
+                                                </div>
+                                            </div>
+
+                                            <button
+                                                onClick={() => openWhatsApp('+6281288881001', 'Halo Admin KoiMart, saya ingin memperbarui informasi legalitas farm saya.')}
+                                                className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-md transition active:scale-98 cursor-pointer flex items-center justify-center gap-2"
+                                            >
+                                                <MessageCircle className="w-4 h-4" />
+                                                <span>Hubungi Admin Panitia untuk Update Data Farm</span>
+                                            </button>
+
+                                            <button
+                                                onClick={handleLogout}
+                                                className="w-full py-3 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 font-extrabold text-xs rounded-xl shadow-xs transition active:scale-98 cursor-pointer flex items-center justify-center gap-2 mt-2"
+                                            >
+                                                <LogOut className="w-4 h-4" />
+                                                <span>Keluar dari Akun (Logout)</span>
+                                            </button>
+                                        </div>
+                                    )}
+
+                                </div>
+                            </div>
+                        );
+                    })()}
+
                 </div>
 
                 {/* 3. ANDROID BOTTOM NAVIGATION BAR (Tampil di semua tampilan aplikasi) */}
                 {currentScreen !== 'welcome' && (
-                    <div className="fixed bottom-0 left-0 right-0 sm:absolute sm:bottom-0 sm:left-0 sm:right-0 h-[68px] sm:h-[70px] bg-white border-t border-slate-200/90 px-2 flex items-center justify-around z-40 shadow-[0_-2px_10px_rgba(0,0,0,0.06)] pb-[env(safe-area-inset-bottom,0px)]">
-                        {[
-                            { id: 'home', label: 'Beranda', icon: Home, screen: 'home' as ScreenType },
-                            { id: 'favorite', label: 'Favorit', icon: Heart, screen: 'favorite' as ScreenType, badge: favoritesList.length > 0 ? favoritesList.length : undefined },
-                            { id: 'articles', label: 'Artikel', icon: Newspaper, screen: 'articles_list' as ScreenType },
-                            { id: 'orders', label: 'Pesanan', icon: ReceiptText, screen: 'orders' as ScreenType },
-                            { id: 'profile', label: 'Akun', icon: User, screen: 'profile' as ScreenType },
-                        ].map((tab) => {
-                            const isActive = activeTab === tab.id;
-                            const IconComponent = tab.icon;
-                            return (
-                                <button
-                                    key={tab.id}
-                                    onClick={() => handleTabClick(tab.id as any)}
-                                    className="flex flex-col items-center justify-center flex-1 py-1 transition-transform active:scale-90 relative"
-                                >
-                                    <div className="relative">
-                                        <IconComponent className={`w-5.5 h-5.5 transition-colors ${isActive ? 'text-red-600 stroke-[2.5]' : 'text-slate-600 stroke-[1.8]'}`} />
-                                        {tab.badge && (
-                                            <span className="absolute -top-1 -right-2 bg-red-600 text-white text-[9px] font-black px-1.5 py-0.2 rounded-full min-w-4 text-center ring-2 ring-white">
-                                                {tab.badge}
+                    userAccessRole === 'seller' ? (
+                        /* MODE SELLER: Bottom Nav Khusus Seller & Upload Ikan (Dipercantik & Modern) */
+                        <div className="fixed bottom-0 left-0 right-0 sm:absolute sm:bottom-0 sm:left-0 sm:right-0 h-[68px] sm:h-[70px] bg-white/95 backdrop-blur-md border-t border-slate-200/90 px-1 sm:px-2 flex items-center justify-around z-40 shadow-[0_-4px_25px_rgba(0,0,0,0.08)] pb-[env(safe-area-inset-bottom,0px)]">
+                            {[
+                                {
+                                    id: 'dashboard',
+                                    label: 'Dashboard',
+                                    icon: StoreIcon,
+                                    isActive: currentScreen === 'seller_center' && (sellerActiveTab === 'dashboard' || !sellerActiveTab),
+                                    onClick: () => {
+                                        setSellerActiveTab('dashboard');
+                                        navigateTo('seller_center');
+                                    },
+                                },
+                                {
+                                    id: 'listings',
+                                    label: 'Lelang Saya',
+                                    icon: Gavel,
+                                    badge: sellerAuctionsList.length > 0 ? sellerAuctionsList.length : undefined,
+                                    badgeColor: 'bg-red-600 text-white',
+                                    isActive: currentScreen === 'seller_center' && sellerActiveTab === 'listings',
+                                    onClick: () => {
+                                        setSellerActiveTab('listings');
+                                        navigateTo('seller_center');
+                                    },
+                                },
+                                {
+                                    id: 'upload',
+                                    label: 'Upload Ikan',
+                                    isCenterAction: true,
+                                    isActive: currentScreen === 'merchant_add_koi',
+                                    onClick: () => {
+                                        navigateTo('merchant_add_koi');
+                                    },
+                                },
+                                {
+                                    id: 'orders',
+                                    label: 'Pesanan',
+                                    icon: PackageCheck,
+                                    badge: sellerOrdersList.length > 0 ? sellerOrdersList.length : undefined,
+                                    badgeColor: 'bg-amber-500 text-stone-950',
+                                    isActive: currentScreen === 'seller_center' && sellerActiveTab === 'orders',
+                                    onClick: () => {
+                                        setSellerActiveTab('orders');
+                                        navigateTo('seller_center');
+                                    },
+                                },
+                                {
+                                    id: 'profile',
+                                    label: 'Profil Toko',
+                                    icon: User,
+                                    isActive: currentScreen === 'seller_center' && sellerActiveTab === 'profile',
+                                    onClick: () => {
+                                        setSellerActiveTab('profile');
+                                        navigateTo('seller_center');
+                                    },
+                                },
+                            ].map((tab) => {
+                                if (tab.isCenterAction) {
+                                    return (
+                                        <button
+                                            key={tab.id}
+                                            onClick={tab.onClick}
+                                            className="flex flex-col items-center justify-center flex-1 py-1 transition-transform active:scale-90 cursor-pointer relative group"
+                                        >
+                                            {/* Area Icon: Tinggi tetap h-[28px] persis dengan 4 tombol lainnya agar posisi teks sejajar sempurna */}
+                                            <div className="relative flex items-center justify-center h-[28px]">
+                                                {/* Floating Circle Button: Tombol bulat melayang tinggi di atas navbar */}
+                                                <div
+                                                    className="absolute flex items-center justify-center shrink-0"
+                                                    style={{ transform: 'translateY(-22px)' }}
+                                                >
+                                                    {/* Ambient Glow di belakang tombol bulat */}
+                                                    <div className={`absolute -inset-1 rounded-full transition-opacity duration-300 blur-md ${
+                                                        tab.isActive
+                                                            ? 'bg-red-600/60 opacity-100'
+                                                            : 'bg-red-500/30 opacity-70 group-hover:opacity-100'
+                                                    }`} />
+
+                                                    {/* Outer Circular Dock dengan ring putih tebal 4px & shadow mewah */}
+                                                    <div className={`relative w-[50px] h-[50px] rounded-full flex items-center justify-center ring-4 ring-white shadow-xl transition-all duration-300 ${
+                                                        tab.isActive
+                                                            ? 'bg-gradient-to-tr from-red-700 via-red-600 to-amber-500 ring-red-200 text-white shadow-red-600/60 scale-105'
+                                                            : 'bg-gradient-to-tr from-red-600 via-rose-600 to-amber-500 text-white shadow-red-600/40 group-hover:brightness-105 group-hover:scale-105'
+                                                    }`}>
+                                                        <Plus className="w-6 h-6 stroke-[3] transition-transform duration-300 group-hover:rotate-90" />
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Label Upload Ikan: Sejajar presisi horizontal dengan Dashboard, Lelang Saya, Pesanan & Profil Toko */}
+                                            <span className={`mt-0.5 text-[10.5px] leading-tight transition-colors select-none ${
+                                                tab.isActive
+                                                    ? 'text-red-600 font-black'
+                                                    : 'text-slate-600 font-bold group-hover:text-slate-900'
+                                            }`}>
+                                                {tab.label}
                                             </span>
+
+                                            {/* Subtle Active Indicator Dot */}
+                                            {tab.isActive && (
+                                                <span className="w-1 h-1 rounded-full bg-red-600 mt-0.5 animate-pulse" />
+                                            )}
+                                        </button>
+                                    );
+                                }
+
+                                const IconComponent = tab.icon!;
+                                return (
+                                    <button
+                                        key={tab.id}
+                                        onClick={tab.onClick}
+                                        className="flex flex-col items-center justify-center flex-1 py-1 transition-transform active:scale-90 cursor-pointer relative group"
+                                    >
+                                        <div className="relative flex items-center justify-center">
+                                            <div className={`p-1 rounded-xl transition-all duration-200 ${
+                                                tab.isActive ? 'bg-red-50/80 scale-105' : 'group-hover:bg-slate-100/60'
+                                            }`}>
+                                                <IconComponent className={`w-5 h-5 transition-all duration-200 ${
+                                                    tab.isActive
+                                                        ? 'text-red-600 stroke-[2.4]'
+                                                        : 'text-slate-500 group-hover:text-slate-800 stroke-[1.8]'
+                                                }`} />
+                                            </div>
+
+                                            {/* Badge Angka Notifikasi Rapi */}
+                                            {tab.badge !== undefined && (
+                                                <span className={`absolute -top-1 -right-1.5 min-w-[17px] h-[17px] px-1 rounded-full font-black text-[8.5px] leading-none flex items-center justify-center ring-2 ring-white shadow-xs ${
+                                                    tab.badgeColor || 'bg-red-600 text-white'
+                                                }`}>
+                                                    {tab.badge}
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        <span className={`mt-0.5 text-[10.5px] leading-tight transition-colors ${
+                                            tab.isActive
+                                                ? 'text-red-600 font-black'
+                                                : 'text-slate-600 font-bold group-hover:text-slate-900'
+                                        }`}>
+                                            {tab.label}
+                                        </span>
+
+                                        {/* Subtle Active Indicator Dot */}
+                                        {tab.isActive && (
+                                            <span className="w-1 h-1 rounded-full bg-red-600 mt-0.5 animate-pulse" />
                                         )}
-                                    </div>
-                                    <span className={`text-[11px] mt-0.5 leading-tight transition-colors ${isActive ? 'text-red-600 font-black' : 'text-slate-600 font-bold'}`}>
-                                        {tab.label}
-                                    </span>
-                                </button>
-                            );
-                        })}
-                    </div>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    ) : (
+                        /* MODE BIDDER: Bottom Nav Khusus Bidder (Hanya Bid & Belanja Ikan) */
+                        <div className="fixed bottom-0 left-0 right-0 sm:absolute sm:bottom-0 sm:left-0 sm:right-0 h-[68px] sm:h-[70px] bg-white border-t border-slate-200/90 px-1 sm:px-2 flex items-center justify-around z-40 shadow-[0_-2px_10px_rgba(0,0,0,0.06)] pb-[env(safe-area-inset-bottom,0px)]">
+                            {[
+                                { id: 'home', label: 'Beranda', icon: Home, screen: 'home' as ScreenType },
+                                { id: 'favorite', label: 'Favorit', icon: Heart, screen: 'favorite' as ScreenType, badge: favoritesList.length > 0 ? favoritesList.length : undefined },
+                                { id: 'koi', label: 'Koi', icon: Fish, screen: 'highest_auction' as ScreenType, isKoi: true },
+                                { id: 'bidder', label: 'Bidder', icon: Gavel, screen: 'bidder_center' as ScreenType, badge: userBids.length > 0 ? userBids.length : undefined },
+                                { id: 'profile', label: 'Akun', icon: User, screen: 'profile' as ScreenType },
+                            ].map((tab) => {
+                                const isActive = activeTab === tab.id;
+                                const IconComponent = tab.icon;
+                                const isKoi = (tab as any).isKoi;
+                                return (
+                                    <button
+                                        key={tab.id}
+                                        onClick={() => handleTabClick(tab.id as any)}
+                                        className={`flex flex-col items-center justify-center flex-1 py-1 transition-transform active:scale-90 relative ${isKoi ? '-mt-1.5' : ''}`}
+                                    >
+                                        <div className="relative flex items-center justify-center">
+                                            {isKoi ? (
+                                                <div className={`relative rounded-full transition-all duration-200 flex items-center justify-center ${
+                                                    isActive
+                                                        ? 'ring-2 ring-red-600 shadow-md shadow-red-600/30 scale-105'
+                                                        : 'ring-1 ring-slate-300/80 opacity-75 hover:opacity-100'
+                                                }`}>
+                                                    <img
+                                                        src="/icon/koi.png"
+                                                        alt="Koi"
+                                                        className="w-7 h-7 sm:w-7.5 sm:h-7.5 rounded-full object-cover shrink-0"
+                                                        onError={(e) => {
+                                                            (e.target as HTMLImageElement).src = '/icon/koi.jpg';
+                                                        }}
+                                                    />
+                                                </div>
+                                            ) : (
+                                                <IconComponent
+                                                    className={`transition-all duration-200 ${
+                                                        isActive ? 'text-red-600 stroke-[2.5]' : 'text-slate-600 stroke-[1.8]'
+                                                    } w-5.5 h-5.5`}
+                                                />
+                                            )}
+                                            {tab.badge && (
+                                                <span className="absolute -top-1 -right-2 bg-red-600 text-white text-[9px] font-black px-1.5 py-0.2 rounded-full min-w-4 text-center ring-2 ring-white">
+                                                    {tab.badge}
+                                                </span>
+                                            )}
+                                        </div>
+                                        <span
+                                            className={`mt-0.5 leading-tight transition-colors ${
+                                                isKoi
+                                                    ? `text-[11.5px] tracking-tight ${isActive ? 'text-red-600 font-black' : 'text-slate-700 font-black'}`
+                                                    : `text-[11px] ${isActive ? 'text-red-600 font-black' : 'text-slate-600 font-bold'}`
+                                            }`}
+                                        >
+                                            {tab.label}
+                                        </span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    )
                 )}
 
                 {/* 4. MODAL: BIAYA PENDAFTARAN PESERTA LELANG (PENGGANTI E-WALLET) */}
@@ -9248,22 +14155,27 @@ export default function AndroidKoiApp({
                     </div>
                 )}
 
-                {/* 5. MODAL: LOGIN AUTENTIKASI (GOOGLE & EMAIL/PASSWORD MULTI-ROLE) */}
+                {/* 5. MODAL: LOGIN AUTENTIKASI (HANYA GOOGLE) */}
                 {isGoogleLoginModalOpen && (
                     <div className="absolute inset-0 bg-black/65 backdrop-blur-sm z-50 flex items-end animate-in fade-in duration-200">
-                        <div className="w-full max-h-[90vh] overflow-y-auto bg-white rounded-t-3xl p-5 space-y-4 animate-in slide-in-from-bottom duration-300 shadow-2xl">
+                        <div className="w-full bg-white rounded-t-3xl p-5 space-y-3.5 animate-in slide-in-from-bottom duration-300 shadow-2xl max-h-[92vh] overflow-y-auto">
                             {/* Drag handle */}
                             <div className="w-10 h-1 bg-slate-200 rounded-full mx-auto" />
 
-                            {/* Modal Header */}
+                            {/* Modal Header & Close Button */}
                             <div className="flex justify-between items-start">
                                 <div className="flex items-center gap-2.5">
-                                    <div className="w-9 h-9 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-600 flex items-center justify-center p-1.5 shadow-sm">
-                                        <Lock className="w-5 h-5 text-amber-600" />
+                                    <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-red-500 to-rose-600 text-white flex items-center justify-center shadow-md shadow-red-500/20">
+                                        <Fish className="w-5 h-5" />
                                     </div>
                                     <div>
-                                        <h4 className="font-bold text-sm text-slate-900">Masuk ke Akun KoiMart</h4>
-                                        <p className="text-[10px] text-slate-500">Pilih opsi masuk untuk membuka fitur lengkap</p>
+                                        <div className="flex items-center gap-1.5">
+                                            <h4 className="font-extrabold text-base text-slate-900">Masuk ke KoiMart</h4>
+                                            <span className="bg-amber-100 text-amber-800 text-[9px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
+                                                <Crown className="w-2.5 h-2.5 text-amber-600" /> VIP
+                                            </span>
+                                        </div>
+                                        <p className="text-[11px] text-slate-500 font-medium">Buka akses lelang eksklusif & fitur penuh</p>
                                     </div>
                                 </div>
                                 <button
@@ -9271,246 +14183,550 @@ export default function AndroidKoiApp({
                                         setIsGoogleLoginModalOpen(false);
                                         setPendingLoginAction(null);
                                     }}
-                                    className="p-1 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+                                    className="p-1.5 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+                                    title="Tutup"
                                 >
                                     <X className="w-5 h-5" />
                                 </button>
                             </div>
 
-                            {/* Informative Alert / Context Banner */}
-                            <div className="p-3 rounded-xl bg-amber-50 border border-amber-200/70 text-[11px] text-amber-800 flex items-start gap-2">
-                                <ShieldCheck className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                                <div>
-                                    <span className="font-semibold">Akses Terproteksi: </span>
-                                    {googleLoginReason === 'favorit' && 'Silakan masuk terlebih dahulu untuk melihat dan mengelola Ikan Favorit.'}
-                                    {googleLoginReason === 'chat' && 'Silakan masuk terlebih dahulu untuk berkonsultasi dan nego langsung dengan penjual.'}
-                                    {googleLoginReason === 'like' && 'Silakan masuk terlebih dahulu untuk menyukai dan menyimpan ikan ke daftar favorit.'}
-                                    {googleLoginReason === 'pesanan' && 'Silakan masuk terlebih dahulu untuk melihat, melacak, dan mengelola Pesanan Saya.'}
-                                    {googleLoginReason === 'tawaran' && 'Silakan masuk terlebih dahulu untuk mengecek dan mengikuti tawaran lelang.'}
-                                    {googleLoginReason === 'general' && 'Masuk akun untuk akses fitur transaksi dan interaksi lengkap.'}
+                            {/* Header Form: Khusus Seller & Admin */}
+                            <div className="flex items-center justify-between pt-1 pb-0.5">
+                                <span className="text-[11px] font-extrabold text-slate-800 flex items-center gap-1.5">
+                                    <StoreIcon className="w-3.5 h-3.5 text-slate-700" />
+                                    Masuk Seller & SuperAdmin
+                                </span>
+                                <span className="text-[9.5px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200">
+                                    Email & Kata Sandi
+                                </span>
+                            </div>
+
+                            {/* Form Input Login Langsung (Role dicek otomatis dari akun terdaftar) */}
+                            <form onSubmit={handleEmailLoginSubmit} className="space-y-3.5 pt-0.5">
+                                {/* Error Alert */}
+                                {emailLoginError && (
+                                    <div className="p-2.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2 animate-in fade-in">
+                                        <AlertTriangle className="w-4 h-4 shrink-0 text-red-600" />
+                                        <span className="flex-1 font-medium">{emailLoginError}</span>
+                                    </div>
+                                )}
+
+                                {/* Email Field */}
+                                <div className="space-y-1">
+                                    <label className="text-[11px] font-bold text-slate-700 block">
+                                        Alamat Email
+                                    </label>
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                            <Mail className="w-4 h-4" />
+                                        </div>
+                                        <input
+                                            type="email"
+                                            value={emailInput}
+                                            onChange={(e) => setEmailInput(e.target.value)}
+                                            required
+                                            placeholder="Masukkan alamat email Anda..."
+                                            className="w-full pl-9 pr-3 py-2.5 text-xs sm:text-sm bg-slate-50/70 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:bg-white focus:border-red-500 focus:ring-2 focus:ring-red-500/20 focus:outline-none transition-all"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Password Field */}
+                                <div className="space-y-1">
+                                    <div className="flex items-center justify-between">
+                                        <label className="text-[11px] font-bold text-slate-700 block">Kata Sandi</label>
+                                    </div>
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                            <Lock className="w-4 h-4" />
+                                        </div>
+                                        <input
+                                            type={showPasswordInput ? 'text' : 'password'}
+                                            value={passwordInput}
+                                            onChange={(e) => setPasswordInput(e.target.value)}
+                                            required
+                                            placeholder="Masukkan kata sandi..."
+                                            className="w-full pl-9 pr-10 py-2.5 text-xs sm:text-sm bg-slate-50/70 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:bg-white focus:border-red-500 focus:ring-2 focus:ring-red-500/20 focus:outline-none transition-all"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPasswordInput(!showPasswordInput)}
+                                            className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
+                                            title={showPasswordInput ? 'Sembunyikan password' : 'Lihat password'}
+                                        >
+                                            {showPasswordInput ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Submit Button */}
+                                <button
+                                    type="submit"
+                                    disabled={emailLoginLoading}
+                                    className={`w-full py-3 px-4 font-bold text-xs sm:text-sm rounded-xl text-white shadow-md flex items-center justify-center gap-2 transition-all active:scale-[0.99] cursor-pointer bg-gradient-to-r from-red-600 via-rose-600 to-orange-500 hover:from-red-700 hover:to-orange-600 shadow-red-500/25 ${
+                                        emailLoginLoading ? 'opacity-70 cursor-not-allowed' : ''
+                                    }`}
+                                >
+                                    {emailLoginLoading ? (
+                                        <>
+                                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                            <span>Memproses Masuk...</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <LogIn className="w-4 h-4" />
+                                            <span>Masuk ke Akun</span>
+                                        </>
+                                    )}
+                                </button>
+                            </form>
+
+                            {/* Divider Opsi Khusus Bidder */}
+                            <div className="relative my-2">
+                                <div className="absolute inset-0 flex items-center">
+                                    <div className="w-full border-t border-slate-200" />
+                                </div>
+                                <div className="relative flex justify-center text-[10px] uppercase">
+                                    <span className="bg-white px-3 text-red-600 font-black tracking-wider flex items-center gap-1">
+                                        <Gavel className="w-3.5 h-3.5" />
+                                        Masuk Khusus Bidder
+                                    </span>
                                 </div>
                             </div>
 
-                            {/* Tab Switcher: Google vs Email & Kata Sandi */}
-                            <div className="flex rounded-xl bg-slate-100 p-1 text-xs font-semibold">
+                            {/* Main Direct Google Login Button (KHUSUS BIDDER) */}
+                            <div className="pt-0.5">
                                 <button
-                                    type="button"
-                                    onClick={() => setLoginAuthMode('google')}
-                                    className={`flex-1 py-2 rounded-lg transition-all flex items-center justify-center gap-2 ${
-                                        loginAuthMode === 'google'
-                                            ? 'bg-white text-slate-900 shadow-sm'
-                                            : 'text-slate-500 hover:text-slate-800'
-                                    }`}
+                                    onClick={handleGoogleLogin}
+                                    disabled={googleLoginLoading}
+                                    className="w-full py-3.5 px-4 bg-white hover:bg-slate-50 active:bg-slate-100 border-2 border-red-200 hover:border-red-500 text-slate-800 font-bold rounded-2xl text-xs sm:text-sm shadow-md hover:shadow-lg flex items-center justify-center gap-2.5 transition-all active:scale-[0.99] cursor-pointer"
                                 >
-                                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24">
-                                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-                                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
-                                    </svg>
-                                    <span>Akun Google</span>
+                                    {googleLoginLoading ? (
+                                        <>
+                                            <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
+                                            <span className="text-slate-700 font-medium">Menghubungkan Akun Google...</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+                                                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                                                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                                                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                                                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                                            </svg>
+                                            <span>Lanjutkan dengan Google (Khusus Bidder)</span>
+                                        </>
+                                    )}
                                 </button>
+                                
+                                <p className="mt-2 text-[10.5px] text-slate-500 text-center leading-relaxed">
+                                    Login Google dikhususkan untuk <strong>Bidder</strong> (mengikuti lelang & belanja ikan). Seller & SuperAdmin silakan login menggunakan email & kata sandi di atas.
+                                </p>
+
+                                <div className="mt-2 flex items-center justify-center gap-3 text-[10px] text-slate-400">
+                                    <span className="flex items-center gap-1">
+                                        <CheckCircle2 className="w-3 h-3 text-emerald-500" /> Cepat & Tanpa Password
+                                    </span>
+                                    <span>•</span>
+                                    <span className="flex items-center gap-1">
+                                        <Lock className="w-3 h-3 text-slate-400" /> Terenkripsi Aman
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* Privacy / Legal Disclaimer */}
+                            <p className="text-[10px] text-slate-400 text-center leading-relaxed">
+                                Dengan melanjutkan, Anda menyetujui Ketentuan Layanan serta Kebijakan Privasi KoiMart Indonesia.
+                            </p>
+                        </div>
+                    </div>
+                )}
+
+                {/* 5B. MODAL: DAFTAR SEBAGAI SELLER & PETERNAK KOI */}
+                {isSellerRegisterModalOpen && (
+                    <div className="absolute inset-0 bg-black/65 backdrop-blur-sm z-50 flex items-end animate-in fade-in duration-200">
+                        <div className="w-full bg-white rounded-t-3xl p-5 space-y-4 animate-in slide-in-from-bottom duration-300 shadow-2xl max-h-[92vh] overflow-y-auto">
+                            {/* Drag handle */}
+                            <div className="w-10 h-1 bg-slate-200 rounded-full mx-auto" />
+
+                            {/* Header */}
+                            <div className="flex justify-between items-start">
+                                <div className="flex items-center gap-2.5">
+                                    <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-600 text-white flex items-center justify-center shadow-md shadow-orange-500/20">
+                                        <StoreIcon className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                        <div className="flex items-center gap-1.5">
+                                            <h4 className="font-extrabold text-base text-slate-900">Daftar Sebagai Seller</h4>
+                                            <span className="bg-orange-100 text-orange-800 text-[9px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
+                                                <Sparkles className="w-2.5 h-2.5 text-orange-600" /> Mitra Farm
+                                            </span>
+                                        </div>
+                                        <p className="text-[11px] text-slate-500 font-medium">Buka lapak digital & lelang ikan koi Anda di KoiMart</p>
+                                    </div>
+                                </div>
                                 <button
-                                    type="button"
-                                    onClick={() => setLoginAuthMode('email')}
-                                    className={`flex-1 py-2 rounded-lg transition-all flex items-center justify-center gap-1.5 ${
-                                        loginAuthMode === 'email'
-                                            ? 'bg-white text-slate-900 shadow-sm'
-                                            : 'text-slate-500 hover:text-slate-800'
-                                    }`}
+                                    onClick={() => setIsSellerRegisterModalOpen(false)}
+                                    className="p-1.5 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+                                    title="Tutup"
                                 >
-                                    <Mail className="w-3.5 h-3.5 text-amber-600" />
-                                    <span>Email & Sandi</span>
+                                    <X className="w-5 h-5" />
                                 </button>
                             </div>
 
-                            {/* TAB 1: GOOGLE AUTH */}
-                            {loginAuthMode === 'google' && (
-                                <div className="space-y-3">
-                                    {/* Main Direct Google Login Button */}
-                                    <button
-                                        onClick={handleGoogleLogin}
-                                        disabled={googleLoginLoading}
-                                        className="w-full py-3.5 px-4 bg-white hover:bg-slate-50 active:bg-slate-100 border-2 border-slate-200 hover:border-blue-500 text-slate-800 font-bold rounded-2xl text-xs sm:text-sm shadow-md flex items-center justify-center gap-2.5 transition-all active:scale-[0.99] cursor-pointer"
-                                    >
-                                        {googleLoginLoading ? (
-                                            <>
-                                                <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-                                                <span className="text-slate-700 font-medium">Menghubungkan Akun Google...</span>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
-                                                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                                                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                                                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-                                                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
-                                                </svg>
-                                                <span>Lanjutkan dengan Akun Google</span>
-                                            </>
-                                        )}
-                                    </button>
+                            {/* Benefit Chips */}
+                            <div className="grid grid-cols-3 gap-2 py-1">
+                                <div className="p-2 rounded-xl bg-orange-50/70 border border-orange-100 text-center">
+                                    <p className="text-[10px] font-bold text-orange-800">⚡ 0 Biaya</p>
+                                    <p className="text-[9px] text-orange-600/90">Daftar Gratis</p>
+                                </div>
+                                <div className="p-2 rounded-xl bg-amber-50/70 border border-amber-100 text-center">
+                                    <p className="text-[10px] font-bold text-amber-800">🛡️ Rekber Aman</p>
+                                    <p className="text-[9px] text-amber-600/90">Dana Terproteksi</p>
+                                </div>
+                                <div className="p-2 rounded-xl bg-emerald-50/70 border border-emerald-100 text-center">
+                                    <p className="text-[10px] font-bold text-emerald-800">🔒 Terverifikasi</p>
+                                    <p className="text-[9px] text-emerald-600/90">Super Admin Cek</p>
+                                </div>
+                            </div>
 
-                                    {/* Fallback Web Google Button jika dialog native bermasalah */}
-                                    <button
-                                        type="button"
-                                        onClick={handleWebGoogleLogin}
-                                        disabled={googleLoginLoading}
-                                        className="w-full py-2.5 px-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 font-semibold rounded-xl text-xs flex items-center justify-center gap-2 transition"
-                                    >
-                                        <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
-                                        <span>Buka Google via Web Browser</span>
-                                    </button>
+                            {/* Kebijakan Verifikasi Admin Notice */}
+                            <div className="p-3 rounded-2xl bg-amber-50 border border-amber-200/80 flex items-start gap-2.5">
+                                <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                                <div className="text-[11px] text-amber-900 leading-snug">
+                                    <span className="font-bold">Kebijakan Keamanan Mitra:</span> Toko atau seller hanya dapat login dan mengunggah ikan koi setelah data & KTP berhasil diverifikasi oleh Super Admin.
+                                </div>
+                            </div>
 
-                                    {/* Trust Badge */}
-                                    <div className="flex items-center justify-center gap-1.5 text-[11px] text-slate-500 pt-1">
-                                        <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                                        <span>Terhubung langsung & aman ke server Google</span>
+                            {/* Form Pendaftaran 10 Field */}
+                            <form onSubmit={handleSubmitSellerRegistration} className="space-y-4 pt-1">
+                                {/* Error Box Jika Ada Validasi Gagal */}
+                                {Object.keys(sellerRegisterErrors).length > 0 && (
+                                    <div className="p-3 rounded-2xl bg-red-50 border border-red-200 text-xs text-red-700 space-y-1">
+                                        <div className="font-bold flex items-center gap-1.5 text-red-800">
+                                            <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+                                            <span>Pendaftaran Belum Dapat Disimpan:</span>
+                                        </div>
+                                        <ul className="list-disc list-inside space-y-0.5 text-[11px] text-red-600 pl-1">
+                                            {Object.entries(sellerRegisterErrors).map(([key, msg]) => (
+                                                <li key={key}>{msg}</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+
+                                {/* BAGIAN 1: DATA OWNER & ADMIN */}
+                                <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-3">
+                                    <div className="flex items-center gap-1.5 pb-1 border-b border-slate-200">
+                                        <Building2 className="w-3.5 h-3.5 text-orange-600" />
+                                        <h5 className="text-[11px] font-black text-slate-800 uppercase tracking-wider">
+                                            1. Data Owner & Admin Penanggung Jawab
+                                        </h5>
+                                    </div>
+
+                                    {/* 1. Nama Owner & 2. No Telp Owner */}
+                                    <div className="grid grid-cols-2 gap-2.5">
+                                        <div>
+                                            <label className="block text-[10px] font-bold text-slate-700 mb-1">
+                                                Nama Owner <span className="text-red-500">*</span>
+                                            </label>
+                                            <input
+                                                type="text"
+                                                required
+                                                value={sellerRegisterForm.owner_name}
+                                                onChange={(e) => setSellerRegisterForm({ ...sellerRegisterForm, owner_name: e.target.value })}
+                                                placeholder="cth: Budi Hartono"
+                                                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-orange-500 transition-all font-medium"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-[10px] font-bold text-slate-700 mb-1">
+                                                No Telp Owner <span className="text-red-500">*</span>
+                                            </label>
+                                            <input
+                                                type="tel"
+                                                required
+                                                value={sellerRegisterForm.owner_phone}
+                                                onChange={(e) => setSellerRegisterForm({ ...sellerRegisterForm, owner_phone: e.target.value })}
+                                                placeholder="cth: 081234567890"
+                                                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-orange-500 transition-all font-medium"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* 3. Nama Admin & 4. No Telp Admin */}
+                                    <div className="grid grid-cols-2 gap-2.5">
+                                        <div>
+                                            <label className="block text-[10px] font-bold text-slate-700 mb-1">
+                                                Nama Admin <span className="text-red-500">*</span>
+                                            </label>
+                                            <input
+                                                type="text"
+                                                required
+                                                value={sellerRegisterForm.admin_name}
+                                                onChange={(e) => setSellerRegisterForm({ ...sellerRegisterForm, admin_name: e.target.value })}
+                                                placeholder="cth: Siti Rahayu"
+                                                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-orange-500 transition-all font-medium"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-[10px] font-bold text-slate-700 mb-1">
+                                                No Telp Admin <span className="text-red-500">*</span>
+                                            </label>
+                                            <input
+                                                type="tel"
+                                                required
+                                                value={sellerRegisterForm.admin_phone}
+                                                onChange={(e) => setSellerRegisterForm({ ...sellerRegisterForm, admin_phone: e.target.value })}
+                                                placeholder="cth: 087812345678"
+                                                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-orange-500 transition-all font-medium"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
-                            )}
 
-                            {/* TAB 2: EMAIL & PASSWORD AUTH */}
-                            {loginAuthMode === 'email' && (
-                                <form onSubmit={handleEmailLoginSubmit} className="space-y-3">
-                                    {/* Quick 1-Click Role Fillers */}
-                                    <div className="space-y-1.5">
-                                        <div className="flex items-center justify-between text-[11px] text-slate-500">
-                                            <span>Pilih Akun Cepat (1-Klik):</span>
-                                            <span className="font-mono text-amber-600 font-semibold">password</span>
-                                        </div>
-                                        <div className="grid grid-cols-3 gap-1.5">
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    setEmailInput('budi@example.com');
-                                                    setPasswordInput('password');
-                                                }}
-                                                className={`py-1.5 px-2 rounded-lg border text-[10px] font-bold text-left transition ${
-                                                    emailInput === 'budi@example.com'
-                                                        ? 'bg-amber-50 border-amber-400 text-amber-800 ring-1 ring-amber-400'
-                                                        : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
-                                                }`}
-                                            >
-                                                <div className="truncate">Kolektor / Bidder</div>
-                                                <div className="text-[9px] text-slate-400 font-normal truncate">Budi Santoso</div>
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    setEmailInput('owner@kokikoi.com');
-                                                    setPasswordInput('password');
-                                                }}
-                                                className={`py-1.5 px-2 rounded-lg border text-[10px] font-bold text-left transition ${
-                                                    emailInput === 'owner@kokikoi.com'
-                                                        ? 'bg-emerald-50 border-emerald-400 text-emerald-800 ring-1 ring-emerald-400'
-                                                        : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
-                                                }`}
-                                            >
-                                                <div className="truncate">Galeri Koi</div>
-                                                <div className="text-[9px] text-slate-400 font-normal truncate">Owner Koki Koi</div>
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    setEmailInput('admin@koimart.test');
-                                                    setPasswordInput('password');
-                                                }}
-                                                className={`py-1.5 px-2 rounded-lg border text-[10px] font-bold text-left transition ${
-                                                    emailInput === 'admin@koimart.test'
-                                                        ? 'bg-purple-50 border-purple-400 text-purple-800 ring-1 ring-purple-400'
-                                                        : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
-                                                }`}
-                                            >
-                                                <div className="truncate">Super Admin</div>
-                                                <div className="text-[9px] text-slate-400 font-normal truncate">Sistem Master</div>
-                                            </button>
-                                        </div>
+                                {/* BAGIAN 2: DATA DEALER / FARM */}
+                                <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-3">
+                                    <div className="flex items-center gap-1.5 pb-1 border-b border-slate-200">
+                                        <StoreIcon className="w-3.5 h-3.5 text-orange-600" />
+                                        <h5 className="text-[11px] font-black text-slate-800 uppercase tracking-wider">
+                                            2. Data Dealer / Farm Koi
+                                        </h5>
                                     </div>
 
-                                    {/* Email Input */}
-                                    <div className="space-y-1">
-                                        <label className="text-[11px] font-semibold text-slate-700">Alamat Email:</label>
-                                        <div className="relative">
-                                            <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                                    {/* 5. Nama Dealer / Farm */}
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-slate-700 mb-1">
+                                            Nama Dealer / Farm <span className="text-red-500">*</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            required
+                                            value={sellerRegisterForm.name}
+                                            onChange={(e) => setSellerRegisterForm({ ...sellerRegisterForm, name: e.target.value })}
+                                            placeholder="cth: Surya Kencana Koi Farm Blitar"
+                                            className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-orange-500 transition-all font-medium"
+                                        />
+                                    </div>
+
+                                    {/* 6. Alamat Dealer */}
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-slate-700 mb-1">
+                                            Alamat Dealer / Lokasi Kolam <span className="text-red-500">*</span>
+                                        </label>
+                                        <textarea
+                                            required
+                                            rows={2}
+                                            value={sellerRegisterForm.address}
+                                            onChange={(e) => setSellerRegisterForm({ ...sellerRegisterForm, address: e.target.value })}
+                                            placeholder="cth: Jl. Raya Sentra Koi No. 88, RT 02/05, Kec. Kanigoro..."
+                                            className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-orange-500 transition-all font-medium resize-none"
+                                        />
+                                    </div>
+
+                                    {/* 7. Kota & 8. Provinsi */}
+                                    <div className="grid grid-cols-2 gap-2.5">
+                                        <div>
+                                            <label className="block text-[10px] font-bold text-slate-700 mb-1">
+                                                Kota <span className="text-red-500">*</span>
+                                            </label>
+                                            <input
+                                                type="text"
+                                                required
+                                                value={sellerRegisterForm.city}
+                                                onChange={(e) => setSellerRegisterForm({ ...sellerRegisterForm, city: e.target.value })}
+                                                placeholder="cth: Blitar / Kediri / Jakarta"
+                                                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-orange-500 transition-all font-medium"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-[10px] font-bold text-slate-700 mb-1">
+                                                Provinsi <span className="text-red-500">*</span>
+                                            </label>
+                                            <input
+                                                type="text"
+                                                required
+                                                value={sellerRegisterForm.province}
+                                                onChange={(e) => setSellerRegisterForm({ ...sellerRegisterForm, province: e.target.value })}
+                                                placeholder="cth: Jawa Timur / Jawa Barat"
+                                                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-orange-500 transition-all font-medium"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* BAGIAN 3: BERKAS LOGO & KTP */}
+                                <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-3">
+                                    <div className="flex items-center gap-1.5 pb-1 border-b border-slate-200">
+                                        <Camera className="w-3.5 h-3.5 text-orange-600" />
+                                        <h5 className="text-[11px] font-black text-slate-800 uppercase tracking-wider">
+                                            3. Berkas Logo Dealer & KTP
+                                        </h5>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-2.5">
+                                        {/* 9. Logo */}
+                                        <div>
+                                            <label className="block text-[10px] font-bold text-slate-700 mb-1 flex items-center justify-between">
+                                                <span>Logo Dealer / Farm</span>
+                                                <span className="text-[9px] text-slate-400 font-normal">PNG/JPG</span>
+                                            </label>
+                                            <label className="flex flex-col items-center justify-center p-2.5 border-2 border-dashed border-orange-300 hover:border-orange-500 rounded-xl bg-orange-50/30 cursor-pointer transition min-h-[95px] relative overflow-hidden group">
+                                                {sellerRegisterForm.logo ? (
+                                                    <div className="relative w-full h-20 rounded-lg overflow-hidden flex items-center justify-center bg-white shadow-xs">
+                                                        <img src={sellerRegisterForm.logo} alt="Preview Logo" className="max-h-full max-w-full object-contain" />
+                                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white text-[10px] font-bold">
+                                                            Ganti
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="text-center space-y-1">
+                                                        <ImageIcon className="w-5 h-5 mx-auto text-orange-500" />
+                                                        <p className="text-[10px] font-bold text-orange-700">Pilih Logo</p>
+                                                        <p className="text-[8px] text-slate-400">Klik untuk upload</p>
+                                                    </div>
+                                                )}
+                                                <input
+                                                    type="file"
+                                                    accept="image/*"
+                                                    onChange={(e) => handleImageUploadToField('logo', e)}
+                                                    className="hidden"
+                                                />
+                                            </label>
+                                        </div>
+
+                                        {/* 10. KTP */}
+                                        <div>
+                                            <label className="block text-[10px] font-bold text-slate-700 mb-1 flex items-center justify-between">
+                                                <span>Foto KTP Owner</span>
+                                                <span className="text-[9px] text-red-500 font-bold">*Wajib</span>
+                                            </label>
+                                            <label className="flex flex-col items-center justify-center p-2.5 border-2 border-dashed border-amber-300 hover:border-amber-500 rounded-xl bg-amber-50/30 cursor-pointer transition min-h-[95px] relative overflow-hidden group">
+                                                {sellerRegisterForm.ktp ? (
+                                                    <div className="relative w-full h-20 rounded-lg overflow-hidden flex items-center justify-center bg-white shadow-xs">
+                                                        <img src={sellerRegisterForm.ktp} alt="Preview KTP" className="max-h-full max-w-full object-contain" />
+                                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white text-[10px] font-bold">
+                                                            Ganti
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="text-center space-y-1">
+                                                        <FileText className="w-5 h-5 mx-auto text-amber-600" />
+                                                        <p className="text-[10px] font-bold text-amber-700">Foto KTP</p>
+                                                        <p className="text-[8px] text-slate-400">Jelas & terbaca</p>
+                                                    </div>
+                                                )}
+                                                <input
+                                                    type="file"
+                                                    accept="image/*"
+                                                    onChange={(e) => handleImageUploadToField('ktp', e)}
+                                                    className="hidden"
+                                                />
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* BAGIAN 4: AKUN LOGIN (OPSIONAL / OTOMATIS) */}
+                                {!isLoggedIn && (
+                                    <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2.5">
+                                        <div className="flex items-center justify-between pb-1 border-b border-slate-200">
+                                            <div className="flex items-center gap-1.5">
+                                                <Lock className="w-3.5 h-3.5 text-orange-600" />
+                                                <h5 className="text-[11px] font-black text-slate-800 uppercase tracking-wider">
+                                                    4. Kredensial Login Akun
+                                                </h5>
+                                            </div>
+                                            <span className="text-[9px] text-slate-500 bg-slate-200/70 px-2 py-0.5 rounded-full font-medium">Opsional</span>
+                                        </div>
+                                        <div>
+                                            <label className="block text-[10px] font-bold text-slate-700 mb-1">
+                                                Email Akun <span className="text-slate-400 font-normal">(opsional - auto dibuat dari No Telp jika kosong)</span>
+                                            </label>
                                             <input
                                                 type="email"
-                                                required
-                                                value={emailInput}
-                                                onChange={(e) => setEmailInput(e.target.value)}
-                                                placeholder="email@example.com"
-                                                className="w-full pl-9 pr-3 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-amber-500 focus:outline-none transition"
+                                                value={sellerRegisterForm.email}
+                                                onChange={(e) => setSellerRegisterForm({ ...sellerRegisterForm, email: e.target.value })}
+                                                placeholder="cth: seller@koki.test"
+                                                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-orange-500 transition-all font-medium"
                                             />
                                         </div>
-                                    </div>
-
-                                    {/* Password Input */}
-                                    <div className="space-y-1">
-                                        <label className="text-[11px] font-semibold text-slate-700">Kata Sandi:</label>
-                                        <div className="relative">
-                                            <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                                        <div>
+                                            <label className="block text-[10px] font-bold text-slate-700 mb-1">
+                                                Password Akun <span className="text-slate-400 font-normal">(opsional - min 6 karakter)</span>
+                                            </label>
                                             <input
-                                                type={showPasswordInput ? 'text' : 'password'}
-                                                required
-                                                value={passwordInput}
-                                                onChange={(e) => setPasswordInput(e.target.value)}
-                                                placeholder="••••••••"
-                                                className="w-full pl-9 pr-10 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-amber-500 focus:outline-none transition"
+                                                type="password"
+                                                value={sellerRegisterForm.password}
+                                                onChange={(e) => setSellerRegisterForm({ ...sellerRegisterForm, password: e.target.value })}
+                                                placeholder="Minimal 6 karakter"
+                                                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-orange-500 transition-all font-medium"
                                             />
-                                            <button
-                                                type="button"
-                                                onClick={() => setShowPasswordInput(!showPasswordInput)}
-                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                                            >
-                                                {showPasswordInput ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                                            </button>
                                         </div>
                                     </div>
+                                )}
 
-                                    {emailLoginError && (
-                                        <div className="p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 text-[11px] font-medium text-center">
-                                            ⚠️ {emailLoginError}
-                                        </div>
-                                    )}
-
-                                    {/* Submit Button */}
+                                <div className="pt-2">
                                     <button
                                         type="submit"
-                                        disabled={emailLoginLoading}
-                                        className="w-full py-3 px-4 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 active:scale-[0.99] text-white font-bold rounded-xl text-xs shadow-md shadow-amber-600/20 flex items-center justify-center gap-2 transition cursor-pointer"
+                                        disabled={sellerRegisterLoading}
+                                        className="w-full py-3.5 px-4 bg-gradient-to-r from-orange-600 via-amber-600 to-orange-600 hover:from-orange-700 hover:to-amber-700 active:scale-[0.99] text-white font-black rounded-2xl text-xs sm:text-sm shadow-md hover:shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer"
                                     >
-                                        {emailLoginLoading ? (
+                                        {sellerRegisterLoading ? (
                                             <>
                                                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                                <span>Memverifikasi Akun...</span>
+                                                <span>Mengirim Data Pendaftaran...</span>
                                             </>
                                         ) : (
-                                            <span>Masuk Sekarang →</span>
+                                            <>
+                                                <StoreIcon className="w-4 h-4" />
+                                                <span>Daftar Seller Sekarang (Kirim Verifikasi)</span>
+                                            </>
                                         )}
                                     </button>
-                                </form>
-                            )}
+                                </div>
+                            </form>
 
-                            {/* Separator & Full Login Portal Link */}
-                            <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
-                                <a
-                                    href="/login"
-                                    className="text-[11px] text-amber-700 hover:text-amber-800 font-bold underline flex items-center gap-1"
-                                >
-                                    <span>Buka Portal Login Lengkap (/login)</span>
-                                    <ArrowUpRight className="w-3 h-3" />
-                                </a>
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setIsGoogleLoginModalOpen(false);
-                                        setPendingLoginAction(null);
-                                    }}
-                                    className="text-[11px] text-slate-400 hover:text-slate-600 py-1 px-2 font-medium"
-                                >
-                                    Nanti Saja
-                                </button>
+                            <p className="text-[10px] text-slate-400 text-center leading-relaxed">
+                                Pendaftaran seller gratis. Akun akan ditinjau & diverifikasi langsung oleh Super Admin sebelum status resmi aktif.
+                            </p>
+                        </div>
+                    </div>
+                )}
+
+                {/* MODAL SUKSES PENDAFTARAN SELLER */}
+                {sellerRegisterSuccessModalOpen && (
+                    <div className="absolute inset-0 bg-black/65 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+                        <div className="w-full max-w-sm bg-white rounded-3xl p-6 text-center space-y-4 shadow-2xl animate-in zoom-in-95 duration-200">
+                            <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-inner">
+                                <CheckCircle2 className="w-10 h-10" />
                             </div>
+                            <div className="space-y-1.5">
+                                <h3 className="text-base font-extrabold text-slate-900">
+                                    Pendaftaran Berhasil Diajukan!
+                                </h3>
+                                <p className="text-xs text-slate-600 leading-relaxed">
+                                    Formulir pendaftaran dan berkas KTP Anda telah tersimpan dengan aman di database.
+                                </p>
+                            </div>
+                            <div className="p-3 bg-amber-50 rounded-2xl border border-amber-200 text-[11px] text-amber-800 text-left space-y-1">
+                                <p className="font-bold flex items-center gap-1.5 text-amber-900">
+                                    <ShieldAlert className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                                    Menunggu Verifikasi Super Admin
+                                </p>
+                                <p className="text-[10px] leading-relaxed text-amber-700">
+                                    Sesuai aturan keamanan lelang, akun seller atau toko Anda baru dapat <strong>login</strong> dan <strong>upload ikan</strong> setelah diverifikasi langsung oleh Super Admin.
+                                </p>
+                            </div>
+                            <button
+                                onClick={() => {
+                                    setSellerRegisterSuccessModalOpen(false);
+                                    triggerToast('Status pendaftaran dapat dicek melalui Super Admin.');
+                                }}
+                                className="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-black text-xs rounded-2xl transition cursor-pointer shadow-md"
+                            >
+                                Mengerti & Tutup
+                            </button>
                         </div>
                     </div>
                 )}
@@ -10063,6 +15279,378 @@ export default function AndroidKoiApp({
                                         <ExternalLink className="w-3.5 h-3.5" />
                                     </a>
                                 )}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* ========================================================= */}
+                {/* 6. MODAL: DETAIL & KETENTUAN EVENT LELANG SPESIAL         */}
+                {/* ========================================================= */}
+                {isEventDetailModalOpen && (() => {
+                    const activeEvent = SPECIAL_EVENTS_DATA.find(e => e.id === activeSpecialEventId) || SPECIAL_EVENTS_DATA[0];
+                    return (
+                        <div className="absolute inset-0 bg-black/75 backdrop-blur-xs z-50 flex items-end animate-in fade-in duration-200">
+                            <div
+                                onClick={(e) => e.stopPropagation()}
+                                className="w-full bg-white rounded-t-3xl p-5 space-y-4 animate-in slide-in-from-bottom duration-300 max-h-[92vh] overflow-y-auto shadow-2xl"
+                            >
+                                {/* Drag handle */}
+                                <div className="w-10 h-1 bg-slate-200 rounded-full mx-auto" />
+
+                                {/* Header */}
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 text-[10px] font-bold mb-1 border border-amber-300">
+                                            <Sparkles className="w-3 h-3 text-amber-600" />
+                                            <span>{activeEvent.badge}</span>
+                                        </div>
+                                        <h4 className="font-extrabold text-base text-slate-900 leading-snug">{activeEvent.title}</h4>
+                                        <p className="text-[11px] text-slate-500 mt-0.5">{activeEvent.subtitle}</p>
+                                    </div>
+                                    <button
+                                        onClick={() => setIsEventDetailModalOpen(false)}
+                                        className="p-1.5 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition cursor-pointer"
+                                    >
+                                        <X className="w-5 h-5" />
+                                    </button>
+                                </div>
+
+                                {/* Event Hero Visual */}
+                                <div className="relative rounded-2xl overflow-hidden aspect-[16/8] shadow-md border border-slate-200">
+                                    <img
+                                        src={activeEvent.bannerImage}
+                                        alt={activeEvent.title}
+                                        className="w-full h-full object-cover"
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/20 to-transparent flex items-end p-3">
+                                        <div className="text-white text-xs">
+                                            <span className="font-bold text-amber-300">Penyelenggara Resmi:</span> {activeEvent.mitra}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Event Schedule & Valuasi */}
+                                <div className="grid grid-cols-2 gap-2">
+                                    <div className="p-3 bg-amber-50/70 border border-amber-200/80 rounded-2xl space-y-1">
+                                        <span className="text-[10px] font-bold text-amber-800 uppercase tracking-wider block">Jadwal Event</span>
+                                        <p className="text-xs font-extrabold text-slate-900 leading-tight">{activeEvent.schedule}</p>
+                                    </div>
+                                    <div className="p-3 bg-rose-50/70 border border-rose-200/80 rounded-2xl space-y-1">
+                                        <span className="text-[10px] font-bold text-rose-800 uppercase tracking-wider block">Valuasi & Benefit</span>
+                                        <p className="text-xs font-extrabold text-rose-700 leading-tight">{activeEvent.prizePool}</p>
+                                    </div>
+                                </div>
+
+                                {/* Description */}
+                                <div className="space-y-1.5">
+                                    <h5 className="text-xs font-bold text-slate-900">Tentang Event Ini</h5>
+                                    <p className="text-xs text-slate-600 leading-relaxed">{activeEvent.description}</p>
+                                </div>
+
+                                {/* Perks / Hak Peserta */}
+                                <div className="space-y-2">
+                                    <h5 className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                                        <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                                        <span>Fasilitas & Jaminan Peserta Event</span>
+                                    </h5>
+                                    <div className="space-y-2">
+                                        {activeEvent.perks.map((perk, pIdx) => (
+                                            <div key={pIdx} className="flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-50 border border-slate-100 text-xs text-slate-700">
+                                                <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                                                <span>{perk}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* CTA Action */}
+                                <div className="pt-2 flex gap-2">
+                                    <button
+                                        onClick={() => {
+                                            setIsEventDetailModalOpen(false);
+                                            setActiveTab('koi');
+                                            navigateTo('highest_auction');
+                                        }}
+                                        className="flex-1 py-3 px-4 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 text-white font-bold text-xs rounded-2xl shadow-md shadow-red-600/25 flex items-center justify-center gap-1.5 transition active:scale-98 cursor-pointer"
+                                    >
+                                        <Gavel className="w-4 h-4" />
+                                        <span>Buka Bursa Lelang Event</span>
+                                    </button>
+                                    <button
+                                        onClick={() => setIsEventDetailModalOpen(false)}
+                                        className="py-3 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-2xl transition cursor-pointer"
+                                    >
+                                        Tutup
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    );
+                })()}
+
+                {/* ========================================================= */}
+                {/* MODAL PENARIKAN SALDO PENJUALAN (SELLER WITHDRAWAL MODAL) */}
+                {/* ========================================================= */}
+                {isSellerWithdrawModalOpen && (
+                    <div className="absolute inset-0 z-50 bg-black/70 backdrop-blur-xs flex flex-col justify-end animate-in fade-in duration-200">
+                        <div
+                            className="bg-white rounded-t-[32px] max-h-[85vh] flex flex-col overflow-hidden shadow-2xl animate-in slide-in-from-bottom duration-300"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            {/* Header */}
+                            <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between shrink-0">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-8 h-8 rounded-xl bg-red-100 text-red-600 flex items-center justify-center">
+                                        <Wallet className="w-4 h-4" />
+                                    </div>
+                                    <div>
+                                        <h4 className="font-extrabold text-sm text-slate-900">Tarik Saldo Penjualan</h4>
+                                        <p className="text-[10px] text-slate-500">Pencairan Dana ke Rekening Terdaftar</p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => setIsSellerWithdrawModalOpen(false)}
+                                    className="p-1 rounded-full bg-slate-100 text-slate-500 hover:text-slate-800 cursor-pointer"
+                                >
+                                    <X className="w-4 h-4" />
+                                </button>
+                            </div>
+
+                            {/* Content */}
+                            <div className="p-5 overflow-y-auto space-y-4 text-xs">
+                                {/* Saldo Overview */}
+                                <div className="p-3.5 bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-2xl space-y-1">
+                                    <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">
+                                        Saldo Tersedia Siap Ditarik
+                                    </span>
+                                    <div className="text-xl font-black text-white">
+                                        Rp 148.500.000
+                                    </div>
+                                    <p className="text-[10px] text-slate-400">
+                                        Bebas biaya transfer untuk rekening BCA, Mandiri & BRI.
+                                    </p>
+                                </div>
+
+                                {/* Pilihan Nominal Cepat */}
+                                <div className="space-y-1.5">
+                                    <label className="text-[11px] font-bold text-slate-700">Pilih Jumlah Penarikan Cepat:</label>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        {[
+                                            { label: 'Rp 10.000.000', value: '10000000' },
+                                            { label: 'Rp 25.000.000', value: '25000000' },
+                                            { label: 'Rp 50.000.000', value: '50000000' },
+                                            { label: 'Tarik Semua (148.5 Jt)', value: '148500000' },
+                                        ].map((opt) => (
+                                            <button
+                                                key={opt.value}
+                                                type="button"
+                                                onClick={() => setSellerWithdrawAmount(opt.value)}
+                                                className={`p-2.5 rounded-xl border text-center font-bold text-xs transition cursor-pointer ${
+                                                    sellerWithdrawAmount === opt.value
+                                                        ? 'bg-red-50 border-red-500 text-red-600 shadow-2xs'
+                                                        : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                                                }`}
+                                            >
+                                                {opt.label}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Input Nominal Kustom */}
+                                <div className="space-y-1">
+                                    <label className="text-[11px] font-bold text-slate-700">Nominal Penarikan (Rp):</label>
+                                    <div className="relative">
+                                        <span className="absolute left-3 top-2.5 text-xs font-black text-slate-400">Rp</span>
+                                        <input
+                                            type="number"
+                                            value={sellerWithdrawAmount}
+                                            onChange={(e) => setSellerWithdrawAmount(e.target.value)}
+                                            placeholder="Masukkan nominal"
+                                            className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-black text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-red-500"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Rekening Tujuan */}
+                                <div className="space-y-1">
+                                    <label className="text-[11px] font-bold text-slate-700">Rekening Tujuan Penarikan:</label>
+                                    <select
+                                        value={sellerWithdrawBank}
+                                        onChange={(e) => setSellerWithdrawBank(e.target.value)}
+                                        className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-red-500"
+                                    >
+                                        <option value="BCA (Rek: 0182-9988-12 a.n Blitar Koi Farm)">BCA • 0182-9988-12 a.n Blitar Koi Farm (Utama)</option>
+                                        <option value="Mandiri (Rek: 144-00-998811-2 a.n Blitar Koi Farm)">Mandiri • 144-00-998811-2 a.n Blitar Koi Farm</option>
+                                        <option value="BRI (Rek: 0019-01-098234-50-1 a.n Dodis Saufitro)">BRI • 0019-01-098234-50-1 a.n Dodis Saufitro</option>
+                                    </select>
+                                </div>
+
+                                {/* Security Note */}
+                                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-start gap-2 text-emerald-900 text-[10.5px]">
+                                    <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                                    <span>
+                                        Proses pencairan diproses instan melalui sistem API kliring perbankan otomatis panitia KoiMart (maks. 1 jam kerja).
+                                    </span>
+                                </div>
+
+                                {/* Action Buttons */}
+                                <div className="pt-2 flex gap-2">
+                                    <button
+                                        onClick={() => {
+                                            const amtNum = Number(sellerWithdrawAmount) || 0;
+                                            if (amtNum <= 0) {
+                                                triggerToast('⚠️ Masukkan nominal penarikan yang valid');
+                                                return;
+                                            }
+                                            setIsSellerWithdrawModalOpen(false);
+                                            triggerToast(`✅ Permintaan penarikan Rp ${amtNum.toLocaleString('id-ID')} berhasil diajukan! Dana segera ditransfer ke rekening.`);
+                                        }}
+                                        className="flex-1 py-3 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 text-white font-extrabold text-xs rounded-xl shadow-md transition active:scale-98 cursor-pointer flex items-center justify-center gap-1.5"
+                                    >
+                                        <ArrowUpRight className="w-4 h-4" />
+                                        <span>Konfirmasi Tarik Dana</span>
+                                    </button>
+                                    <button
+                                        onClick={() => setIsSellerWithdrawModalOpen(false)}
+                                        className="py-3 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition cursor-pointer"
+                                    >
+                                        Batal
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* ========================================================= */}
+                {/* MODAL INPUT RESI PENGIRIMAN IKAN (SELLER SHIPPING MODAL)  */}
+                {/* ========================================================= */}
+                {isSellerShipModalOpen && selectedOrderToShip && (
+                    <div className="absolute inset-0 z-50 bg-black/70 backdrop-blur-xs flex flex-col justify-end animate-in fade-in duration-200">
+                        <div
+                            className="bg-white rounded-t-[32px] max-h-[85vh] flex flex-col overflow-hidden shadow-2xl animate-in slide-in-from-bottom duration-300"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            {/* Header */}
+                            <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between shrink-0">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center">
+                                        <Truck className="w-4 h-4" />
+                                    </div>
+                                    <div>
+                                        <h4 className="font-extrabold text-sm text-slate-900">Input Resi Pengiriman Kargo</h4>
+                                        <p className="text-[10px] text-slate-500">Order: {selectedOrderToShip.id}</p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => setIsSellerShipModalOpen(false)}
+                                    className="p-1 rounded-full bg-slate-100 text-slate-500 hover:text-slate-800 cursor-pointer"
+                                >
+                                    <X className="w-4 h-4" />
+                                </button>
+                            </div>
+
+                            {/* Content */}
+                            <div className="p-5 overflow-y-auto space-y-4 text-xs">
+                                {/* Order Summary */}
+                                <div className="p-3 bg-slate-50 border border-slate-200 rounded-2xl flex items-center gap-3">
+                                    <img
+                                        src={selectedOrderToShip.image}
+                                        alt={selectedOrderToShip.auctionTitle}
+                                        className="w-14 h-14 rounded-xl object-cover shrink-0"
+                                        onError={(e) => {
+                                            (e.target as HTMLImageElement).src = '/images/koi/kohaku.jpg';
+                                        }}
+                                    />
+                                    <div className="min-w-0 flex-1">
+                                        <h5 className="font-black text-xs text-slate-900 truncate">
+                                            {selectedOrderToShip.auctionTitle}
+                                        </h5>
+                                        <p className="text-[11px] text-slate-600 mt-0.5">
+                                            Penerima: <strong>{selectedOrderToShip.winnerName}</strong>
+                                        </p>
+                                        <p className="text-[10px] text-slate-500 truncate">
+                                            {selectedOrderToShip.city}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* Pilih Ekspedisi Kargo */}
+                                <div className="space-y-1">
+                                    <label className="text-[11px] font-bold text-slate-700">Pilih Ekspedisi Kargo Ikan:</label>
+                                    <select
+                                        value={sellerShippingForm.courier}
+                                        onChange={(e) => setSellerShippingForm({ ...sellerShippingForm, courier: e.target.value })}
+                                        className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-red-500"
+                                    >
+                                        <option value="KALOG (Kereta Logistik Express)">KALOG (Kereta Logistik Express - Jawa & Bali)</option>
+                                        <option value="Garuda Indonesia Cargo (Live Animal Express)">Garuda Indonesia Cargo (Live Animal Express)</option>
+                                        <option value="Lion Cargo Live Fish Express">Lion Cargo Live Fish Express</option>
+                                        <option value="Herona Express Station to Station">Herona Express Station to Station</option>
+                                        <option value="KI8 Kereta Api Logistik">KI8 Kereta Api Logistik</option>
+                                    </select>
+                                </div>
+
+                                {/* Input No Resi */}
+                                <div className="space-y-1">
+                                    <label className="text-[11px] font-bold text-slate-700">Nomor Resi / Surat Muatan Udara (SMU):</label>
+                                    <input
+                                        type="text"
+                                        value={sellerShippingForm.resiNumber}
+                                        onChange={(e) => setSellerShippingForm({ ...sellerShippingForm, resiNumber: e.target.value })}
+                                        placeholder="Contoh: KLG-BTR-889921 atau 126-981290"
+                                        className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono font-bold text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-red-500"
+                                    />
+                                </div>
+
+                                {/* Catatan Kondisi Ikan & Packing */}
+                                <div className="space-y-1">
+                                    <label className="text-[11px] font-bold text-slate-700">Catatan Packing & Kondisi Ikan:</label>
+                                    <textarea
+                                        rows={2}
+                                        value={sellerShippingForm.notes}
+                                        onChange={(e) => setSellerShippingForm({ ...sellerShippingForm, notes: e.target.value })}
+                                        className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-red-500"
+                                    />
+                                </div>
+
+                                {/* Action Buttons */}
+                                <div className="pt-2 flex gap-2">
+                                    <button
+                                        onClick={() => {
+                                            if (!sellerShippingForm.resiNumber.trim()) {
+                                                triggerToast('⚠️ Mohon masukkan nomor resi pengiriman');
+                                                return;
+                                            }
+                                            // Update status order di state
+                                            setSellerOrdersList(prev => prev.map(o => {
+                                                if (o.id === selectedOrderToShip.id) {
+                                                    return {
+                                                        ...o,
+                                                        shippingStatus: 'dikirim',
+                                                        resi: sellerShippingForm.resiNumber,
+                                                        courier: sellerShippingForm.courier,
+                                                    };
+                                                }
+                                                return o;
+                                            }));
+                                            setIsSellerShipModalOpen(false);
+                                            triggerToast(`📦 Resi ${sellerShippingForm.resiNumber} berhasil disimpan! Pembeli dan panitia otomatis menerima notifikasi tracking.`);
+                                        }}
+                                        className="flex-1 py-3 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 text-white font-extrabold text-xs rounded-xl shadow-md transition active:scale-98 cursor-pointer flex items-center justify-center gap-1.5"
+                                    >
+                                        <PackageCheck className="w-4 h-4" />
+                                        <span>Kirim Ikan & Update Resi</span>
+                                    </button>
+                                    <button
+                                        onClick={() => setIsSellerShipModalOpen(false)}
+                                        className="py-3 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition cursor-pointer"
+                                    >
+                                        Batal
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>

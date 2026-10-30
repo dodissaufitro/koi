@@ -2,6 +2,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import {
     AlertCircle,
     ArrowRight,
+    Award,
     BarChart2,
     Bell,
     Check,
@@ -56,6 +57,7 @@ import BackOfficeReports from '../../components/Admin/BackOfficeReports';
 import ApiTokenManagement from '../../components/Admin/ApiTokenManagement';
 import SellerPermissionManagement from '../../components/Admin/SellerPermissionManagement';
 import WhatsAppManagement from '../../components/Admin/WhatsAppManagement';
+import AndroidAdminApp from '@/components/AndroidApp/AndroidAdminApp';
 
 interface PaginatedData<T> {
     data: T[];
@@ -154,6 +156,47 @@ export default function AdminDashboard({ stats, tab = 'dashboard', search: initi
     const [formData, setFormData] = useState<Record<string, any>>({});
     const [alertMessage, setAlertMessage] = useState<string | null>(null);
     const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+
+    // Deteksi Mode Tampilan Android / Mobile
+    const [isAndroidMode, setIsAndroidMode] = useState<boolean>(() => {
+        if (typeof window === 'undefined') return false;
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('view') === 'android') return true;
+        if (urlParams.get('view') === 'desktop') return false;
+
+        // Jika layar berukuran mobile (< 768px) atau user agent mobile, otomatis tampilkan Mode Android
+        const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        if (window.innerWidth < 768 || isMobileDevice) return true;
+
+        const saved = localStorage.getItem('koki_admin_view_mode') || localStorage.getItem('koki_view_mode');
+        if (saved === 'android') return true;
+        if (saved === 'desktop') return false;
+        return false;
+    });
+
+    useEffect(() => {
+        const handleResize = () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('view') === 'android') {
+                setIsAndroidMode(true);
+                return;
+            }
+            if (urlParams.get('view') === 'desktop') {
+                setIsAndroidMode(false);
+                return;
+            }
+            const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            if (window.innerWidth < 768 || isMobileDevice) {
+                setIsAndroidMode(true);
+                return;
+            }
+            const saved = localStorage.getItem('koki_admin_view_mode') || localStorage.getItem('koki_view_mode');
+            setIsAndroidMode(saved === 'android');
+        };
+
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     useEffect(() => {
         const saved = localStorage.getItem('koki_theme') as 'light' | 'dark' | null;
@@ -484,6 +527,26 @@ export default function AdminDashboard({ stats, tab = 'dashboard', search: initi
         },
     ];
 
+    // Jika dibuka pada perangkat Android / Mobile View, tampilkan antarmuka Android Admin App
+    if (isAndroidMode) {
+        return (
+            <AndroidAdminApp
+                stats={stats}
+                tab={tab}
+                search={searchTerm}
+                data={data}
+                helpers={helpers}
+                reports={reports}
+                auth={auth}
+                onExitAndroidView={() => {
+                    setIsAndroidMode(false);
+                    localStorage.setItem('koki_admin_view_mode', 'desktop');
+                    localStorage.setItem('koki_view_mode', 'desktop');
+                }}
+            />
+        );
+    }
+
     return (
         <div className={`min-h-screen font-sans antialiased flex flex-col md:flex-row ${isDark ? 'dark bg-[#0F141A] text-slate-100' : 'bg-[#F4F5F7] text-slate-800'}`}>
             <Head title="KoiMart Dashboard - Premium Koi Fish Marketplace" />
@@ -709,6 +772,32 @@ export default function AdminDashboard({ stats, tab = 'dashboard', search: initi
                             </div>
                             <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
                         </div>
+
+                        {/* Tombol Switch Mode Android */}
+                        <button
+                            onClick={() => {
+                                setIsAndroidMode(true);
+                                localStorage.setItem('koki_admin_view_mode', 'android');
+                                localStorage.setItem('koki_view_mode', 'android');
+                            }}
+                            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-amber-500/15 text-amber-500 hover:bg-amber-500/25 border border-amber-500/30 transition cursor-pointer"
+                            title="Beralih ke Tampilan Android Mobile"
+                        >
+                            <Smartphone className="w-3.5 h-3.5" />
+                            <span>Mode Android View</span>
+                        </button>
+
+                        {/* Tombol Logout Desktop */}
+                        <Link
+                            href="/logout"
+                            method="post"
+                            as="button"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-rose-500/15 text-rose-500 hover:bg-rose-500/25 border border-rose-500/30 transition cursor-pointer"
+                            title="Keluar dari Akun Super Admin"
+                        >
+                            <LogOut className="w-3.5 h-3.5" />
+                            <span>Logout</span>
+                        </Link>
                     </div>
                 </header>
 
@@ -1630,6 +1719,7 @@ export default function AdminDashboard({ stats, tab = 'dashboard', search: initi
                                                     <th className="px-4 py-3">Umur Ikan</th>
                                                     <th className="px-4 py-3">Harga</th>
                                                     <th className="px-4 py-3">Stok & Status</th>
+                                                    <th className="px-4 py-3">Kurasi Lelang</th>
                                                     <th className="px-4 py-3 text-right">Aksi</th>
                                                 </tr>
                                             )}
@@ -1714,9 +1804,19 @@ export default function AdminDashboard({ stats, tab = 'dashboard', search: initi
                                                                 </td>
                                                                 <td className="px-4 py-3 font-semibold">{row.products_count || 0} Koi</td>
                                                                 <td className="px-4 py-3">
-                                                                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${row.is_verified ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
-                                                                        {row.is_verified ? 'Terverifikasi' : 'Belum'}
-                                                                    </span>
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => router.post(`/admin/stores/${row.id}/toggle-verify`, {}, { preserveScroll: true })}
+                                                                        className={`text-[11px] font-bold px-2.5 py-1 rounded-full transition cursor-pointer inline-flex items-center gap-1 ${
+                                                                            row.is_verified 
+                                                                                ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400' 
+                                                                                : 'bg-amber-100 text-amber-800 hover:bg-amber-200 border border-amber-300 dark:bg-amber-950/40 dark:text-amber-400'
+                                                                        }`}
+                                                                        title={row.is_verified ? "Klik untuk membatalkan verifikasi" : "Klik untuk langsung memverifikasi toko mitra ini"}
+                                                                    >
+                                                                        <ShieldCheck className="w-3.5 h-3.5" />
+                                                                        <span>{row.is_verified ? 'Terverifikasi (Resmi)' : 'Verifikasi Sekarang'}</span>
+                                                                    </button>
                                                                 </td>
                                                                 <td className="px-4 py-3 text-right">
                                                                     <div className="flex items-center justify-end gap-1.5">
@@ -1821,6 +1921,20 @@ export default function AdminDashboard({ stats, tab = 'dashboard', search: initi
                                                                     <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${row.is_active || row.status === 'active' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300' : 'bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300'}`}>
                                                                         Stok: {row.stock} ({row.is_active || row.status === 'active' ? 'Aktif' : 'Nonaktif'})
                                                                     </span>
+                                                                </td>
+                                                                <td className="px-4 py-3">
+                                                                    <button
+                                                                        onClick={() => router.post(`/admin/products/${row.id}/toggle-auction-eligible`, {}, { preserveScroll: true })}
+                                                                        className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase transition cursor-pointer flex items-center gap-1 ${
+                                                                            row.is_auction_eligible
+                                                                                ? 'bg-amber-500/20 text-amber-600 border border-amber-500/40 hover:bg-amber-500/30'
+                                                                                : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700'
+                                                                        }`}
+                                                                        title="Klik untuk memilih/membatalkan kelayakan lelang ikan ini"
+                                                                    >
+                                                                        <Award className="w-3 h-3 text-amber-500" />
+                                                                        <span>{row.is_auction_eligible ? '👑 Layak Lelang' : '+ Pilih Layak'}</span>
+                                                                    </button>
                                                                 </td>
                                                                 <td className="px-4 py-3 text-right">
                                                                     <div className="flex items-center justify-end gap-1.5">

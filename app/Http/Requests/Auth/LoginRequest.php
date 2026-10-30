@@ -50,6 +50,22 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        $user = Auth::user();
+
+        // Pemeriksaan Verifikasi Toko / Seller oleh Super Admin:
+        // Toko atau seller hanya bisa login ketika sudah diverifikasi oleh superadmin.
+        if ($user && ($user->role === 'seller' || $user->store)) {
+            $store = $user->store;
+            if (! $store || ! $store->is_verified) {
+                Auth::logout();
+                RateLimiter::hit($this->throttleKey());
+
+                throw ValidationException::withMessages([
+                    'email' => 'Akun toko/seller Anda belum diverifikasi oleh Super Administrator. Silakan tunggu proses verifikasi atau hubungi administrator untuk aktivasi toko Anda.',
+                ]);
+            }
+        }
+
         RateLimiter::clear($this->throttleKey());
     }
 

@@ -43,6 +43,7 @@ class AdminDashboardController extends Controller
 
         $tab = $request->query('tab', 'dashboard');
         $search = $request->query('search', '');
+        Auction::closeEndedAuctions();
 
         // Ringkasan Statistik Global
         $stats = [
@@ -94,22 +95,36 @@ class AdminDashboardController extends Controller
                 ->paginate(10)
                 ->withQueryString(),
 
-            'products' => Product::with(['store', 'category', 'primaryImage', 'images'])
-                ->when($search, fn($q) => $q->where('name', 'like', "%{$search}%"))
+            'products' => Product::with(['store', 'category', 'primaryImage', 'images', 'activeAuction', 'latestAuction'])
+                ->when($request->query('store_id'), fn($q, $sId) => $q->where('store_id', $sId))
+                ->when($request->query('category_id'), fn($q, $cId) => $q->where('category_id', $cId))
+                ->when($request->query('curation_filter') === 'eligible', fn($q) => $q->where('is_auction_eligible', true))
+                ->when($request->query('curation_filter') === 'live', fn($q) => $q->whereHas('activeAuction'))
+                ->when($search, fn($q) => $q->where(function ($sub) use ($search) {
+                    $sub->where('name', 'like', "%{$search}%")
+                        ->orWhereHas('store', fn($sq) => $sq->where('name', 'like', "%{$search}%"))
+                        ->orWhereHas('category', fn($cq) => $cq->where('name', 'like', "%{$search}%"));
+                }))
                 ->latest()
-                ->paginate(10)
+                ->paginate(15)
                 ->withQueryString(),
 
             'auctions' => Auction::with(['product.store', 'product.primaryImage', 'highestBidder'])
                 ->when($search, fn($q) => $q->whereHas('product', fn($pq) => $pq->where('name', 'like', "%{$search}%")))
                 ->latest()
-                ->paginate(10)
+                ->paginate(12)
                 ->withQueryString(),
 
             'orders' => Order::with(['buyer', 'store', 'items.product.primaryImage'])
-                ->when($search, fn($q) => $q->where('order_number', 'like', "%{$search}%")->orWhere('recipient_name', 'like', "%{$search}%"))
+                ->when($request->query('order_status'), fn($q, $os) => $q->where('status', $os))
+                ->when($search, fn($q) => $q->where(function ($sub) use ($search) {
+                    $sub->where('order_number', 'like', "%{$search}%")
+                        ->orWhere('recipient_name', 'like', "%{$search}%")
+                        ->orWhereHas('buyer', fn($bq) => $bq->where('name', 'like', "%{$search}%"))
+                        ->orWhereHas('store', fn($sq) => $sq->where('name', 'like', "%{$search}%"));
+                }))
                 ->latest()
-                ->paginate(10)
+                ->paginate(15)
                 ->withQueryString(),
 
             'reviews' => Review::with(['user', 'product'])
@@ -158,7 +173,7 @@ class AdminDashboardController extends Controller
         // Data pembantu untuk modal create/edit
         $helpers = [
             'categories' => Category::select('id', 'name')->get(),
-            'stores' => Store::select('id', 'name')->get(),
+            'stores' => Store::select('id', 'name', 'city', 'phone', 'address', 'owner_name', 'owner_phone', 'admin_name', 'admin_phone', 'province', 'logo', 'ktp_image', 'is_verified')->get(),
             'products' => Product::select('id', 'name', 'price')->get(),
             'users' => User::select('id', 'name', 'email', 'role')->get(),
         ];
@@ -452,9 +467,47 @@ class AdminDashboardController extends Controller
         return back()->with('success', "Mitra Seller {$validated['store_name']} ({$validated['name']}) berhasil didaftarkan dan hak akses aktif.");
     }
 
+    public function toggleVerifyStore(Request $request, Store $store): RedirectResponse
+    {
+        $this->authorizeAdmin($request);
+
+        $newStatus = $request->has('is_verified')
+            ? $request->boolean('is_verified')
+            : !$store->is_verified;
+
+        $store->update(['is_verified' => $newStatus]);
+
+        // Jika toko diverifikasi, pastikan owner memiliki role seller
+        if ($newStatus && $store->user && $store->user->role !== 'admin') {
+            $store->user->update(['role' => 'seller']);
+        }
+
+        // Aktifkan permission seller jika toko diverifikasi
+        if ($newStatus) {
+            $permission = SellerPermission::getForStore($store);
+            $permission->update(['is_active' => true]);
+        }
+
+        $statusText = $newStatus
+            ? "Toko Mitra '{$store->name}' berhasil diverifikasi langsung (Mitra Resmi Terverifikasi)."
+            : "Status verifikasi toko '{$store->name}' berhasil dinonaktifkan.";
+
+        return back()->with('success', $statusText);
+    }
+
     public function updateStore(Request $request, Store $store): RedirectResponse
     {
         $this->authorizeAdmin($request);
+
+        // Jika hanya toggle verifikasi yang dikirimkan
+        if ($request->has('is_verified') && !$request->has('name')) {
+            $newStatus = $request->boolean('is_verified');
+            $store->update(['is_verified' => $newStatus]);
+            if ($newStatus && $store->user && $store->user->role !== 'admin') {
+                $store->user->update(['role' => 'seller']);
+            }
+            return back()->with('success', "Status verifikasi toko {$store->name} berhasil diperbarui.");
+        }
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -684,6 +737,46 @@ class AdminDashboardController extends Controller
         $product->delete();
 
         return back()->with('success', "Produk {$prodName} berhasil dihapus.");
+    }
+
+    public function toggleAuctionEligible(Request $request, Product $product): RedirectResponse
+    {
+        $this->authorizeAdmin($request);
+
+        $newStatus = !$product->is_auction_eligible;
+        $product->update([
+            'is_auction_eligible' => $newStatus,
+            'auction_curated_at' => $newStatus ? now() : null,
+        ]);
+
+        $statusText = $newStatus ? 'dinyatakan LAYAK ikut lelang' : 'dibatalkan status kelayakan lelangnya';
+        return back()->with('success', "Ikan {$product->name} berhasil {$statusText} oleh SuperAdmin.");
+    }
+
+    public function createAuctionForProduct(Request $request, Product $product): RedirectResponse
+    {
+        $this->authorizeAdmin($request);
+
+        $validated = $request->validate([
+            'start_price' => 'required|numeric|min:0',
+            'bid_increment' => 'required|numeric|min:10000',
+            'buyout_price' => 'nullable|numeric|min:0',
+            'end_time' => 'required|date',
+        ]);
+
+        $validated['product_id'] = $product->id;
+        $validated['current_bid'] = $validated['start_price'];
+        $validated['start_time'] = now();
+        $validated['status'] = 'active';
+
+        Auction::create($validated);
+
+        $product->update([
+            'is_auction_eligible' => true,
+            'auction_curated_at' => now(),
+        ]);
+
+        return back()->with('success', "Sesi lelang untuk ikan {$product->name} berhasil dibuka dan kini LIVE!");
     }
 
     /* =========================================================================

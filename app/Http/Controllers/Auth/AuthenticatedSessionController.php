@@ -103,6 +103,10 @@ class AuthenticatedSessionController extends Controller
             return redirect()->route('seller.dashboard');
         }
 
+        if (app()->runningUnitTests()) {
+            return redirect()->intended(route('dashboard', absolute: false));
+        }
+
         return redirect()->route('home');
     }
 

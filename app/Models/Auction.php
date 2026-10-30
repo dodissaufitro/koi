@@ -104,9 +104,19 @@ class Auction extends Model
         return str_ends_with($lower, 'tahun') ? $age : "{$age} Tahun";
     }
 
+    /**
+     * Otomatis menutup sesi lelang yang tanggal dan waktunya telah selesai.
+     */
+    public static function closeEndedAuctions(): int
+    {
+        return static::where('status', 'active')
+            ->where('end_time', '<=', now())
+            ->update(['status' => 'completed']);
+    }
+
     public function getIsEndedAttribute(): bool
     {
-        return now()->greaterThan($this->end_time) || $this->status !== 'active';
+        return $this->status !== 'active' || now()->greaterThanOrEqualTo($this->end_time);
     }
 
     public function scopeActive(Builder $query): Builder

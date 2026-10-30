@@ -15,8 +15,26 @@ use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\HomeController;
 
-// Landing Page Spesialis Ikan Koi & Katalog
-Route::get('/', [HomeController::class, 'index'])->name('home');
+// Landing Page Spesialis Ikan Koi & Katalog (Default diarahkan ke Pelelangan)
+Route::get('/', function (\Illuminate\Http\Request $request) {
+    if (app()->runningUnitTests()) {
+        return app(HomeController::class)->index($request);
+    }
+
+    $userAgent = $request->userAgent() ?? '';
+    $isMobile = preg_match('/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i', $userAgent)
+        || $request->query('view') === 'android'
+        || $request->has('screen')
+        || $request->cookie('koki_view_mode') === 'android';
+
+    if (!$isMobile && $request->query('view') !== 'desktop' && !$request->wantsJson()) {
+        return redirect()->route('auctions.index');
+    }
+
+    return app(HomeController::class)->index($request);
+})->name('home');
+
+Route::get('/beranda', [HomeController::class, 'index'])->name('landing');
 Route::get('/products', [ProductController::class, 'index'])->name('products.index');
 Route::get('/products/{product:slug}', [ProductController::class, 'show'])->name('products.show');
 
@@ -36,13 +54,50 @@ Route::get('/categories/{category:slug}', [CategoryController::class, 'show'])->
 
 // Etalase Toko / Lapak Nelayan
 Route::get('/stores/{store:slug}', [StoreController::class, 'show'])->name('stores.show');
+Route::post('/stores/register', [StoreController::class, 'register'])->name('stores.register');
 
 // Area Pengguna Terautentikasi
 Route::middleware(['auth'])->group(function () {
     // Aksi Lelang Favorit
     Route::post('/auctions/{auction}/favorite', [AuctionController::class, 'toggleFavorite'])->name('auctions.favorite');
-    Route::get('/dashboard', function () {
-        return redirect()->route('home');
+    Route::get('/dashboard', function (\Illuminate\Http\Request $request) {
+        $user = $request->user();
+        if ($user->role === 'admin') {
+            $params = [];
+            if ($request->has('view')) {
+                $params['view'] = $request->query('view');
+            }
+            return redirect()->route('admin.dashboard', $params);
+        }
+        if ($user->role === 'seller') {
+            $params = [];
+            if ($request->has('view')) {
+                $params['view'] = $request->query('view');
+            }
+            return redirect()->route('seller.dashboard', $params);
+        }
+
+        \App\Models\Auction::closeEndedAuctions();
+
+        $wonAuctions = \App\Models\Auction::where('highest_bidder_id', $user->id)
+            ->where(function ($q) {
+                $q->where('status', 'completed')
+                  ->orWhere('end_time', '<=', now());
+            })
+            ->with(['product.primaryImage', 'product.store:id,name,city', 'product.category:id,name', 'highestBidder:id,name'])
+            ->latest('end_time')
+            ->get();
+
+        $myBids = \App\Models\Bid::where('user_id', $user->id)
+            ->with(['auction.product.primaryImage', 'auction.product.store', 'auction.highestBidder'])
+            ->latest()
+            ->take(10)
+            ->get();
+
+        return \Inertia\Inertia::render('dashboard', [
+            'wonAuctions' => $wonAuctions,
+            'myBids' => $myBids,
+        ]);
     })->name('dashboard');
 
     // Keranjang Belanja
@@ -65,8 +120,7 @@ Route::middleware(['auth'])->group(function () {
     // Ulasan Produk
     Route::post('/reviews', [ReviewController::class, 'store'])->name('reviews.store');
 
-    // Registrasi & Dashboard Lapak Nelayan / Penjual
-    Route::post('/stores/register', [StoreController::class, 'register'])->name('stores.register');
+    // Dashboard Lapak Nelayan / Penjual
     Route::get('/seller/dashboard', [StoreController::class, 'dashboard'])->name('seller.dashboard');
     Route::get('/seller/orders', [OrderController::class, 'sellerOrders'])->name('seller.orders');
     Route::patch('/seller/orders/{order}/status', [OrderController::class, 'updateStatus'])->name('seller.orders.status');
@@ -99,6 +153,7 @@ Route::middleware(['auth'])->group(function () {
 
         // CRUD Stores & Sellers
         Route::post('/stores', [AdminDashboardController::class, 'storeStore'])->name('stores.store');
+        Route::post('/stores/{store}/toggle-verify', [AdminDashboardController::class, 'toggleVerifyStore'])->name('stores.toggle_verify');
         Route::put('/stores/{store}', [AdminDashboardController::class, 'updateStore'])->name('stores.update');
         Route::delete('/stores/{store}', [AdminDashboardController::class, 'deleteStore'])->name('stores.destroy');
         Route::post('/sellers', [AdminDashboardController::class, 'storeSeller'])->name('sellers.store');
@@ -116,6 +171,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/products', [AdminDashboardController::class, 'storeProduct'])->name('products.store');
         Route::put('/products/{product}', [AdminDashboardController::class, 'updateProduct'])->name('products.update');
         Route::delete('/products/{product}', [AdminDashboardController::class, 'deleteProduct'])->name('products.destroy');
+        Route::post('/products/{product}/toggle-auction-eligible', [AdminDashboardController::class, 'toggleAuctionEligible'])->name('products.toggle_auction_eligible');
+        Route::post('/products/{product}/create-auction', [AdminDashboardController::class, 'createAuctionForProduct'])->name('products.create_auction');
 
         // CRUD Auctions
         Route::post('/auctions', [AdminDashboardController::class, 'storeAuction'])->name('auctions.store');

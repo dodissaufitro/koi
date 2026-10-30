@@ -21,6 +21,8 @@ import {
     Truck,
     UserCheck,
     Users,
+    Trophy,
+    CreditCard,
 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 
@@ -520,8 +522,58 @@ export default function AuctionShow({ auction, isFavorited = false }: Props) {
 
                             {/* Bidding Buttons / Actions */}
                             {timeLeft.isEnded ? (
-                                <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-center text-xs text-rose-400 font-bold">
-                                    Sesi lelang untuk ikan koi ini telah berakhir.
+                                <div className="p-5 rounded-3xl bg-gradient-to-br from-amber-500/15 via-orange-500/10 to-amber-500/5 border-2 border-amber-500/30 space-y-4">
+                                    <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-amber-500">
+                                        <Trophy className="h-4 w-4 animate-bounce" />
+                                        <span>Lelang Resmi Ditutup • Pengumuman Pemenang</span>
+                                    </div>
+
+                                    {auction.highest_bidder ? (
+                                        <div className="space-y-3">
+                                            {isCurrentHighestBidder ? (
+                                                <div className="p-4 rounded-2xl bg-amber-500 text-stone-950 font-bold space-y-2 shadow-lg shadow-amber-500/20">
+                                                    <div className="flex items-center gap-2 text-sm font-black">
+                                                        <Trophy className="h-5 w-5 text-stone-950" />
+                                                        <span>🎉 SELAMAT! ANDA PEMENANG RESMI</span>
+                                                    </div>
+                                                    <p className="text-xs leading-relaxed text-stone-900">
+                                                        Anda resmi memenangkan sesi lelang ini dengan penawaran tertinggi yang sah:
+                                                    </p>
+                                                    <div className="text-2xl font-black">
+                                                        Rp {currentBid.toLocaleString('id-ID')}
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div className={`p-4 rounded-2xl border ${isDark ? 'bg-black/30 border-white/10' : 'bg-slate-50 border-slate-200'} space-y-2`}>
+                                                    <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">
+                                                        Pemenang Lelang Sah (Penawar Tertinggi)
+                                                    </span>
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+                                                            <Award className="h-4 w-4 text-amber-500" />
+                                                            <span>{auction.highest_bidder.name}</span>
+                                                        </div>
+                                                        <div className="text-sm font-black text-amber-600 dark:text-amber-400">
+                                                            Rp {currentBid.toLocaleString('id-ID')}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            <button
+                                                type="button"
+                                                onClick={handleWhatsApp}
+                                                className="w-full py-3 px-4 rounded-xl font-bold text-xs bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center gap-2 shadow-md shadow-emerald-600/25 active:scale-95 transition cursor-pointer"
+                                            >
+                                                <MessageCircle className="h-4 w-4" />
+                                                <span>Konfirmasi Pembayaran via Concierge WhatsApp</span>
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <div className="p-3 text-xs text-slate-400 text-center">
+                                            Sesi lelang ini telah selesai tanpa adanya penawaran bid masuk.
+                                        </div>
+                                    )}
                                 </div>
                             ) : (
                                 <div className="space-y-4">

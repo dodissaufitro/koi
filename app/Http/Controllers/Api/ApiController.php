@@ -152,6 +152,8 @@ class ApiController extends Controller
      */
     public function getAuctions(Request $request): JsonResponse
     {
+        Auction::closeEndedAuctions();
+
         $status = $request->input('status', 'active'); // active, upcoming, ended, all
 
         $query = Auction::with([
@@ -217,6 +219,7 @@ class ApiController extends Controller
             'bid_amount' => 'required|numeric|min:1000',
         ]);
 
+        Auction::closeEndedAuctions();
         $auction = Auction::find($id);
 
         if (!$auction) {
@@ -226,10 +229,13 @@ class ApiController extends Controller
             ], 404);
         }
 
-        if ($auction->status !== 'active' || now()->greaterThan($auction->end_time)) {
+        if ($auction->is_ended) {
+            if ($auction->status === 'active') {
+                $auction->update(['status' => 'completed']);
+            }
             return response()->json([
                 'success' => false,
-                'message' => 'Lelang ini sudah berakhir atau sedang tidak aktif.',
+                'message' => 'Sesi lelang ini telah resmi ditutup karena waktu lelang telah selesai.',
             ], 400);
         }
 

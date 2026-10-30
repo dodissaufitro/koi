@@ -15,12 +15,18 @@ class Store extends Model
         'user_id',
         'name',
         'slug',
+        'owner_name',
+        'owner_phone',
+        'admin_name',
+        'admin_phone',
         'description',
         'phone',
         'address',
         'city',
+        'province',
         'logo',
         'banner',
+        'ktp_image',
         'is_verified',
     ];
 

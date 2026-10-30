@@ -20,18 +20,29 @@ class HomeController extends Controller
      */
     public function index(Request $request): InertiaResponse|JsonResponse
     {
+        // 0. Otomatis tutup lelang yang tanggalnya sudah selesai
+        Auction::closeEndedAuctions();
+
+        $user = $request->user();
+        $wonAuctions = $user ? Auction::where('highest_bidder_id', $user->id)
+            ->where(function ($q) {
+                $q->where('status', 'completed')
+                  ->orWhere('end_time', '<=', now());
+            })
+            ->with(['product.primaryImage', 'product.store:id,name,city', 'product.category:id,name', 'highestBidder:id,name'])
+            ->latest('end_time')
+            ->get() : collect();
+
         // 1. Lelang Tertinggi (Urut berdasarkan penawaran tertinggi saat ini)
         $highestBidAuctions = Auction::active()
             ->with(['product.primaryImage', 'product.store:id,name,city', 'product.category:id,name', 'highestBidder:id,name'])
             ->highestBid()
-            ->limit(8)
             ->get();
 
         // 2. Lelang Favorit (Urut berdasarkan jumlah difavoritkan terbanyak oleh kolektor)
         $favoriteAuctions = Auction::active()
             ->with(['product.primaryImage', 'product.store:id,name,city', 'product.category:id,name', 'highestBidder:id,name'])
             ->mostFavorited()
-            ->limit(8)
             ->get();
 
         // 3. Produk Koi Siap Kirim (Katalog Unggulan)
@@ -124,6 +135,7 @@ class HomeController extends Controller
                 'tips_articles' => $tipsArticles,
                 'banner_ads' => $bannerAds,
                 'articles' => $allArticles,
+                'won_auctions' => $wonAuctions,
             ]);
         }
 
@@ -139,6 +151,7 @@ class HomeController extends Controller
             'tipsArticles' => $tipsArticles,
             'bannerAds' => $bannerAds,
             'articles' => $allArticles,
+            'wonAuctions' => $wonAuctions,
         ]);
     }
 }

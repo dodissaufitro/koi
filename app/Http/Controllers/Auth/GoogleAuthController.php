@@ -147,7 +147,7 @@ class GoogleAuthController extends Controller
                     'google_id' => $googleUser->getId(),
                     'avatar' => $googleUser->getAvatar() ?? $user->avatar,
                     'email_verified_at' => $user->email_verified_at ?? now(),
-                    'role' => $user->role ?: 'buyer',
+                    'role' => 'buyer', // Masuk dengan Google hanya untuk role bidder (buyer)
                 ]);
             } else {
                 // Buat akun baru secara otomatis (karena akun Google sudah terverifikasi)
@@ -157,7 +157,7 @@ class GoogleAuthController extends Controller
                     'email' => $googleUser->getEmail(),
                     'google_id' => $googleUser->getId(),
                     'avatar' => $googleUser->getAvatar(),
-                    'role' => 'buyer',
+                    'role' => 'buyer', // Masuk dengan Google hanya untuk role bidder (buyer)
                     'email_verified_at' => now(),
                     'password' => bcrypt(Str::random(32)),
                 ]);
@@ -228,7 +228,7 @@ class GoogleAuthController extends Controller
                     'google_id' => $googleId ?: $user->google_id,
                     'avatar' => $avatar ?: $user->avatar,
                     'email_verified_at' => $user->email_verified_at ?? now(),
-                    'role' => $user->role ?: 'buyer',
+                    'role' => 'buyer', // Masuk dengan Google hanya untuk role bidder (buyer)
                 ]);
             } else {
                 $user = User::create([
@@ -284,11 +284,15 @@ class GoogleAuthController extends Controller
      */
     protected function redirectBasedOnRole(User $user): RedirectResponse
     {
-        $dashboardRoute = match (true) {
-            $user->isAdmin() => route('admin.dashboard', absolute: false),
-            $user->isSeller() || (bool) $user->store => route('seller.dashboard', absolute: false),
-            default => route('home', absolute: false),
-        };
+        // Masuk dengan Google dikhususkan hanya untuk bidder -> arahkan ke Beranda lelang
+        $isAndroid = request()->cookie('koki_view_mode') === 'android'
+            || request()->query('view') === 'android'
+            || str_contains(request()->header('referer') ?? '', 'view=android');
+
+        $dashboardRoute = route('home', absolute: false);
+        if ($isAndroid) {
+            $dashboardRoute .= '?view=android';
+        }
 
         // Cek jika ada intended URL yang valid (bukan halaman auth/login/register)
         $intended = session()->pull('url.intended');

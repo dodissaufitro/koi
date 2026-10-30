@@ -20,6 +20,8 @@ class AuctionController extends Controller
      */
     public function index(Request $request): InertiaResponse|JsonResponse
     {
+        Auction::closeEndedAuctions();
+
         $tab = $request->query('tab', 'highest'); // 'highest' atau 'favorite'
 
         $query = Auction::query()
@@ -69,6 +71,13 @@ class AuctionController extends Controller
      */
     public function show(Request $request, Auction $auction): InertiaResponse|JsonResponse
     {
+        Auction::closeEndedAuctions();
+
+        if ($auction->is_ended && $auction->status === 'active') {
+            $auction->update(['status' => 'completed']);
+            $auction->refresh();
+        }
+
         $auction->load([
             'product.images',
             'product.store.user',
@@ -101,16 +110,16 @@ class AuctionController extends Controller
      */
     public function placeBid(PlaceBidRequest $request, Auction $auction): RedirectResponse|JsonResponse
     {
+        Auction::closeEndedAuctions();
+
         if ($auction->is_ended) {
             if ($auction->status === 'active') {
-                // Jika lelang berstatus aktif namun timer lewat, perpanjang otomatis
-                $auction->update(['end_time' => now()->addDays(7)]);
-            } else {
-                if ($request->wantsJson()) {
-                    return response()->json(['message' => 'Lelang untuk ikan koi ini telah berakhir.'], 422);
-                }
-                return back()->withErrors(['amount' => 'Lelang untuk ikan koi ini telah berakhir.']);
+                $auction->update(['status' => 'completed']);
             }
+            if ($request->wantsJson()) {
+                return response()->json(['message' => 'Sesi lelang untuk ikan koi ini telah resmi ditutup karena batas waktu lelang telah selesai.'], 422);
+            }
+            return back()->withErrors(['amount' => 'Sesi lelang untuk ikan koi ini telah resmi ditutup karena batas waktu lelang telah selesai.']);
         }
 
         $user = $request->user();
@@ -229,12 +238,14 @@ class AuctionController extends Controller
      */
     public function myBids(Request $request): JsonResponse
     {
+        Auction::closeEndedAuctions();
+
         $user = $request->user();
         if (! $user && $request->filled('user_id')) {
             $user = \App\Models\User::find($request->input('user_id'));
         }
         if (! $user) {
-            return response()->json(['bids' => []], 401);
+            return response()->json(['bids' => [], 'won_auctions' => [], 'has_won_auctions' => false], 401);
         }
 
         $bids = Bid::where('user_id', $user->id)
@@ -255,6 +266,7 @@ class AuctionController extends Controller
             $currentBid = (float) $auc->current_bid;
             $isLeading = ((int) $auc->highest_bidder_id === (int) $user->id);
             $isEnded = $auc->is_ended;
+            $isWinner = $isEnded && $isLeading;
 
             $status = 'outbid';
             if ($isEnded) {
@@ -283,17 +295,26 @@ class AuctionController extends Controller
                 'myBid' => $myHighestBid,
                 'highestBidder' => $auc->highestBidder?->name ?? 'Kolektor',
                 'isLeading' => $isLeading,
+                'isWinner' => $isWinner,
                 'status' => $status,
                 'isEnded' => $isEnded,
+                'winningPrice' => $currentBid,
+                'winningPriceFormatted' => 'Rp ' . number_format($currentBid, 0, ',', '.'),
+                'winnerName' => $auc->highestBidder?->name ?? $user->name,
+                'winnerAnnouncement' => $isWinner ? "Selamat! Anda adalah pemenang lelang resmi untuk {$prod?->name} dengan harga penawaran tertinggi Rp " . number_format($currentBid, 0, ',', '.') . "." : null,
                 'bidsCount' => $auc->bids_count,
-                'timeLeft' => $isEnded ? 'Lelang Selesai' : 'Berakhir besok, 20:00 WIB',
+                'timeLeft' => $isEnded ? 'Lelang Selesai (Ditutup)' : 'Berakhir besok, 20:00 WIB',
                 'updatedAt' => $userAuctionBids->first()->created_at ? $userAuctionBids->first()->created_at->diffForHumans() : 'Baru saja',
                 'auctionRaw' => $auc,
             ];
         }
 
+        $wonAuctions = collect($result)->filter(fn($b) => $b['status'] === 'won')->values();
+
         return response()->json([
             'bids' => $result,
+            'won_auctions' => $wonAuctions,
+            'has_won_auctions' => $wonAuctions->isNotEmpty(),
         ]);
     }
 }

@@ -28,6 +28,8 @@ class Product extends Model
         'origin',
         'age',
         'status',
+        'is_auction_eligible',
+        'auction_curated_at',
         'views_count',
     ];
 
@@ -37,6 +39,8 @@ class Product extends Model
             'price' => 'decimal:2',
             'stock' => 'decimal:2',
             'weight_gram' => 'integer',
+            'is_auction_eligible' => 'boolean',
+            'auction_curated_at' => 'datetime',
             'views_count' => 'integer',
         ];
     }
@@ -62,6 +66,21 @@ class Product extends Model
             'is_primary' => 'max',
             'id' => 'min',
         ]);
+    }
+
+    public function auctions(): HasMany
+    {
+        return $this->hasMany(Auction::class);
+    }
+
+    public function activeAuction(): HasOne
+    {
+        return $this->hasOne(Auction::class)->where('status', 'active')->latestOfMany();
+    }
+
+    public function latestAuction(): HasOne
+    {
+        return $this->hasOne(Auction::class)->latestOfMany();
     }
 
     public function orderItems(): HasMany

@@ -52,6 +52,14 @@ class HandleInertiaRequests extends Middleware
                 'status' => fn () => $request->session()->get('status'),
             ],
             'whatsapp_cs' => fn () => \App\Services\WhatsAppGatewayService::getCsConfig(),
+            'wonAuctions' => fn () => $request->user() ? \App\Models\Auction::where('highest_bidder_id', $request->user()->id)
+                ->where(function ($q) {
+                    $q->where('status', 'completed')
+                      ->orWhere('end_time', '<=', now());
+                })
+                ->with(['product.primaryImage', 'product.store:id,name,city', 'product.category:id,name', 'highestBidder:id,name'])
+                ->latest('end_time')
+                ->get() : [],
         ]);
     }
 }

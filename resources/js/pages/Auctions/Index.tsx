@@ -34,6 +34,17 @@ export default function AuctionIndex({
         }
     }, []);
 
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        const isMobileDevice = window.innerWidth < 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const urlParams = new URLSearchParams(window.location.search);
+        const isAndroidView = isMobileDevice || localStorage.getItem('koki_view_mode') === 'android';
+        if (isAndroidView && urlParams.get('view') !== 'desktop') {
+            const savedScreen = localStorage.getItem('koki_last_screen') || 'highest_auction';
+            router.visit(`/?view=android&screen=${encodeURIComponent(savedScreen)}`, { replace: true });
+        }
+    }, []);
+
     const toggleTheme = () => {
         const nextTheme = theme === 'dark' ? 'light' : 'dark';
         setTheme(nextTheme);
@@ -55,7 +66,7 @@ export default function AuctionIndex({
                 <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
                     <div className="flex items-center gap-3">
                         <Link
-                            href="/"
+                            href="/beranda"
                             className={`flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-semibold transition ${
                                 isDark
                                     ? 'border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white'
@@ -63,7 +74,7 @@ export default function AuctionIndex({
                             }`}
                         >
                             <ArrowLeft className="h-4 w-4" />
-                            <span>Beranda</span>
+                            <span>Katalog & Beranda</span>
                         </Link>
 
                         <div className="flex items-center gap-1.5 text-xs font-bold text-amber-500">

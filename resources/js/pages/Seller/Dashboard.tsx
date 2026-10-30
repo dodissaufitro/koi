@@ -4,6 +4,7 @@ import {
     ArrowLeft,
     ArrowRight,
     BarChart2,
+    Camera,
     Check,
     CheckCircle2,
     ChevronDown,
@@ -42,6 +43,7 @@ import {
     Store as StoreIcon,
     Sun,
     Tag,
+    Smartphone,
     Trash2,
     TrendingUp,
     Truck,
@@ -53,6 +55,7 @@ import {
     X,
 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
+import AndroidSellerApp from '@/components/AndroidApp/AndroidSellerApp';
 
 interface PaginatedData<T> {
     data: T[];
@@ -200,6 +203,48 @@ export default function SellerDashboard({
 
     const [processing, setProcessing] = useState(false);
 
+    // Deteksi Mode Tampilan Android / Mobile
+    const [isAndroidMode, setIsAndroidMode] = useState<boolean>(() => {
+        if (typeof window === 'undefined') return false;
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('view') === 'android') return true;
+        if (urlParams.get('view') === 'desktop') return false;
+
+        // Jika layar berukuran mobile (< 768px) atau user agent mobile, otomatis tampilkan Mode Android
+        const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        if (window.innerWidth < 768 || isMobileDevice) return true;
+
+        const saved = localStorage.getItem('koki_seller_view_mode') || localStorage.getItem('koki_view_mode');
+        if (saved === 'android') return true;
+        if (saved === 'desktop') return false;
+        return false;
+    });
+
+    useEffect(() => {
+        const handleResize = () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('view') === 'android') {
+                setIsAndroidMode(true);
+                return;
+            }
+            if (urlParams.get('view') === 'desktop') {
+                setIsAndroidMode(false);
+                return;
+            }
+            const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            if (window.innerWidth < 768 || isMobileDevice) {
+                setIsAndroidMode(true);
+            } else {
+                const saved = localStorage.getItem('koki_seller_view_mode') || localStorage.getItem('koki_view_mode');
+                if (saved === 'android') setIsAndroidMode(true);
+                else if (saved === 'desktop') setIsAndroidMode(false);
+            }
+        };
+
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
     useEffect(() => {
         const saved = localStorage.getItem('koki_theme') as 'light' | 'dark' | null;
         if (saved) {
@@ -279,6 +324,47 @@ export default function SellerDashboard({
             image_url: prod.primary_image?.image_path || '/images/koi/kohaku.jpg',
         });
         setProductModalOpen(true);
+    };
+
+    const handleProductImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const rawDataUrl = event.target?.result as string;
+            const img = new Image();
+            img.onload = () => {
+                try {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+                    const maxDim = 1200;
+                    if (width > maxDim || height > maxDim) {
+                        if (width > height) {
+                            height = Math.round((height * maxDim) / width);
+                            width = maxDim;
+                        } else {
+                            width = Math.round((width * maxDim) / height);
+                            height = maxDim;
+                        }
+                    }
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    if (ctx) {
+                        ctx.drawImage(img, 0, 0, width, height);
+                        const compressed = canvas.toDataURL('image/jpeg', 0.85);
+                        setProductForm(prev => ({ ...prev, image_url: compressed }));
+                        return;
+                    }
+                } catch {
+                    // fallback
+                }
+                setProductForm(prev => ({ ...prev, image_url: rawDataUrl }));
+            };
+            img.src = rawDataUrl;
+        };
+        reader.readAsDataURL(file);
     };
 
     const handleSaveProduct = (e: React.FormEvent) => {
@@ -383,6 +469,28 @@ export default function SellerDashboard({
     };
 
     const isQuotaFull = permission.max_products > 0 && stats.total_products >= permission.max_products;
+
+    // Jika dibuka pada perangkat Android / Mobile View, tampilkan antarmuka Android Seller App
+    if (isAndroidMode) {
+        return (
+            <AndroidSellerApp
+                store={store}
+                permission={permission}
+                stats={stats}
+                tab={tab}
+                search={searchTerm}
+                data={data}
+                helpers={helpers}
+                reports={reports}
+                auth={auth}
+                onExitAndroidView={() => {
+                    setIsAndroidMode(false);
+                    localStorage.setItem('koki_seller_view_mode', 'desktop');
+                    localStorage.setItem('koki_view_mode', 'desktop');
+                }}
+            />
+        );
+    }
 
     return (
         <div className={`min-h-screen font-sans transition-colors duration-200 ${isDark ? 'bg-[#0B0F15] text-slate-100' : 'bg-[#F8F9FA] text-slate-800'}`}>
@@ -565,6 +673,20 @@ export default function SellerDashboard({
                                 <Eye className="w-3.5 h-3.5 text-amber-500" />
                                 <span>Lihat Etalase Publik</span>
                             </Link>
+
+                            {/* Mode Android Switcher Button */}
+                            <button
+                                onClick={() => {
+                                    setIsAndroidMode(true);
+                                    localStorage.setItem('koki_seller_view_mode', 'android');
+                                    localStorage.setItem('koki_view_mode', 'android');
+                                }}
+                                className="flex items-center gap-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-xs font-bold text-amber-500 hover:bg-amber-500/20 transition cursor-pointer"
+                                title="Pratinjau Mode Aplikasi Android Seller"
+                            >
+                                <Smartphone className="w-3.5 h-3.5" />
+                                <span className="hidden sm:inline">Mode Android</span>
+                            </button>
 
                             {/* Dark / Light Theme Toggle */}
                             <button
@@ -1439,13 +1561,30 @@ export default function SellerDashboard({
                             </div>
 
                             <div>
-                                <label className="text-xs font-bold block mb-1">URL Foto Ikan Koi</label>
+                                <label className="text-xs font-bold block mb-1">Foto Utama Ikan Koi</label>
+                                <label className={`block border-2 border-dashed rounded-2xl p-4 text-center cursor-pointer transition mb-2 ${isDark ? 'border-slate-700 bg-slate-900/50 hover:border-amber-500' : 'border-slate-200 bg-slate-50 hover:border-amber-500'}`}>
+                                    {productForm.image_url ? (
+                                        <div className="relative w-full h-36 rounded-xl overflow-hidden flex items-center justify-center bg-black/10 group">
+                                            <img src={productForm.image_url} alt="Preview Koi" className="w-full h-full object-cover" />
+                                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-xs font-bold transition">
+                                                Ganti Foto
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-1.5 py-2">
+                                            <Camera className="w-6 h-6 mx-auto text-amber-500" />
+                                            <p className={`text-xs font-bold ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>Klik untuk Upload Foto dari Komputer</p>
+                                            <p className="text-[10px] text-slate-400">JPG, PNG (Kompresi otomatis, maks. 10MB)</p>
+                                        </div>
+                                    )}
+                                    <input type="file" accept="image/*" onChange={handleProductImageUpload} className="hidden" />
+                                </label>
                                 <input
                                     type="text"
                                     value={productForm.image_url || ''}
                                     onChange={(e) => setProductForm({ ...productForm, image_url: e.target.value })}
                                     className={`w-full rounded-xl border px-3.5 py-2 text-xs ${isDark ? 'border-slate-700 bg-slate-800 text-white' : 'border-slate-200 bg-slate-50'}`}
-                                    placeholder="/images/koi/kohaku.jpg atau URL gambar"
+                                    placeholder="Atau masukkan /images/koi/... atau URL eksternal"
                                 />
                             </div>
 

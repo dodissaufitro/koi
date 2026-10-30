@@ -41,6 +41,8 @@ import {
     Volume2,
     X,
     Youtube,
+    ArrowUpRight,
+    Trophy,
 } from 'lucide-react';
 import AndroidKoiApp from '@/components/AndroidApp/AndroidKoiApp';
 import React, { useEffect, useState } from 'react';
@@ -70,23 +72,31 @@ interface Props {
     tipsArticles?: Article[];
     bannerAds?: Article[];
     articles?: Article[];
+    wonAuctions?: Auction[];
 }
 
 export default function LandingKoi({
-    highestBidAuctions,
-    favoriteAuctions,
-    featuredKoi,
+    highestBidAuctions = [],
+    favoriteAuctions = [],
+    featuredKoi = [],
     categories = [],
-    varieties,
-    reviews,
-    stats,
+    varieties = [],
+    reviews = [],
+    stats = {
+        total_koi_delivered: '1.200+',
+        certified_breeders: '45+',
+        live_arrival_rate: '100%',
+        show_champion_awards: '88+',
+    },
     pinnedAnnouncements = [],
     tipsArticles = [],
     bannerAds = [],
     articles = [],
+    wonAuctions: initialWonAuctions,
 }: Props) {
     const pageProps = usePage<any>().props;
     const { auth } = pageProps;
+    const wonAuctions: Auction[] = initialWonAuctions || pageProps.wonAuctions || [];
     const whatsappCs = pageProps.whatsapp_cs || {
         phone: '+62 811-8899-0011',
         chat_url: 'https://wa.me/6281188990011?text=' + encodeURIComponent('Halo Customer Concierge KoiMart, saya ingin konsultasi mengenai ikan koi / transaksi lelang.'),
@@ -107,7 +117,7 @@ export default function LandingKoi({
     const [isAndroidMode, setIsAndroidMode] = useState<boolean>(() => {
         if (typeof window === 'undefined') return false;
         const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('view') === 'android') return true;
+        if (urlParams.get('view') === 'android' || urlParams.has('screen')) return true;
         if (urlParams.get('view') === 'desktop') return false;
 
         // Jika layar berukuran mobile (< 768px) atau user agent mobile, SELALU tampilkan mode Mobile/Android
@@ -240,6 +250,7 @@ export default function LandingKoi({
                     tipsArticles={tipsArticles}
                     bannerAds={bannerAds}
                     articles={articles}
+                    wonAuctions={wonAuctions}
                     onExitAndroidView={() => {
                         setIsAndroidMode(false);
                         if (window.innerWidth >= 768) {
@@ -846,6 +857,69 @@ export default function LandingKoi({
                     </div>
                 )}
             </header>
+
+            {/* PENGUMUMAN RESMI PEMENANG LELANG DI DASHBOARD PEMENANG */}
+            {auth?.user && wonAuctions.length > 0 && (
+                <section className="relative z-30 pt-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+                    <div className="rounded-3xl p-5 sm:p-6 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-white shadow-xl shadow-amber-500/20 border-2 border-amber-300/70 relative overflow-hidden">
+                        <div className="absolute -right-10 -bottom-10 opacity-15 pointer-events-none">
+                            <Trophy className="w-56 h-56 text-white" />
+                        </div>
+                        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                            <div className="space-y-1.5">
+                                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-black/25 backdrop-blur-xs border border-white/20 text-amber-200 text-xs font-black uppercase tracking-wider">
+                                    <Trophy className="w-4 h-4 text-amber-300 animate-bounce" />
+                                    <span>PENGUMUMAN RESMI PEMENANG LELANG</span>
+                                </div>
+                                <h2 className="text-xl sm:text-2xl font-serif font-black tracking-tight text-white">
+                                    Selamat, {auth.user.name}! Anda Resmi Memenangkan Lelang Koi
+                                </h2>
+                                <p className="text-xs sm:text-sm text-amber-100 max-w-2xl leading-relaxed">
+                                    Tanggal dan waktu sesi lelang telah selesai dan ditutup resmi oleh platform. Anda dinyatakan sebagai pemenang sah dengan penawaran harga tertinggi!
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 relative z-10">
+                            {wonAuctions.map((auc: any) => {
+                                const prod = auc.product;
+                                const img = prod?.primary_image?.image_path || '/images/koi/kohaku.jpg';
+                                const winningBid = Number(auc.current_bid || auc.start_price);
+                                return (
+                                    <div key={auc.id} className="rounded-2xl p-4 bg-black/25 backdrop-blur-md border border-white/20 flex flex-col justify-between gap-3 shadow-md">
+                                        <div className="flex items-start gap-3.5">
+                                            <div className="w-16 h-16 rounded-xl overflow-hidden bg-slate-900 shrink-0 border border-white/20 shadow-sm">
+                                                <img src={img} alt={prod?.name} className="w-full h-full object-cover" />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <span className="text-[10px] uppercase font-bold text-amber-200 block">Lelang #{auc.id} • Resmi Ditutup</span>
+                                                <h4 className="text-sm font-bold text-white truncate">{prod?.name || 'Ikan Koi Unggulan'}</h4>
+                                                <p className="text-xs text-amber-100/80">{prod?.category?.name || 'Kohaku'} • {prod?.store?.name || 'Mitra Koi Farm'}</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="pt-2 border-t border-white/10 flex items-center justify-between">
+                                            <div>
+                                                <span className="text-[10px] text-amber-200 uppercase font-semibold block">Harga Tertinggi Pemenang</span>
+                                                <span className="text-base font-black text-white">
+                                                    Rp {winningBid.toLocaleString('id-ID')}
+                                                </span>
+                                            </div>
+                                            <Link
+                                                href={`/auctions/${auc.id}`}
+                                                className="px-3.5 py-2 rounded-xl bg-white text-slate-900 hover:bg-amber-100 text-xs font-bold transition shadow-sm active:scale-95 flex items-center gap-1.5"
+                                            >
+                                                <span>Lihat Lelang</span>
+                                                <ArrowUpRight className="w-3.5 h-3.5" />
+                                            </Link>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </section>
+            )}
 
             {/* Hero Section */}
             <section className="relative pt-16 pb-24 lg:pt-24 lg:pb-32 overflow-hidden">
