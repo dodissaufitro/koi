@@ -64,7 +64,10 @@ import {
     Star,
     Award,
     ZoomIn,
+    ZoomOut,
     Camera,
+    Crop,
+    RotateCw,
     Gavel,
     Trophy,
     RefreshCw,
@@ -73,9 +76,38 @@ import {
     Loader2,
     ChevronDown,
     Zap,
-    Type
+    Type,
+    Youtube
 } from 'lucide-react';
 import { KoiCinematicVideoBanner } from '@/components/AndroidApp/KoiCinematicVideoBanner';
+
+// Helper Ekstraksi & Embed YouTube Video dengan Auto Play
+export const extractYouTubeId = (url?: string | null): string | null => {
+    if (!url) return null;
+    const trimmed = String(url).trim();
+    if (!trimmed) return null;
+    if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) return trimmed;
+    const match = trimmed.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))([a-zA-Z0-9_-]{11})/);
+    return match ? match[1] : null;
+};
+
+export const getYouTubeEmbedUrl = (url?: string | null, autoplay = true): string | null => {
+    const videoId = extractYouTubeId(url);
+    if (!videoId) return null;
+    const params = new URLSearchParams({
+        rel: '0',
+        playsinline: '1',
+        controls: '1',
+        modestbranding: '1',
+    });
+    if (autoplay) {
+        params.set('autoplay', '1');
+        params.set('mute', '1'); // Browser autoplay policy mewajibkan audio termute agar video langsung berputar tanpa interaksi klik
+        params.set('loop', '1');
+        params.set('playlist', videoId);
+    }
+    return `https://www.youtube.com/embed/${videoId}?${params.toString()}`;
+};
 
 // Varietas Ikan Koi Premium Resmi (Hanya Koi Premium, Bukan Marketplace Umum)
 const INITIAL_CATEGORIES = [
@@ -262,6 +294,9 @@ const INITIAL_PRODUCTS = [
         origin: 'Import Jepang (Dainichi)',
         year: 2023,
         description: 'Kohaku show grade pola dua step tajam merata, shiroji seputih salju, sertifikat karantina resmi.',
+        video_url: 'https://www.youtube.com/watch?v=Hc0E5B0vLfg',
+        youtube_url: 'https://www.youtube.com/watch?v=Hc0E5B0vLfg',
+        youtube_embed_url: 'https://www.youtube.com/embed/Hc0E5B0vLfg?autoplay=1&mute=1&playsinline=1&loop=1&playlist=Hc0E5B0vLfg&rel=0&controls=1',
         images: [
             '/images/koi/kohaku.jpg',
             '/images/koi/kohaku_pond.jpg',
@@ -287,6 +322,9 @@ const INITIAL_PRODUCTS = [
         origin: 'Isa Koi Farm Niigata',
         year: 2024,
         description: 'Showa Sanshoku dengan pola sumi tajam dan motoguro kuat di sirip dada. Siap rawat untuk grand champion.',
+        video_url: 'https://www.youtube.com/watch?v=6r8b0W1Z1Yg',
+        youtube_url: 'https://www.youtube.com/watch?v=6r8b0W1Z1Yg',
+        youtube_embed_url: 'https://www.youtube.com/embed/6r8b0W1Z1Yg?autoplay=1&mute=1&playsinline=1&loop=1&playlist=6r8b0W1Z1Yg&rel=0&controls=1',
         images: [
             '/images/koi/showa.jpg',
             '/images/koi/ritsurin_koi_1.jpg',
@@ -312,6 +350,9 @@ const INITIAL_PRODUCTS = [
         origin: 'Sakai Fish Farm',
         year: 2023,
         description: 'Sanke 3 warna seimbang dengan dasar shiroji mulus seperti marmer. Potensi pertumbuhan sangat pesat.',
+        video_url: 'https://www.youtube.com/watch?v=kYI9wXg_p3o',
+        youtube_url: 'https://www.youtube.com/watch?v=kYI9wXg_p3o',
+        youtube_embed_url: 'https://www.youtube.com/embed/kYI9wXg_p3o?autoplay=1&mute=1&playsinline=1&loop=1&playlist=kYI9wXg_p3o&rel=0&controls=1',
         images: [
             '/images/koi/sanke.jpg',
             '/images/koi/ritsurin_koi_2.jpg',
@@ -337,6 +378,9 @@ const INITIAL_PRODUCTS = [
         origin: 'Blitar Farm Heritage',
         year: 2024,
         description: 'Kohaku pola maruten merah mahkota bulat sempurna di kepala, tubuh bersih mulus sertifikat APKI.',
+        video_url: 'https://www.youtube.com/watch?v=Hc0E5B0vLfg',
+        youtube_url: 'https://www.youtube.com/watch?v=Hc0E5B0vLfg',
+        youtube_embed_url: 'https://www.youtube.com/embed/Hc0E5B0vLfg?autoplay=1&mute=1&playsinline=1&loop=1&playlist=Hc0E5B0vLfg&rel=0&controls=1',
         images: [
             '/images/koi/kohaku.jpg',
             '/images/koi/kohaku_pond.jpg',
@@ -362,6 +406,9 @@ const INITIAL_PRODUCTS = [
         origin: 'Dainichi Koi Farm',
         year: 2023,
         description: 'Postur tubuh jumbo torpedo tegap dengan menware petir hitam pekat menyilang kepala.',
+        video_url: 'https://www.youtube.com/watch?v=6r8b0W1Z1Yg',
+        youtube_url: 'https://www.youtube.com/watch?v=6r8b0W1Z1Yg',
+        youtube_embed_url: 'https://www.youtube.com/embed/6r8b0W1Z1Yg?autoplay=1&mute=1&playsinline=1&loop=1&playlist=6r8b0W1Z1Yg&rel=0&controls=1',
         images: [
             '/images/koi/showa.jpg',
             '/images/koi/ritsurin_koi_1.jpg',
@@ -387,6 +434,9 @@ const INITIAL_PRODUCTS = [
         origin: 'Marudo Koi Farm',
         year: 2023,
         description: 'Simbol hoki keberuntungan Jepang: lingkaran merah crimson bulat presisi di dahi tanpa noda sisik.',
+        video_url: 'https://www.youtube.com/watch?v=wFf_5H8F3yM',
+        youtube_url: 'https://www.youtube.com/watch?v=wFf_5H8F3yM',
+        youtube_embed_url: 'https://www.youtube.com/embed/wFf_5H8F3yM?autoplay=1&mute=1&playsinline=1&loop=1&playlist=wFf_5H8F3yM&rel=0&controls=1',
         images: [
             '/images/koi/kohaku_pond.jpg',
             '/images/koi/kohaku.jpg'
@@ -1579,6 +1629,9 @@ export interface LiveAuctionState {
     highestBidderId?: number | string;
     auctionRaw?: any;
     image: string;
+    video_url?: string;
+    youtube_url?: string;
+    youtube_embed_url?: string;
     history: { user: string; amount: number; time: string; }[];
 }
 
@@ -1947,6 +2000,9 @@ export default function AndroidKoiApp({
             origin: p.origin || 'Import Jepang',
             year: 2023,
             description: p.description,
+            video_url: (p as any).video_url || null,
+            youtube_url: (p as any).video_url || null,
+            youtube_embed_url: getYouTubeEmbedUrl((p as any).video_url, true) || null,
             images: imagesList,
         };
     }) : INITIAL_PRODUCTS;
@@ -2162,8 +2218,14 @@ export default function AndroidKoiApp({
             highestBidderId: effectiveHighestBidderId,
             auctionRaw: raw || aucItem.auctionRaw,
             image: effectiveImage,
+            video_url: raw?.product?.video_url || aucItem.video_url || (aucItem as any)?.youtube_url || undefined,
+            youtube_url: raw?.product?.video_url || aucItem.video_url || (aucItem as any)?.youtube_url || undefined,
+            youtube_embed_url: getYouTubeEmbedUrl(raw?.product?.video_url || aucItem.video_url || (aucItem as any)?.youtube_url, true) || undefined,
             history: bidsHistory
         });
+        if (raw?.product?.video_url || aucItem.video_url || (aucItem as any)?.youtube_url) {
+            setAuctionMediaView('video');
+        }
         navigateTo('auction_detail');
 
         const scrollToTop = () => {
@@ -2196,6 +2258,10 @@ export default function AndroidKoiApp({
             const savedScreen = localStorage.getItem('koki_last_screen') as ScreenType | null;
             const candidate = urlScreen || savedScreen;
             if (candidate && candidate !== 'welcome') {
+                // Jangan biarkan user yang belum login atau baru logout membuka layar privat/seller
+                if (!authUser?.id && ['seller_center', 'merchant_add_koi', 'orders', 'order_detail', 'checkout_invoice', 'wag_tracking', 'chat_room', 'my_bids'].includes(candidate)) {
+                    return 'highest_auction';
+                }
                 return candidate;
             }
         } catch {}
@@ -2247,6 +2313,8 @@ export default function AndroidKoiApp({
         return dynamicProducts[0];
     });
     const [productImageIndex, setProductImageIndex] = useState(0);
+    const [productMediaView, setProductMediaView] = useState<'video' | 'photo'>('video');
+    const [auctionMediaView, setAuctionMediaView] = useState<'video' | 'photo'>('video');
 
     // Selected Store & Gallery State
     const [selectedStore, setSelectedStore] = useState<StoreInfo>(INITIAL_STORES[0]);
@@ -2297,6 +2365,16 @@ export default function AndroidKoiApp({
         }
     }, [products]);
 
+    // Pastikan media video YouTube otomatis aktif saat cek detail produk atau lelang
+    useEffect(() => {
+        if (selectedProduct && (selectedProduct.video_url || (selectedProduct as any).youtube_url)) {
+            setProductMediaView('video');
+        }
+    }, [selectedProduct]);
+
+    // No need for a pre‑declaration effect – we will trigger video view after the liveAuction state is created.
+
+
     // Live Auction State
     const [liveAuction, setLiveAuction] = useState<LiveAuctionState>({
         id: 7,
@@ -2314,6 +2392,9 @@ export default function AndroidKoiApp({
         currentBid: 32500000,
         highestBidder: 'KolektorKoi',
         image: '/images/koi/showa.jpg',
+        video_url: 'https://www.youtube.com/watch?v=Hc0E5B0vLfg',
+        youtube_url: 'https://www.youtube.com/watch?v=Hc0E5B0vLfg',
+        youtube_embed_url: 'https://www.youtube.com/embed/Hc0E5B0vLfg?autoplay=1&mute=1&playsinline=1&loop=1&playlist=Hc0E5B0vLfg&rel=0&controls=1',
         history: [
             { user: 'KolektorKoi', amount: 32500000, time: '10 menit lalu' },
             { user: 'AndiKoi', amount: 31500000, time: '18 menit lalu' },
@@ -2500,6 +2581,9 @@ export default function AndroidKoiApp({
             bidCount: 28,
             highestBidder: 'Bpk. Hendra Wijaya (Surabaya)',
             image: '/images/koi/kohaku.jpg',
+            video_url: 'https://www.youtube.com/watch?v=Hc0E5B0vLfg',
+            youtube_url: 'https://www.youtube.com/watch?v=Hc0E5B0vLfg',
+            youtube_embed_url: 'https://www.youtube.com/embed/Hc0E5B0vLfg?autoplay=1&mute=1&playsinline=1&loop=1&playlist=Hc0E5B0vLfg&rel=0&controls=1',
             status: 'live',
             timeLeft: '01:22:40',
         },
@@ -2514,6 +2598,9 @@ export default function AndroidKoiApp({
             bidCount: 19,
             highestBidder: 'Dr. Anton Gunawan (Bandung)',
             image: '/images/koi/showa.jpg',
+            video_url: 'https://www.youtube.com/watch?v=6r8b0W1Z1Yg',
+            youtube_url: 'https://www.youtube.com/watch?v=6r8b0W1Z1Yg',
+            youtube_embed_url: 'https://www.youtube.com/embed/6r8b0W1Z1Yg?autoplay=1&mute=1&playsinline=1&loop=1&playlist=6r8b0W1Z1Yg&rel=0&controls=1',
             status: 'live',
             timeLeft: '02:45:10',
         },
@@ -2528,6 +2615,9 @@ export default function AndroidKoiApp({
             bidCount: 14,
             highestBidder: 'Ir. Bambang S (Jakarta)',
             image: '/images/koi/sanke.jpg',
+            video_url: 'https://www.youtube.com/watch?v=kYI9wXg_p3o',
+            youtube_url: 'https://www.youtube.com/watch?v=kYI9wXg_p3o',
+            youtube_embed_url: 'https://www.youtube.com/embed/kYI9wXg_p3o?autoplay=1&mute=1&playsinline=1&loop=1&playlist=kYI9wXg_p3o&rel=0&controls=1',
             status: 'live',
             timeLeft: '04:10:00',
         },
@@ -2542,6 +2632,9 @@ export default function AndroidKoiApp({
             bidCount: 11,
             highestBidder: 'Reza Fahlevi (Semarang)',
             image: '/images/koi/ritsurin_koi_7.jpg',
+            video_url: 'https://www.youtube.com/watch?v=W0c3s4k1bV8',
+            youtube_url: 'https://www.youtube.com/watch?v=W0c3s4k1bV8',
+            youtube_embed_url: 'https://www.youtube.com/embed/W0c3s4k1bV8?autoplay=1&mute=1&playsinline=1&loop=1&playlist=W0c3s4k1bV8&rel=0&controls=1',
             status: 'live',
             timeLeft: '06:30:00',
         },
@@ -2556,6 +2649,9 @@ export default function AndroidKoiApp({
             bidCount: 16,
             highestBidder: 'Bpk. Kuswanto (Malang)',
             image: '/images/koi/aka_muji.jpg',
+            video_url: 'https://www.youtube.com/watch?v=2eP5H5sK-z0',
+            youtube_url: 'https://www.youtube.com/watch?v=2eP5H5sK-z0',
+            youtube_embed_url: 'https://www.youtube.com/embed/2eP5H5sK-z0?autoplay=1&mute=1&playsinline=1&loop=1&playlist=2eP5H5sK-z0&rel=0&controls=1',
             status: 'sold',
             timeLeft: 'Selesai Terjual',
         },
@@ -2570,6 +2666,9 @@ export default function AndroidKoiApp({
             bidCount: 12,
             highestBidder: 'Ibu Cindy Tan (Surabaya)',
             image: '/images/koi/kohaku_pond.jpg',
+            video_url: 'https://www.youtube.com/watch?v=wFf_5H8F3yM',
+            youtube_url: 'https://www.youtube.com/watch?v=wFf_5H8F3yM',
+            youtube_embed_url: 'https://www.youtube.com/embed/wFf_5H8F3yM?autoplay=1&mute=1&playsinline=1&loop=1&playlist=wFf_5H8F3yM&rel=0&controls=1',
             status: 'sold',
             timeLeft: 'Selesai Terjual',
         },
@@ -2888,9 +2987,11 @@ export default function AndroidKoiApp({
             setActiveThreadId('');
             setOrdersList([]);
             setUserBids([]);
+            setUserAccessRole('bidder');
+            setIsRegisteredSeller(false);
             setCurrentScreen(prev => {
-                if (['orders', 'order_detail', 'checkout_invoice', 'wag_tracking', 'chat_list', 'chat_room', 'my_bids', 'auction_detail'].includes(prev)) {
-                    return 'home';
+                if (['orders', 'order_detail', 'checkout_invoice', 'wag_tracking', 'chat_list', 'chat_room', 'my_bids', 'auction_detail', 'seller_center', 'merchant_add_koi'].includes(prev)) {
+                    return 'highest_auction';
                 }
                 return prev;
             });
@@ -3280,6 +3381,7 @@ export default function AndroidKoiApp({
     };
 
     // Merchant Input Koi Form State (Steps 1, 2, 3, 4, 5)
+    // Default video_url dan image dikosongkan saat tambah data sesuai instruksi
     const [merchantKoiForm, setMerchantKoiForm] = useState({
         name: 'Kohaku Champion Maruten Nisai',
         category: 'Kohaku',
@@ -3289,12 +3391,23 @@ export default function AndroidKoiApp({
         certificate: true,
         origin: 'Blitar Farm Heritage',
         description: 'Koi show grade pola maruten merah merata, shiroji seputih salju, sertifikat indukan resmi import Niigata.',
-        image: '/images/koi/kohaku.jpg',
+        image: '',
         certificateImage: '',
         certificateNo: 'APKI-2026-0881',
+        video_url: '',
     });
     const [curationStep, setCurationStep] = useState<'input' | 'submitted_push_notif' | 'approved_published'>('input');
     const [isSubmittingMerchantKoi, setIsSubmittingMerchantKoi] = useState(false);
+
+    // State Fitur Crop Foto Ikan Koi Seller
+    const [isCropModalOpen, setIsCropModalOpen] = useState(false);
+    const [rawCropImageSrc, setRawCropImageSrc] = useState<string | null>(null);
+    const [cropZoom, setCropZoom] = useState<number>(1);
+    const [cropPan, setCropPan] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+    const [cropRotation, setCropRotation] = useState<number>(0);
+    const [cropAspectRatio, setCropAspectRatio] = useState<'4:3' | '1:1' | '16:9'>('4:3');
+    const [isDraggingCrop, setIsDraggingCrop] = useState(false);
+    const [cropDragStart, setCropDragStart] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
 
     // Countdown Timer untuk Batas Waktu Bayar Invoice (Step 8)
     useEffect(() => {
@@ -3556,7 +3669,7 @@ export default function AndroidKoiApp({
         handleConfirmReceiveFish(activeOrder.orderNumber);
     };
 
-    // Handler Upload Foto Ikan Koi Merchant dengan Kompresi Otomatis
+    // Handler Upload Foto Ikan Koi Merchant - Membuka Pemotong/Crop Foto Interaktif
     const handleKoiPhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -3564,41 +3677,79 @@ export default function AndroidKoiApp({
         const reader = new FileReader();
         reader.onload = (event) => {
             const rawDataUrl = event.target?.result as string;
-            const img = new Image();
-            img.onload = () => {
-                try {
-                    const canvas = document.createElement('canvas');
-                    let width = img.width;
-                    let height = img.height;
-                    const maxDim = 1200;
-                    if (width > maxDim || height > maxDim) {
-                        if (width > height) {
-                            height = Math.round((height * maxDim) / width);
-                            width = maxDim;
-                        } else {
-                            width = Math.round((width * maxDim) / height);
-                            height = maxDim;
-                        }
-                    }
-                    canvas.width = width;
-                    canvas.height = height;
-                    const ctx = canvas.getContext('2d');
-                    if (ctx) {
-                        ctx.drawImage(img, 0, 0, width, height);
-                        const compressed = canvas.toDataURL('image/jpeg', 0.85);
-                        setMerchantKoiForm(prev => ({ ...prev, image: compressed }));
-                        triggerToast('📸 Foto ikan koi berhasil diunggah!');
-                        return;
-                    }
-                } catch {
-                    // Fallback jika canvas error
-                }
-                setMerchantKoiForm(prev => ({ ...prev, image: rawDataUrl }));
-                triggerToast('📸 Foto ikan koi berhasil diunggah!');
-            };
-            img.src = rawDataUrl;
+            setRawCropImageSrc(rawDataUrl);
+            setCropZoom(1);
+            setCropPan({ x: 0, y: 0 });
+            setCropRotation(0);
+            setIsCropModalOpen(true);
+            triggerToast('✂️ Geser & sesuaikan bagian terbaik foto ikan lalu klik Terapkan');
         };
         reader.readAsDataURL(file);
+        e.target.value = '';
+    };
+
+    // Fungsi Eksekusi Crop Foto & Simpan ke Formulir Ikan
+    const handleExecuteCropImage = () => {
+        if (!rawCropImageSrc) return;
+
+        const img = new Image();
+        img.onload = () => {
+            try {
+                const outWidth = 1000;
+                let ratioMultiplier = 3 / 4; // default 4:3
+                if (cropAspectRatio === '1:1') ratioMultiplier = 1;
+                else if (cropAspectRatio === '16:9') ratioMultiplier = 9 / 16;
+
+                const outHeight = Math.round(outWidth * ratioMultiplier);
+                const canvas = document.createElement('canvas');
+                canvas.width = outWidth;
+                canvas.height = outHeight;
+                const ctx = canvas.getContext('2d');
+                if (!ctx) return;
+
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = 'high';
+
+                // Viewport dimensions in modal (width 320px)
+                const vpW = 320;
+                const vpH = Math.round(320 * ratioMultiplier);
+                const scaleToCanvas = outWidth / vpW;
+
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, outWidth, outHeight);
+
+                ctx.save();
+                ctx.translate(outWidth / 2 + cropPan.x * scaleToCanvas, outHeight / 2 + cropPan.y * scaleToCanvas);
+                ctx.rotate((cropRotation * Math.PI) / 180);
+                ctx.scale(cropZoom * scaleToCanvas, cropZoom * scaleToCanvas);
+
+                const imgAspect = img.naturalWidth / img.naturalHeight;
+                const vpAspect = vpW / vpH;
+                let baseW = vpW;
+                let baseH = vpH;
+                if (imgAspect > vpAspect) {
+                    baseH = vpH;
+                    baseW = vpH * imgAspect;
+                } else {
+                    baseW = vpW;
+                    baseH = vpW / imgAspect;
+                }
+
+                ctx.drawImage(img, -baseW / 2, -baseH / 2, baseW, baseH);
+                ctx.restore();
+
+                const croppedData = canvas.toDataURL('image/jpeg', 0.88);
+                setMerchantKoiForm(prev => ({ ...prev, image: croppedData }));
+                setIsCropModalOpen(false);
+                triggerToast('✂️ Foto ikan berhasil di-crop & siap dipublikasikan!');
+            } catch (err) {
+                console.error('Crop error:', err);
+                setMerchantKoiForm(prev => ({ ...prev, image: rawCropImageSrc }));
+                setIsCropModalOpen(false);
+                triggerToast('📸 Foto ikan berhasil dipasang!');
+            }
+        };
+        img.src = rawCropImageSrc;
     };
 
     // Handler Upload Sertifikat Breeder (Gambar / Dokumen)
@@ -3677,6 +3828,7 @@ export default function AndroidKoiApp({
             image: '',
             certificateImage: '',
             certificateNo: '',
+            video_url: '',
         });
         setCurationStep('input');
         triggerToast('📝 Formulir siap untuk input ikan koi baru.');
@@ -3693,8 +3845,13 @@ export default function AndroidKoiApp({
             triggerToast('⚠️ Masukkan harga ikan koi yang valid.');
             return;
         }
-        if (!merchantKoiForm.image) {
-            triggerToast('⚠️ Silakan pilih/upload foto utama ikan koi terlebih dahulu.');
+
+        const ytId = extractYouTubeId(merchantKoiForm.video_url);
+        const autoThumbnail = ytId ? `https://img.youtube.com/vi/${ytId}/hqdefault.jpg` : '';
+        const uploadedImg = merchantKoiForm.image || autoThumbnail || '/images/koi/kohaku.jpg';
+
+        if (!merchantKoiForm.video_url && !merchantKoiForm.image) {
+            triggerToast('⚠️ Silakan masukkan link video YouTube ikan koi atau upload foto.');
             return;
         }
 
@@ -3713,7 +3870,6 @@ export default function AndroidKoiApp({
 
         const numericSize = parseInt(merchantKoiForm.size.replace(/\D/g, '')) || 40;
         const finalPrice = Number(merchantKoiForm.price) || 14500000;
-        const uploadedImg = merchantKoiForm.image || '/images/koi/kohaku.jpg';
 
         const payload: Record<string, any> = {
             name: merchantKoiForm.name,
@@ -3732,6 +3888,8 @@ export default function AndroidKoiApp({
             image: uploadedImg,
             certificate_image: merchantKoiForm.certificateImage || undefined,
             certificate_no: merchantKoiForm.certificateNo || undefined,
+            video_url: merchantKoiForm.video_url || undefined,
+            youtube_url: merchantKoiForm.video_url || undefined,
         };
 
         try {
@@ -3785,11 +3943,15 @@ export default function AndroidKoiApp({
                 certificate: Boolean(merchantKoiForm.certificateImage || merchantKoiForm.certificate),
                 certificateImage: merchantKoiForm.certificateImage || null,
                 certificateNo: merchantKoiForm.certificateNo || 'APKI-2026-0881',
+                video_url: merchantKoiForm.video_url || null,
+                youtube_url: merchantKoiForm.video_url || null,
+                youtube_embed_url: getYouTubeEmbedUrl(merchantKoiForm.video_url, true) || null,
             };
 
             // Perbarui daftar produk di aplikasi
             setAllCatalogProducts((prev) => [newProductObj, ...prev]);
             setSelectedProduct(newProductObj);
+            setProductMediaView(merchantKoiForm.video_url ? 'video' : 'photo');
             setSellerAuctionsList((prev) => [
                 {
                     id: `s-auc-${Date.now()}`,
@@ -3803,6 +3965,9 @@ export default function AndroidKoiApp({
                     status: 'live',
                     statusLabel: 'Live Aktif',
                     image: savedImg,
+                    video_url: merchantKoiForm.video_url || null,
+                    youtube_url: merchantKoiForm.video_url || null,
+                    youtube_embed_url: getYouTubeEmbedUrl(merchantKoiForm.video_url, true) || null,
                     lotNumber: `LOT #${Math.floor(Math.random() * 900) + 100}`,
                     multiplier: 100000,
                     highestBidder: 'Belum Ada Bid',
@@ -3836,7 +4001,9 @@ export default function AndroidKoiApp({
 
     // STEP 4 & 5: Operator Verifikasi & Approve Listing -> Publish ke Catalog/Store
     const handleOperatorApproveListing = () => {
-        const uploadedImg = merchantKoiForm.image || '/images/koi/kohaku.jpg';
+        const ytId = extractYouTubeId(merchantKoiForm.video_url);
+        const autoThumbnail = ytId ? `https://img.youtube.com/vi/${ytId}/hqdefault.jpg` : '';
+        const uploadedImg = merchantKoiForm.image || autoThumbnail || '/images/koi/kohaku.jpg';
         const newProductObj = {
             id: `prod-merchant-${Date.now()}`,
             name: merchantKoiForm.name || 'Kohaku Show Grade Blitar',
@@ -3861,10 +4028,14 @@ export default function AndroidKoiApp({
             certificate: Boolean(merchantKoiForm.certificate || merchantKoiForm.certificateImage),
             certificateImage: merchantKoiForm.certificateImage || null,
             certificateNo: merchantKoiForm.certificateNo || 'APKI-2026-0881',
+            video_url: merchantKoiForm.video_url || null,
+            youtube_url: merchantKoiForm.video_url || null,
+            youtube_embed_url: getYouTubeEmbedUrl(merchantKoiForm.video_url, true) || null,
         };
 
         setAllCatalogProducts((prev) => [newProductObj, ...prev]);
         setSelectedProduct(newProductObj);
+        setProductMediaView(merchantKoiForm.video_url ? 'video' : 'photo');
         setCurationStep('approved_published');
         triggerToast('🎉 Step 4 & 5: Listing disetujui & Diterbitkan! Foto ikan & sertifikat sekarang live di katalog.');
     };
@@ -4055,6 +4226,10 @@ export default function AndroidKoiApp({
 
     // Fungsi untuk menutup modal / popup jika sedang terbuka
     const closeAnyOpenModal = (): boolean => {
+        if (isCropModalOpen) {
+            setIsCropModalOpen(false);
+            return true;
+        }
         if (isFontSizeDropdownOpen) {
             setIsFontSizeDropdownOpen(false);
             return true;
@@ -4542,13 +4717,58 @@ export default function AndroidKoiApp({
 
     // Logout Handler - Keluar akun melalui Laravel Auth & bersihkan sesi lokal
     const handleLogout = () => {
+        // 1. Bersihkan seluruh state lokal & privasi user secara instan
         setFavoritesList([]);
         setChatThreads([]);
         setOrdersList([]);
         setUserBids([]);
         setMyKoiItems([]);
         setActiveThreadId('');
-        router.post('/logout');
+        setUserAccessRole('bidder');
+        setIsRegisteredSeller(false);
+        setCurrentScreen('highest_auction');
+        setActiveTab('koi');
+        setScreenStack(['highest_auction']);
+
+        // 2. Bersihkan localStorage & cookie agar tidak kembali ke screen seller atau state sebelumnya
+        try {
+            localStorage.setItem('koimart_user_access_role', 'bidder');
+            localStorage.setItem('koki_last_screen', 'highest_auction');
+            localStorage.setItem('koki_view_mode', 'android');
+            document.cookie = 'koki_view_mode=android; path=/; max-age=31536000';
+        } catch {}
+
+        triggerToast('🚪 Berhasil keluar akun. Memuat bursa lelang...');
+
+        const targetUrl = '/?view=android&screen=highest_auction';
+
+        // 3. Fallback timer pengalihan aman jika response server lambat / macet
+        const timer = setTimeout(() => {
+            window.location.replace(targetUrl);
+        }, 1500);
+
+        // 4. Eksekusi logout ke server Laravel via Inertia POST
+        try {
+            router.post('/logout', {}, {
+                preserveScroll: false,
+                preserveState: false,
+                onSuccess: () => {
+                    clearTimeout(timer);
+                    window.location.replace(targetUrl);
+                },
+                onError: () => {
+                    clearTimeout(timer);
+                    window.location.replace(targetUrl);
+                },
+                onFinish: () => {
+                    clearTimeout(timer);
+                    window.location.replace(targetUrl);
+                }
+            });
+        } catch {
+            clearTimeout(timer);
+            window.location.replace(targetUrl);
+        }
     };
 
     // Chat Action: Buka Room Chat langsung dengan Penjual dari halaman detail produk / pesanan
@@ -8060,29 +8280,82 @@ export default function AndroidKoiApp({
 
                             {/* Scrollable Content */}
                             <div className="flex-1 overflow-y-auto">
-                                {/* Big Image with 1/5 indicator */}
-                                <div className="relative aspect-[4/3] bg-slate-950 overflow-hidden">
-                                    <img
-                                        src={selectedProduct.images[productImageIndex] || selectedProduct.images[0]}
-                                        alt={selectedProduct.name}
-                                        className="w-full h-full object-cover"
-                                    />
-                                    <div className="absolute bottom-3 right-3 px-2.5 py-0.5 bg-black/60 backdrop-blur-md rounded-full text-white text-[10px] font-semibold">
-                                        {productImageIndex + 1}/{selectedProduct.images.length}
-                                    </div>
-                                    {/* Small Thumbnails Selector */}
-                                    {selectedProduct.images.length > 1 && (
-                                        <div className="absolute bottom-3 left-3 flex gap-1.5">
-                                            {selectedProduct.images.map((_, idx) => (
-                                                <button
-                                                    key={idx}
-                                                    onClick={() => setProductImageIndex(idx)}
-                                                    className={`w-2 h-2 rounded-full transition-all ${productImageIndex === idx ? 'bg-red-500 w-4' : 'bg-white/60'}`}
-                                                />
-                                            ))}
+                                {/* Media Container: Video YouTube (Auto Play) or Photo Slider */}
+                                <div className="relative aspect-video bg-slate-950 overflow-hidden shadow-inner">
+                                    {productMediaView === 'video' && (selectedProduct.video_url || (selectedProduct as any).youtube_url) ? (
+                                        <div className="w-full h-full relative">
+                                            <iframe
+                                                src={getYouTubeEmbedUrl(selectedProduct.video_url || (selectedProduct as any).youtube_url, true) || ''}
+                                                title={`Video ${selectedProduct.name}`}
+                                                className="w-full h-full border-0"
+                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                                allowFullScreen
+                                            />
+                                            {/* Floating Autoplay Badge */}
+                                            <div className="absolute top-3 left-3 pointer-events-none z-10">
+                                                <span className="px-2.5 py-1 rounded-full bg-red-600/90 text-white font-black text-[9px] shadow-md backdrop-blur-xs flex items-center gap-1.5">
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                                                    <span>VIDEO AUTOPLAY</span>
+                                                </span>
+                                            </div>
                                         </div>
+                                    ) : (
+                                        <>
+                                            <img
+                                                src={selectedProduct.images[productImageIndex] || selectedProduct.images[0]}
+                                                alt={selectedProduct.name}
+                                                className="w-full h-full object-cover"
+                                            />
+                                            <div className="absolute bottom-3 right-3 px-2.5 py-0.5 bg-black/60 backdrop-blur-md rounded-full text-white text-[10px] font-semibold">
+                                                {productImageIndex + 1}/{selectedProduct.images.length}
+                                            </div>
+                                            {/* Small Thumbnails Selector */}
+                                            {selectedProduct.images.length > 1 && (
+                                                <div className="absolute bottom-3 left-3 flex gap-1.5">
+                                                    {selectedProduct.images.map((_, idx) => (
+                                                        <button
+                                                            key={idx}
+                                                            onClick={() => setProductImageIndex(idx)}
+                                                            className={`w-2 h-2 rounded-full transition-all ${productImageIndex === idx ? 'bg-red-500 w-4' : 'bg-white/60'}`}
+                                                        />
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </>
                                     )}
                                 </div>
+
+                                {/* Media Switcher Tab (if product has video) */}
+                                {(selectedProduct.video_url || (selectedProduct as any).youtube_url) && (
+                                    <div className="px-4 pt-3">
+                                        <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-2xl border border-slate-200/80">
+                                            <button
+                                                type="button"
+                                                onClick={() => setProductMediaView('video')}
+                                                className={`flex-1 py-1.5 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                                                    productMediaView === 'video'
+                                                        ? 'bg-red-600 text-white shadow-xs'
+                                                        : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+                                                }`}
+                                            >
+                                                <Play className="w-3.5 h-3.5 fill-current" />
+                                                <span>Video Renang (Auto Play)</span>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setProductMediaView('photo')}
+                                                className={`flex-1 py-1.5 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                                                    productMediaView === 'photo'
+                                                        ? 'bg-white text-slate-900 shadow-xs'
+                                                        : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+                                                }`}
+                                            >
+                                                <Camera className="w-3.5 h-3.5" />
+                                                <span>Foto ({selectedProduct.images.length})</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
 
                                 <div className="p-4 space-y-4 pb-8">
                                     {/* Price & Rating Header */}
@@ -8108,6 +8381,38 @@ export default function AndroidKoiApp({
                                             <span className="text-emerald-600 font-medium">Stok Siap Kirim</span>
                                         </div>
                                     </div>
+
+                                    {/* Video Renang Ikan Highlight Card */}
+                                    {(selectedProduct.video_url || (selectedProduct as any).youtube_url) && (
+                                        <div className="p-3.5 rounded-2xl bg-gradient-to-r from-red-50 via-rose-50 to-amber-50 border border-red-200/80 flex items-center justify-between gap-3 shadow-2xs">
+                                            <div className="flex items-center gap-2.5 min-w-0">
+                                                <div className="w-9 h-9 rounded-xl bg-red-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                                                    <Youtube className="w-5 h-5 fill-white" />
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <h5 className="font-bold text-xs text-slate-900 truncate flex items-center gap-1">
+                                                        <span>Video Renang Ikan Koi</span>
+                                                        <span className="text-[9px] bg-red-600 text-white font-black px-1.5 py-0.2 rounded-full">AUTO PLAY</span>
+                                                    </h5>
+                                                    <p className="text-[10px] text-slate-500 truncate mt-0.5">
+                                                        Putar video YouTube untuk melihat kelenturan tubuh & renang
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setProductMediaView('video');
+                                                    const targetEl = document.getElementById('main-screen-router');
+                                                    if (targetEl) targetEl.scrollTo({ top: 0, behavior: 'smooth' });
+                                                }}
+                                                className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-[10.5px] font-extrabold rounded-xl shrink-0 cursor-pointer shadow-xs transition active:scale-95 flex items-center gap-1"
+                                            >
+                                                <Play className="w-3 h-3 fill-white" />
+                                                <span>Putar</span>
+                                            </button>
+                                        </div>
+                                    )}
 
                                     {/* 2x2 Specs Grid */}
                                     <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-100/80">
@@ -8510,24 +8815,79 @@ export default function AndroidKoiApp({
                             {/* Content */}
                             <div key={liveAuction.id} id="auction-scroll-container" className="flex-1 overflow-y-auto p-4 space-y-4 animate-in fade-in duration-200">
                                 {/* Live Media Box with LIVE Badge & Countdown */}
-                                <div className="relative aspect-[16/10] rounded-2xl bg-slate-950 overflow-hidden shadow-md">
-                                    <img
-                                        src={liveAuction.image}
-                                        alt={liveAuction.name}
-                                        className="w-full h-full object-cover"
-                                    />
-                                    {/* LIVE Badge */}
-                                    <div className="absolute top-3 left-3 px-2.5 py-1 bg-red-600 text-white rounded-full flex items-center gap-1.5 text-[10px] font-bold shadow-lg animate-pulse">
-                                        <Radio className="w-3 h-3" />
-                                        <span>LIVE</span>
-                                    </div>
+                                <div className="relative aspect-video rounded-2xl bg-slate-950 overflow-hidden shadow-md">
+                                    {auctionMediaView === 'video' && (liveAuction.video_url || (liveAuction as any).youtube_url) ? (
+                                        <div className="w-full h-full relative">
+                                            <iframe
+                                                src={getYouTubeEmbedUrl(liveAuction.video_url || (liveAuction as any).youtube_url, true) || ''}
+                                                title={`Video ${liveAuction.name}`}
+                                                className="w-full h-full border-0"
+                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                                allowFullScreen
+                                            />
+                                            {/* LIVE Badge */}
+                                            <div className="absolute top-3 left-3 px-2.5 py-1 bg-red-600 text-white rounded-full flex items-center gap-1.5 text-[10px] font-bold shadow-lg animate-pulse pointer-events-none z-10">
+                                                <Radio className="w-3 h-3" />
+                                                <span>LIVE VIDEO</span>
+                                            </div>
 
-                                    {/* Timer pill */}
-                                    <div className="absolute top-3 right-3 px-3 py-1 bg-black/70 backdrop-blur-md text-white rounded-full text-[10px] font-bold flex items-center gap-1.5 border border-white/10">
-                                        <Clock className="w-3 h-3 text-red-400" />
-                                        <span>Berakhir dalam <span className="text-red-400 font-mono">{formatTime(secondsLeft)}</span></span>
-                                    </div>
+                                            {/* Timer pill */}
+                                            <div className="absolute top-3 right-3 px-3 py-1 bg-black/70 backdrop-blur-md text-white rounded-full text-[10px] font-bold flex items-center gap-1.5 border border-white/10 pointer-events-none z-10">
+                                                <Clock className="w-3 h-3 text-red-400" />
+                                                <span><span className="text-red-400 font-mono">{formatTime(secondsLeft)}</span></span>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <img
+                                                src={liveAuction.image}
+                                                alt={liveAuction.name}
+                                                className="w-full h-full object-cover"
+                                            />
+                                            {/* LIVE Badge */}
+                                            <div className="absolute top-3 left-3 px-2.5 py-1 bg-red-600 text-white rounded-full flex items-center gap-1.5 text-[10px] font-bold shadow-lg animate-pulse">
+                                                <Radio className="w-3 h-3" />
+                                                <span>LIVE</span>
+                                            </div>
+
+                                            {/* Timer pill */}
+                                            <div className="absolute top-3 right-3 px-3 py-1 bg-black/70 backdrop-blur-md text-white rounded-full text-[10px] font-bold flex items-center gap-1.5 border border-white/10">
+                                                <Clock className="w-3 h-3 text-red-400" />
+                                                <span>Berakhir dalam <span className="text-red-400 font-mono">{formatTime(secondsLeft)}</span></span>
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
+
+                                {/* Switcher if liveAuction has video */}
+                                {(liveAuction.video_url || (liveAuction as any).youtube_url) && (
+                                    <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-2xl border border-slate-200/80">
+                                        <button
+                                            type="button"
+                                            onClick={() => setAuctionMediaView('video')}
+                                            className={`flex-1 py-1.5 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                                                auctionMediaView === 'video'
+                                                    ? 'bg-red-600 text-white shadow-xs'
+                                                    : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+                                            }`}
+                                        >
+                                            <Play className="w-3.5 h-3.5 fill-current" />
+                                            <span>Video Live (Auto Play)</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setAuctionMediaView('photo')}
+                                            className={`flex-1 py-1.5 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                                                auctionMediaView === 'photo'
+                                                    ? 'bg-white text-slate-900 shadow-xs'
+                                                    : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+                                            }`}
+                                        >
+                                            <Camera className="w-3.5 h-3.5" />
+                                            <span>Foto Ikan</span>
+                                        </button>
+                                    </div>
+                                )}
 
                                 {/* Title & Specs */}
                                 <div>
@@ -10199,68 +10559,235 @@ export default function AndroidKoiApp({
                                         />
                                     </div>
 
-                                    {/* UPLOAD FOTO IKAN KOI & SERTIFIKAT BREEDER */}
+                                    {/* UPLOAD MEDIA IKAN KOI (UTAMA: LINK VIDEO YOUTUBE DENGAN AUTO FOTO & AUTO PLAY) */}
                                     <div className="space-y-3 pt-1">
-                                        {/* 1. Upload Foto Utama Ikan Koi */}
-                                        <div>
+                                        {/* 1. LINK VIDEO YOUTUBE (MEDIA OPSIONAL DENGAN AUTO PLAY) */}
+                                        <div className="p-3.5 rounded-2xl bg-gradient-to-br from-red-50/70 via-rose-50/40 to-amber-50/50 border-2 border-red-200/90 space-y-2.5 shadow-2xs">
+                                            <div className="flex items-center justify-between">
+                                                <label className="text-[11.5px] font-black text-slate-900 flex items-center gap-1.5">
+                                                    <Youtube className="w-4 h-4 text-red-600 fill-red-600 shrink-0" />
+                                                    <span>1. Link Video Ikan Koi (YouTube)</span>
+                                                    <span className="text-[10px] text-slate-500 font-semibold">(Opsional)</span>
+                                                </label>
+                                                <span className="text-[9px] text-red-700 bg-red-100 border border-red-200 px-2 py-0.5 rounded-full font-black flex items-center gap-1 shadow-2xs">
+                                                    <Play className="w-2.5 h-2.5 fill-red-700" />
+                                                    AUTO PLAY & AUTO FOTO
+                                                </span>
+                                            </div>
+
+                                            <p className="text-[10px] text-slate-600 leading-relaxed">
+                                                Masukkan link video YouTube renang ikan koi jika ada. <strong>Foto gambar ikan otomatis diambil dari video YouTube ini</strong>, dan saat pembeli klik <strong>Cek Detail</strong>, video langsung otomatis berputar (auto play)!
+                                            </p>
+
+                                            <div className="relative">
+                                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-red-600">
+                                                    <Youtube className="w-4 h-4 fill-red-600" />
+                                                </div>
+                                                <input
+                                                    type="text"
+                                                    value={merchantKoiForm.video_url || ''}
+                                                    onChange={(e) => {
+                                                        const val = e.target.value;
+                                                        const yId = extractYouTubeId(val);
+                                                        setMerchantKoiForm(prev => ({
+                                                            ...prev,
+                                                            video_url: val,
+                                                            image: yId ? `https://img.youtube.com/vi/${yId}/hqdefault.jpg` : prev.image
+                                                        }));
+                                                    }}
+                                                    placeholder="Tempel link YouTube (cth: https://www.youtube.com/watch?v=... atau youtu.be/...)"
+                                                    className="w-full text-xs pl-9 pr-9 py-2.5 rounded-xl border border-red-300 focus:outline-red-500 bg-white placeholder:text-slate-400 font-medium"
+                                                />
+                                                {merchantKoiForm.video_url && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setMerchantKoiForm({ ...merchantKoiForm, video_url: '' })}
+                                                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
+                                                        title="Hapus link video"
+                                                    >
+                                                        <X className="w-3.5 h-3.5" />
+                                                    </button>
+                                                )}
+                                            </div>
+
+                                            {/* Tombol Contoh Video YouTube Cepat */}
+                                            <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+                                                <span className="text-[9.5px] text-slate-500 font-semibold">Pilih contoh video cepat:</span>
+                                                {[
+                                                    { label: '+ Kohaku 4K', url: 'https://www.youtube.com/watch?v=Hc0E5B0vLfg' },
+                                                    { label: '+ Showa Champion', url: 'https://www.youtube.com/watch?v=6r8b0W1Z1Yg' },
+                                                    { label: '+ Sanke Dainichi', url: 'https://www.youtube.com/watch?v=kYI9wXg_p3o' },
+                                                ].map((sample) => (
+                                                    <button
+                                                        key={sample.label}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            const yId = extractYouTubeId(sample.url);
+                                                            setMerchantKoiForm(prev => ({
+                                                                ...prev,
+                                                                video_url: sample.url,
+                                                                image: yId ? `https://img.youtube.com/vi/${yId}/hqdefault.jpg` : prev.image
+                                                            }));
+                                                        }}
+                                                        className="text-[9.5px] px-2 py-0.5 bg-white hover:bg-red-50 hover:text-red-600 text-slate-700 rounded-lg transition border border-slate-200 cursor-pointer font-bold shadow-2xs"
+                                                    >
+                                                        {sample.label}
+                                                    </button>
+                                                ))}
+                                            </div>
+
+                                            {/* Preview Live: Foto Gambar & Video Auto Play */}
+                                            {extractYouTubeId(merchantKoiForm.video_url) ? (
+                                                <div className="rounded-2xl border border-red-200 bg-slate-950 overflow-hidden shadow-xs space-y-2 mt-2">
+                                                    {/* Video Player */}
+                                                    <div className="relative aspect-video w-full bg-black">
+                                                        <iframe
+                                                            src={getYouTubeEmbedUrl(merchantKoiForm.video_url, true) || ''}
+                                                            title="Live Preview Video Ikan Koi"
+                                                            className="w-full h-full border-0"
+                                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                                            allowFullScreen
+                                                        />
+                                                        <div className="absolute top-2 left-2 pointer-events-none">
+                                                            <span className="px-2 py-0.5 rounded-full bg-red-600 text-white font-black text-[8.5px] shadow-md flex items-center gap-1 animate-pulse">
+                                                                <Play className="w-2.5 h-2.5 fill-white" />
+                                                                VIDEO AUTO PLAY SAAT CEK DETAIL
+                                                            </span>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Thumbnail & Video Info */}
+                                                    <div className="px-3 pb-3 pt-1 flex items-center justify-between text-white border-t border-white/10 gap-2">
+                                                        <div className="flex items-center gap-2">
+                                                            <img
+                                                                src={`https://img.youtube.com/vi/${extractYouTubeId(merchantKoiForm.video_url)}/hqdefault.jpg`}
+                                                                alt="Thumbnail Ikan"
+                                                                className="w-12 h-9 object-cover rounded-md border border-white/20 shrink-0"
+                                                            />
+                                                            <div>
+                                                                <div className="flex items-center gap-1 text-[10px] font-bold text-emerald-400">
+                                                                    <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                                                                    <span>Foto Gambar & Video Siap</span>
+                                                                </div>
+                                                                <p className="text-[9px] text-slate-400">
+                                                                    Foto ikan otomatis terpasang dari YouTube
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                        <span className="text-[9px] text-slate-400 font-mono shrink-0">
+                                                            ID: {extractYouTubeId(merchantKoiForm.video_url)}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            ) : merchantKoiForm.video_url ? (
+                                                <p className="text-[10px] text-amber-700 bg-amber-50 p-2 rounded-xl border border-amber-200">
+                                                    ⚠️ Format link YouTube tidak dikenali. Masukkan URL lengkap seperti <code>https://www.youtube.com/watch?v=...</code> atau <code>https://youtu.be/...</code>
+                                                </p>
+                                            ) : null}
+                                        </div>
+
+                                        {/* 2. UPLOAD & CROP FOTO IKAN KOI */}
+                                        <div className="pt-1">
                                             <div className="flex items-center justify-between mb-1.5">
-                                                <label className="text-[11px] font-bold text-slate-800 flex items-center gap-1.5">
-                                                    <Camera className="w-3.5 h-3.5 text-red-600" />
-                                                    Foto Utama Ikan Koi <span className="text-red-500">*</span>
+                                                <label className="text-[11.5px] font-black text-slate-900 flex items-center gap-1.5">
+                                                    <Camera className="w-4 h-4 text-amber-600 shrink-0" />
+                                                    <span>2. Foto Ikan Koi</span>
+                                                    <span className="text-[9.5px] text-emerald-800 bg-emerald-100 border border-emerald-200 px-2 py-0.5 rounded-full font-extrabold flex items-center gap-1 shadow-2xs">
+                                                        <Crop className="w-2.5 h-2.5" />
+                                                        Bisa Crop Bagian Terbaik
+                                                    </span>
                                                 </label>
                                                 <span className="text-[9px] text-slate-400 font-medium">JPG / PNG / WEBP</span>
                                             </div>
-                                            <label className="block relative border-2 border-dashed border-red-300 hover:border-red-500 rounded-2xl bg-red-50/30 hover:bg-red-50/60 cursor-pointer transition overflow-hidden group">
-                                                {merchantKoiForm.image ? (
-                                                    <div className="relative w-full h-40 bg-slate-900/5 flex items-center justify-center overflow-hidden">
+
+                                            {merchantKoiForm.image && !merchantKoiForm.image.includes('youtube.com') ? (
+                                                <div className="relative rounded-2xl border-2 border-slate-200 bg-slate-900 overflow-hidden shadow-xs">
+                                                    <div className="relative w-full h-44 bg-slate-950 flex items-center justify-center overflow-hidden">
                                                         <img
                                                             src={merchantKoiForm.image}
                                                             alt="Preview Ikan Koi"
-                                                            className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                                                            className="w-full h-full object-cover"
                                                         />
-                                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 text-white">
-                                                            <span className="px-3 py-1.5 bg-black/70 backdrop-blur-xs rounded-xl text-[11px] font-bold flex items-center gap-1.5 shadow-md">
-                                                                <Camera className="w-3.5 h-3.5 text-amber-400" />
-                                                                Ganti Foto Ikan
-                                                            </span>
-                                                        </div>
-                                                        <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-emerald-600 text-white text-[9px] font-black shadow-md flex items-center gap-1">
+                                                        <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-emerald-600 text-white text-[9.5px] font-black shadow-md flex items-center gap-1">
                                                             <Check className="w-3 h-3 stroke-[3]" />
-                                                            Foto Terpilih
+                                                            Foto Siap & Ter-crop
                                                         </div>
                                                     </div>
-                                                ) : (
-                                                    <div className="p-4 text-center space-y-1.5">
-                                                        <div className="w-10 h-10 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto shadow-xs">
-                                                            <Camera className="w-5 h-5" />
-                                                        </div>
-                                                        <p className="text-[11px] font-bold text-slate-800">Pilih / Ambil Foto Ikan Koi</p>
-                                                        <p className="text-[9px] text-slate-500">Klik untuk upload foto ikan (kompresi otomatis)</p>
+
+                                                    {/* Tombol Aksi: Crop Ulang, Ganti, Hapus */}
+                                                    <div className="p-2.5 bg-white border-t border-slate-100 flex items-center gap-2">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setRawCropImageSrc(merchantKoiForm.image);
+                                                                setCropZoom(1);
+                                                                setCropPan({ x: 0, y: 0 });
+                                                                setCropRotation(0);
+                                                                setIsCropModalOpen(true);
+                                                            }}
+                                                            className="flex-1 py-2 px-2.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 rounded-xl text-[11px] font-extrabold flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer shadow-2xs"
+                                                        >
+                                                            <Crop className="w-3.5 h-3.5 text-amber-700" />
+                                                            <span>Crop Ulang Bagian Foto</span>
+                                                        </button>
+                                                        <label className="py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-[11px] font-bold flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer">
+                                                            <Camera className="w-3.5 h-3.5 text-slate-600" />
+                                                            <span>Ganti Foto</span>
+                                                            <input
+                                                                type="file"
+                                                                accept="image/*"
+                                                                onChange={handleKoiPhotoUpload}
+                                                                className="hidden"
+                                                            />
+                                                        </label>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setMerchantKoiForm(prev => ({ ...prev, image: '' }))}
+                                                            className="p-2 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl transition active:scale-95 cursor-pointer"
+                                                            title="Hapus foto"
+                                                        >
+                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                        </button>
                                                     </div>
-                                                )}
-                                                <input
-                                                    type="file"
-                                                    accept="image/*"
-                                                    onChange={handleKoiPhotoUpload}
-                                                    className="hidden"
-                                                />
-                                            </label>
+                                                </div>
+                                            ) : (
+                                                <label className="block relative border-2 border-dashed border-amber-300 hover:border-amber-500 rounded-2xl bg-amber-50/30 hover:bg-amber-50/60 cursor-pointer transition overflow-hidden group p-4 text-center space-y-2">
+                                                    <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center mx-auto shadow-2xs group-hover:scale-105 transition">
+                                                        <Crop className="w-6 h-6 stroke-[2.2]" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-xs font-black text-slate-800 flex items-center justify-center gap-1.5">
+                                                            <span>Pilih & Upload Foto Ikan Koi</span>
+                                                            <span className="text-[9px] px-1.5 py-0.5 rounded-md bg-amber-200 text-amber-900 font-extrabold">CROP FOTO</span>
+                                                        </p>
+                                                        <p className="text-[10px] text-slate-500 mt-0.5 leading-relaxed">
+                                                            Setelah pilih foto, Anda dapat <strong>menggeser & zoom</strong> untuk memilih bagian terbaik ikan (pola kepala, warna, atau tubuh jumbo).
+                                                        </p>
+                                                    </div>
+                                                    <input
+                                                        type="file"
+                                                        accept="image/*"
+                                                        onChange={handleKoiPhotoUpload}
+                                                        className="hidden"
+                                                    />
+                                                </label>
+                                            )}
                                         </div>
 
-                                        {/* 2. Upload Dokumen / Foto Sertifikat Breeder */}
-                                        <div>
+                                        {/* 3. Upload Dokumen / Foto Sertifikat Breeder (Opsional) */}
+                                        <div className="pt-1">
                                             <div className="flex items-center justify-between mb-1.5">
                                                 <label className="text-[11px] font-bold text-slate-800 flex items-center gap-1.5">
                                                     <Award className="w-3.5 h-3.5 text-amber-600" />
-                                                    Sertifikat Breeder / Silsilah
+                                                    Sertifikat Breeder / Silsilah <span className="text-[10px] font-normal text-slate-400">(Opsional)</span>
                                                 </label>
                                                 <span className="text-[9px] text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded-full font-bold">
                                                     APKI / ZNA
                                                 </span>
                                             </div>
-                                            <label className="block relative border-2 border-dashed border-amber-300 hover:border-amber-500 rounded-2xl bg-amber-50/30 hover:bg-amber-50/60 cursor-pointer transition overflow-hidden group">
+                                            <label className="block relative border-2 border-dashed border-amber-200 hover:border-amber-400 rounded-2xl bg-amber-50/20 hover:bg-amber-50/50 cursor-pointer transition overflow-hidden group">
                                                 {merchantKoiForm.certificateImage ? (
-                                                    <div className="relative w-full h-36 bg-amber-50/60 flex items-center justify-center overflow-hidden">
+                                                    <div className="relative w-full h-32 bg-amber-50/60 flex items-center justify-center overflow-hidden">
                                                         <img
                                                             src={merchantKoiForm.certificateImage}
                                                             alt="Preview Sertifikat"
@@ -10278,12 +10805,10 @@ export default function AndroidKoiApp({
                                                         </div>
                                                     </div>
                                                 ) : (
-                                                    <div className="p-4 text-center space-y-1.5">
-                                                        <div className="w-10 h-10 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center mx-auto shadow-xs">
-                                                            <Award className="w-5 h-5" />
-                                                        </div>
-                                                        <p className="text-[11px] font-bold text-slate-800">Upload Dokumen Sertifikat Keaslian</p>
-                                                        <p className="text-[9px] text-slate-500">Foto sertifikat silsilah resmi breeder atau APKI</p>
+                                                    <div className="p-3 text-center space-y-1">
+                                                        <Award className="w-5 h-5 text-amber-600/70 mx-auto" />
+                                                        <p className="text-[10.5px] font-bold text-slate-700">Upload Dokumen Sertifikat Keaslian</p>
+                                                        <p className="text-[9px] text-slate-400">Foto sertifikat silsilah resmi breeder atau APKI</p>
                                                     </div>
                                                 )}
                                                 <input
@@ -13261,7 +13786,10 @@ export default function AndroidKoiApp({
                                                             className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-xs flex flex-col justify-between transition-all hover:border-slate-200 group"
                                                         >
                                                             {/* Image & Floating Badges Container */}
-                                                            <div className="relative aspect-4/3 w-full bg-slate-100 overflow-hidden">
+                                                            <div
+                                                                onClick={() => openAuctionDetail(auc)}
+                                                                className="relative aspect-4/3 w-full bg-slate-100 overflow-hidden cursor-pointer"
+                                                            >
                                                                 <img
                                                                     src={auc.image}
                                                                     alt={auc.name}
@@ -13293,12 +13821,26 @@ export default function AndroidKoiApp({
                                                                         <span>{auc.timeLeft}</span>
                                                                     </span>
                                                                 </div>
+
+                                                                {/* Floating Video Tag */}
+                                                                {(auc.video_url || (auc as any).youtube_url) && (
+                                                                    <div className="absolute bottom-1.5 right-1.5 z-10">
+                                                                        <span className="px-1.5 py-0.5 rounded-md bg-red-600/90 text-white font-black text-[8px] backdrop-blur-xs flex items-center gap-1 shadow-2xs">
+                                                                            <Play className="w-2 h-2 fill-white" />
+                                                                            <span>VIDEO</span>
+                                                                        </span>
+                                                                    </div>
+                                                                )}
                                                             </div>
 
                                                             {/* Card Body */}
                                                             <div className="p-2.5 flex-1 flex flex-col justify-between space-y-2">
                                                                 <div>
-                                                                    <h5 className="font-black text-xs text-slate-900 leading-snug line-clamp-2" title={auc.name}>
+                                                                    <h5
+                                                                        onClick={() => openAuctionDetail(auc)}
+                                                                        className="font-black text-xs text-slate-900 leading-snug line-clamp-2 cursor-pointer hover:text-red-600 transition-colors"
+                                                                        title={auc.name}
+                                                                    >
                                                                         {auc.name}
                                                                     </h5>
                                                                     <p className="text-[10px] text-slate-400 font-medium mt-0.5 truncate">
@@ -13322,8 +13864,19 @@ export default function AndroidKoiApp({
                                                                     </div>
                                                                 </div>
 
+                                                                {/* Tombol Cek Detail & Tonton Video */}
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => openAuctionDetail(auc)}
+                                                                    className="w-full py-1.5 px-2 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white rounded-xl font-extrabold text-[10.5px] flex items-center justify-center gap-1.5 transition-all active:scale-95 cursor-pointer shadow-xs"
+                                                                    title={`Cek Detail & Tonton Video ${auc.name}`}
+                                                                >
+                                                                    <Play className="w-3 h-3 fill-white" />
+                                                                    <span>Cek Detail & Video</span>
+                                                                </button>
+
                                                                 {/* Action Buttons: Hapus & Promosikan */}
-                                                                <div className="flex items-center gap-1.5 pt-1">
+                                                                <div className="flex items-center gap-1.5 pt-0.5">
                                                                     <button
                                                                         onClick={() => handleDeleteSellerFish(auc)}
                                                                         className="flex-1 py-1.5 px-2 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200/80 rounded-xl font-extrabold text-[10px] flex items-center justify-center gap-1 transition-all active:scale-95 cursor-pointer shadow-2xs"
@@ -13393,7 +13946,10 @@ export default function AndroidKoiApp({
                                                             className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-xs flex flex-col justify-between transition-all hover:border-slate-200 group"
                                                         >
                                                             {/* Image & Floating Badges Container */}
-                                                            <div className="relative aspect-4/3 w-full bg-slate-100 overflow-hidden">
+                                                            <div
+                                                                onClick={() => openAuctionDetail(auc)}
+                                                                className="relative aspect-4/3 w-full bg-slate-100 overflow-hidden cursor-pointer"
+                                                            >
                                                                 <img
                                                                     src={auc.image}
                                                                     alt={auc.name}
@@ -13425,12 +13981,26 @@ export default function AndroidKoiApp({
                                                                         <span>{auc.timeLeft}</span>
                                                                     </span>
                                                                 </div>
+
+                                                                {/* Floating Video Tag */}
+                                                                {(auc.video_url || (auc as any).youtube_url) && (
+                                                                    <div className="absolute bottom-1.5 right-1.5 z-10">
+                                                                        <span className="px-1.5 py-0.5 rounded-md bg-red-600/90 text-white font-black text-[8px] backdrop-blur-xs flex items-center gap-1 shadow-2xs">
+                                                                            <Play className="w-2 h-2 fill-white" />
+                                                                            <span>VIDEO</span>
+                                                                        </span>
+                                                                    </div>
+                                                                )}
                                                             </div>
 
                                                             {/* Card Body */}
                                                             <div className="p-2.5 flex-1 flex flex-col justify-between space-y-2">
                                                                 <div>
-                                                                    <h5 className="font-black text-xs text-slate-900 leading-snug line-clamp-2" title={auc.name}>
+                                                                    <h5
+                                                                        onClick={() => openAuctionDetail(auc)}
+                                                                        className="font-black text-xs text-slate-900 leading-snug line-clamp-2 cursor-pointer hover:text-red-600 transition-colors"
+                                                                        title={auc.name}
+                                                                    >
                                                                         {auc.name}
                                                                     </h5>
                                                                     <p className="text-[10px] text-slate-400 font-medium mt-0.5 truncate">
@@ -13454,8 +14024,19 @@ export default function AndroidKoiApp({
                                                                     </div>
                                                                 </div>
 
+                                                                {/* Tombol Cek Detail & Tonton Video */}
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => openAuctionDetail(auc)}
+                                                                    className="w-full py-1.5 px-2 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white rounded-xl font-extrabold text-[10.5px] flex items-center justify-center gap-1.5 transition-all active:scale-95 cursor-pointer shadow-xs"
+                                                                    title={`Cek Detail & Tonton Video ${auc.name}`}
+                                                                >
+                                                                    <Play className="w-3 h-3 fill-white" />
+                                                                    <span>Cek Detail & Video</span>
+                                                                </button>
+
                                                                 {/* Action Buttons: Hapus & Promosikan */}
-                                                                <div className="flex items-center gap-1.5 pt-1">
+                                                                <div className="flex items-center gap-1.5 pt-0.5">
                                                                     <button
                                                                         onClick={() => handleDeleteSellerFish(auc)}
                                                                         className="flex-1 py-1.5 px-2 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200/80 rounded-xl font-extrabold text-[10px] flex items-center justify-center gap-1 transition-all active:scale-95 cursor-pointer shadow-2xs"
@@ -13524,7 +14105,10 @@ export default function AndroidKoiApp({
                                                             className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-xs flex flex-col justify-between transition-all hover:border-slate-200 group"
                                                         >
                                                             {/* Image & Badges Container */}
-                                                            <div className="relative aspect-4/3 w-full bg-slate-100 overflow-hidden">
+                                                            <div
+                                                                onClick={() => openAuctionDetail(item)}
+                                                                className="relative aspect-4/3 w-full bg-slate-100 overflow-hidden cursor-pointer"
+                                                            >
                                                                 <img
                                                                     src={item.image}
                                                                     alt={item.name}
@@ -13552,12 +14136,26 @@ export default function AndroidKoiApp({
                                                                         {item.variety}
                                                                     </span>
                                                                 </div>
+
+                                                                {/* Floating Video Tag */}
+                                                                {(item.video_url || (item as any).youtube_url) && (
+                                                                    <div className="absolute bottom-1.5 right-1.5 z-10">
+                                                                        <span className="px-1.5 py-0.5 rounded-md bg-red-600/90 text-white font-black text-[8px] backdrop-blur-xs flex items-center gap-1 shadow-2xs">
+                                                                            <Play className="w-2 h-2 fill-white" />
+                                                                            <span>VIDEO</span>
+                                                                        </span>
+                                                                    </div>
+                                                                )}
                                                             </div>
 
                                                             {/* Card Content */}
                                                             <div className="p-2.5 flex-1 flex flex-col justify-between space-y-2">
                                                                 <div>
-                                                                    <h5 className="font-black text-xs text-slate-900 leading-snug line-clamp-2" title={item.name}>
+                                                                    <h5
+                                                                        onClick={() => openAuctionDetail(item)}
+                                                                        className="font-black text-xs text-slate-900 leading-snug line-clamp-2 cursor-pointer hover:text-red-600 transition-colors"
+                                                                        title={item.name}
+                                                                    >
                                                                         {item.name}
                                                                     </h5>
                                                                     <p className="text-[10px] text-slate-400 font-medium mt-0.5 truncate">
@@ -13584,8 +14182,19 @@ export default function AndroidKoiApp({
                                                                     </div>
                                                                 </div>
 
+                                                                {/* Tombol Utama: Cek Detail & Tonton Video */}
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => openAuctionDetail(item)}
+                                                                    className="w-full py-1.5 px-2 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white rounded-xl font-extrabold text-[10.5px] flex items-center justify-center gap-1.5 transition-all active:scale-95 cursor-pointer shadow-xs"
+                                                                    title={`Cek Detail & Tonton Video ${item.name}`}
+                                                                >
+                                                                    <Play className="w-3 h-3 fill-white" />
+                                                                    <span>Cek Detail & Video</span>
+                                                                </button>
+
                                                                 {/* Action Buttons: Hapus & Promosikan */}
-                                                                <div className="flex items-center gap-1.5 pt-1">
+                                                                <div className="flex items-center gap-1.5 pt-0.5">
                                                                     <button
                                                                         onClick={() => handleDeleteSellerFish(item)}
                                                                         className="flex-1 py-1.5 px-2 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200/80 rounded-xl font-extrabold text-[10px] flex items-center justify-center gap-1 transition-all active:scale-95 cursor-pointer shadow-2xs"
@@ -15649,6 +16258,225 @@ export default function AndroidKoiApp({
                                         className="py-3 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition cursor-pointer"
                                     >
                                         Batal
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* ========================================================= */}
+                {/* MODAL CROP FOTO IKAN KOI INTERAKTIF (SELLER IMAGE CROPPER) */}
+                {/* ========================================================= */}
+                {isCropModalOpen && rawCropImageSrc && (
+                    <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex flex-col justify-end sm:justify-center sm:items-center p-0 sm:p-4 animate-in fade-in duration-200">
+                        <div
+                            className="bg-white rounded-t-[32px] sm:rounded-3xl w-full max-w-md max-h-[92vh] flex flex-col overflow-hidden shadow-2xl animate-in slide-in-from-bottom duration-300"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            {/* Header Modal */}
+                            <div className="p-4 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
+                                <div className="flex items-center gap-2.5">
+                                    <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30">
+                                        <Crop className="w-4 h-4" />
+                                    </div>
+                                    <div>
+                                        <h4 className="font-extrabold text-sm text-white">Sesuaikan Bagian Foto (Crop)</h4>
+                                        <p className="text-[10px] text-slate-400">Geser & zoom untuk memilih bagian terbaik ikan</p>
+                                    </div>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setIsCropModalOpen(false)}
+                                    className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition cursor-pointer"
+                                >
+                                    <X className="w-4 h-4" />
+                                </button>
+                            </div>
+
+                            {/* Area Cropping Viewport */}
+                            <div className="p-4 bg-slate-950 flex flex-col items-center justify-center select-none overflow-hidden">
+                                {(() => {
+                                    const ratioMultiplier = cropAspectRatio === '1:1' ? 1 : cropAspectRatio === '16:9' ? 9 / 16 : 3 / 4;
+                                    const vpW = 320;
+                                    const vpH = Math.round(vpW * ratioMultiplier);
+
+                                    return (
+                                        <div
+                                            style={{ width: `${vpW}px`, height: `${vpH}px` }}
+                                            className="relative overflow-hidden rounded-2xl bg-black border-2 border-red-500 shadow-2xl cursor-grab active:cursor-grabbing touch-none select-none flex items-center justify-center"
+                                            onMouseDown={(e) => {
+                                                setIsDraggingCrop(true);
+                                                setCropDragStart({ x: e.clientX - cropPan.x, y: e.clientY - cropPan.y });
+                                            }}
+                                            onMouseMove={(e) => {
+                                                if (isDraggingCrop) {
+                                                    setCropPan({ x: e.clientX - cropDragStart.x, y: e.clientY - cropDragStart.y });
+                                                }
+                                            }}
+                                            onMouseUp={() => setIsDraggingCrop(false)}
+                                            onMouseLeave={() => setIsDraggingCrop(false)}
+                                            onTouchStart={(e) => {
+                                                const t = e.touches[0];
+                                                if (t) {
+                                                    setIsDraggingCrop(true);
+                                                    setCropDragStart({ x: t.clientX - cropPan.x, y: t.clientY - cropPan.y });
+                                                }
+                                            }}
+                                            onTouchMove={(e) => {
+                                                if (isDraggingCrop && e.touches[0]) {
+                                                    const t = e.touches[0];
+                                                    setCropPan({ x: t.clientX - cropDragStart.x, y: t.clientY - cropDragStart.y });
+                                                }
+                                            }}
+                                            onTouchEnd={() => setIsDraggingCrop(false)}
+                                        >
+                                            {/* Gambar yang di-crop */}
+                                            <img
+                                                src={rawCropImageSrc}
+                                                alt="Crop Preview"
+                                                draggable={false}
+                                                style={{
+                                                    transform: `translate(${cropPan.x}px, ${cropPan.y}px) scale(${cropZoom}) rotate(${cropRotation}deg)`,
+                                                    transformOrigin: 'center center',
+                                                }}
+                                                className="w-full h-full object-cover max-w-none pointer-events-none select-none transition-transform duration-75"
+                                            />
+
+                                            {/* Rule of Thirds Grid Overlay */}
+                                            <div className="absolute inset-0 pointer-events-none grid grid-cols-3 grid-rows-3 border border-white/20">
+                                                <div className="border-r border-b border-white/20" />
+                                                <div className="border-r border-b border-white/20" />
+                                                <div className="border-b border-white/20" />
+                                                <div className="border-r border-b border-white/20" />
+                                                <div className="border-r border-b border-white/20" />
+                                                <div className="border-b border-white/20" />
+                                                <div className="border-r border-white/20" />
+                                                <div className="border-r border-white/20" />
+                                                <div />
+                                            </div>
+
+                                            {/* Corner L-Brackets */}
+                                            <div className="absolute top-1.5 left-1.5 w-4 h-4 border-t-2 border-l-2 border-white pointer-events-none shadow-xs" />
+                                            <div className="absolute top-1.5 right-1.5 w-4 h-4 border-t-2 border-r-2 border-white pointer-events-none shadow-xs" />
+                                            <div className="absolute bottom-1.5 left-1.5 w-4 h-4 border-b-2 border-l-2 border-white pointer-events-none shadow-xs" />
+                                            <div className="absolute bottom-1.5 right-1.5 w-4 h-4 border-b-2 border-r-2 border-white pointer-events-none shadow-xs" />
+
+                                            {/* Floating hint pill */}
+                                            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 pointer-events-none">
+                                                <span className="px-2 py-0.5 rounded-full bg-black/70 backdrop-blur-xs text-white/90 text-[9px] font-bold shadow-md">
+                                                    👆 Geser foto untuk atur posisi
+                                                </span>
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
+                            </div>
+
+                            {/* Controls Bar */}
+                            <div className="p-4 bg-white space-y-3.5 border-t border-slate-100 overflow-y-auto">
+                                {/* Pilihan Rasio Foto */}
+                                <div>
+                                    <label className="text-[10.5px] font-bold text-slate-500 mb-1 block">Rasio Crop Foto:</label>
+                                    <div className="grid grid-cols-3 gap-1.5">
+                                        {[
+                                            { id: '4:3', label: '4:3 (Landscape)', sub: 'Terbaik utk Koi' },
+                                            { id: '1:1', label: '1:1 (Persegi)', sub: 'Katalog Box' },
+                                            { id: '16:9', label: '16:9 (Wide)', sub: 'Banner Lebar' },
+                                        ].map((r) => (
+                                            <button
+                                                key={r.id}
+                                                type="button"
+                                                onClick={() => {
+                                                    setCropAspectRatio(r.id as any);
+                                                    setCropPan({ x: 0, y: 0 });
+                                                }}
+                                                className={`py-1.5 px-2 rounded-xl text-center border transition active:scale-95 cursor-pointer ${
+                                                    cropAspectRatio === r.id
+                                                        ? 'bg-red-50 border-red-500 text-red-600 font-extrabold shadow-2xs'
+                                                        : 'bg-slate-50 border-slate-200 text-slate-600 font-bold hover:bg-slate-100'
+                                                }`}
+                                            >
+                                                <span className="text-[11px] block">{r.label}</span>
+                                                <span className="text-[8.5px] block opacity-75">{r.sub}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Zoom Slider & Controls */}
+                                <div className="space-y-1">
+                                    <div className="flex items-center justify-between text-[11px] font-bold text-slate-700">
+                                        <span className="flex items-center gap-1">
+                                            <ZoomIn className="w-3.5 h-3.5 text-slate-500" />
+                                            <span>Perbesar / Zoom: {Math.round(cropZoom * 100)}%</span>
+                                        </span>
+                                        <div className="flex items-center gap-1">
+                                            <button
+                                                type="button"
+                                                onClick={() => setCropRotation((prev) => (prev + 90) % 360)}
+                                                className="px-2 py-0.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-bold flex items-center gap-1 transition cursor-pointer"
+                                                title="Putar 90 Derajat"
+                                            >
+                                                <RotateCw className="w-3 h-3" />
+                                                <span>Putar 90°</span>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setCropZoom(1);
+                                                    setCropPan({ x: 0, y: 0 });
+                                                    setCropRotation(0);
+                                                }}
+                                                className="px-2 py-0.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-bold transition cursor-pointer"
+                                            >
+                                                Reset
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-2.5">
+                                        <button
+                                            type="button"
+                                            onClick={() => setCropZoom((z) => Math.max(0.8, Number((z - 0.1).toFixed(2))))}
+                                            className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 font-bold text-sm cursor-pointer"
+                                        >
+                                            <ZoomOut className="w-3.5 h-3.5" />
+                                        </button>
+                                        <input
+                                            type="range"
+                                            min="0.8"
+                                            max="3"
+                                            step="0.05"
+                                            value={cropZoom}
+                                            onChange={(e) => setCropZoom(parseFloat(e.target.value))}
+                                            className="flex-1 accent-red-600 h-1.5 bg-slate-200 rounded-lg cursor-pointer"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setCropZoom((z) => Math.min(3, Number((z + 0.1).toFixed(2))))}
+                                            className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 font-bold text-sm cursor-pointer"
+                                        >
+                                            <ZoomIn className="w-3.5 h-3.5" />
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Action Buttons */}
+                                <div className="flex items-center gap-2 pt-1">
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsCropModalOpen(false)}
+                                        className="flex-1 py-2.5 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition cursor-pointer"
+                                    >
+                                        Batal
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={handleExecuteCropImage}
+                                        className="flex-[2] py-2.5 px-4 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white font-black text-xs rounded-xl shadow-md transition active:scale-98 flex items-center justify-center gap-2 cursor-pointer"
+                                    >
+                                        <Check className="w-4 h-4 stroke-[2.5]" />
+                                        <span>Terapkan & Pakai Foto</span>
                                     </button>
                                 </div>
                             </div>

@@ -397,6 +397,8 @@ class StoreController extends Controller
             'description' => 'nullable|string',
             'status' => 'nullable|in:active,inactive,draft',
             'origin' => 'nullable|string|max:100',
+            'video_url' => 'nullable|string|max:500',
+            'youtube_url' => 'nullable|string|max:500',
             'image_url' => 'nullable|string',
             'image' => 'nullable|string',
             'certificate_image' => 'nullable|string',
@@ -419,6 +421,8 @@ class StoreController extends Controller
             $description .= "\n\nNomor Sertifikat Resmi: " . $validated['certificate_no'];
         }
 
+        $videoUrl = $validated['video_url'] ?? ($validated['youtube_url'] ?? null);
+
         $product = Product::create([
             'store_id' => $store->id,
             'category_id' => $categoryId,
@@ -431,6 +435,7 @@ class StoreController extends Controller
             'stock' => $validated['stock'] ?? 1,
             'status' => $validated['status'] ?? 'active',
             'origin' => $validated['origin'] ?? ($store->city ?: 'Blitar'),
+            'video_url' => $videoUrl,
             'description' => $description,
             'is_auction_eligible' => true,
         ]);
@@ -484,6 +489,8 @@ class StoreController extends Controller
             'description' => 'nullable|string',
             'status' => 'required|in:active,inactive,draft',
             'origin' => 'nullable|string|max:100',
+            'video_url' => 'nullable|string|max:500',
+            'youtube_url' => 'nullable|string|max:500',
             'image_url' => 'nullable|string',
         ]);
 

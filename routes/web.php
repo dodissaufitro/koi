@@ -15,24 +15,8 @@ use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\HomeController;
 
-// Landing Page Spesialis Ikan Koi & Katalog (Default diarahkan ke Pelelangan)
-Route::get('/', function (\Illuminate\Http\Request $request) {
-    if (app()->runningUnitTests()) {
-        return app(HomeController::class)->index($request);
-    }
-
-    $userAgent = $request->userAgent() ?? '';
-    $isMobile = preg_match('/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i', $userAgent)
-        || $request->query('view') === 'android'
-        || $request->has('screen')
-        || $request->cookie('koki_view_mode') === 'android';
-
-    if (!$isMobile && $request->query('view') !== 'desktop' && !$request->wantsJson()) {
-        return redirect()->route('auctions.index');
-    }
-
-    return app(HomeController::class)->index($request);
-})->name('home');
+// Landing Page Spesialis Ikan Koi & Katalog
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
 Route::get('/beranda', [HomeController::class, 'index'])->name('landing');
 Route::get('/products', [ProductController::class, 'index'])->name('products.index');

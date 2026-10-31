@@ -40,7 +40,10 @@ export default function AuctionIndex({
         const urlParams = new URLSearchParams(window.location.search);
         const isAndroidView = isMobileDevice || localStorage.getItem('koki_view_mode') === 'android';
         if (isAndroidView && urlParams.get('view') !== 'desktop') {
-            const savedScreen = localStorage.getItem('koki_last_screen') || 'highest_auction';
+            let savedScreen = localStorage.getItem('koki_last_screen') || 'highest_auction';
+            if (['seller_center', 'merchant_add_koi', 'orders', 'my_bids'].includes(savedScreen)) {
+                savedScreen = 'highest_auction';
+            }
             router.visit(`/?view=android&screen=${encodeURIComponent(savedScreen)}`, { replace: true });
         }
     }, []);

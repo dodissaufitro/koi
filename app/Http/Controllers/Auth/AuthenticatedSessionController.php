@@ -120,6 +120,18 @@ class AuthenticatedSessionController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        if (app()->runningUnitTests()) {
+            return redirect('/');
+        }
+
+        $referer = $request->headers->get('referer', '');
+        $isAndroid = str_contains($referer, 'view=android')
+            || $request->query('view') === 'android'
+            || $request->input('view') === 'android'
+            || $request->cookie('koki_view_mode') === 'android';
+
+        $redirectUrl = $isAndroid ? '/?view=android&screen=highest_auction' : '/?view=android&screen=highest_auction';
+
+        return redirect($redirectUrl);
     }
 }

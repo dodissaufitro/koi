@@ -14,10 +14,18 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->trustProxies(at: '*');
+        $middleware->encryptCookies(except: [
+            'koki_view_mode',
+            'koki_theme',
+        ]);
         $middleware->validateCsrfTokens(except: [
+            'login',
+            'logout',
             'auth/google/native',
             'auctions/*/bid',
             'my-bids',
+            'seller/products*',
+            'seller/auctions*',
             'api/*',
         ]);
         $middleware->alias([
@@ -28,5 +36,17 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
+        $exceptions->respond(function ($response, Throwable $exception, \Illuminate\Http\Request $request) {
+            if ($response->getStatusCode() === 419) {
+                if ($request->wantsJson() || $request->ajax()) {
+                    return response()->json([
+                        'message' => 'Sesi telah kedaluwarsa. Silakan refresh halaman dan coba kembali.',
+                    ], 419);
+                }
+                return back()->with([
+                    'message' => 'Sesi halaman telah diperbarui. Silakan coba kembali.',
+                ]);
+            }
+            return $response;
+        });
     })->create();

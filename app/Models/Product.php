@@ -27,6 +27,7 @@ class Product extends Model
         'catch_type',
         'origin',
         'age',
+        'video_url',
         'status',
         'is_auction_eligible',
         'auction_curated_at',
