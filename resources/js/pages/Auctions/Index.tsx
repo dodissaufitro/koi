@@ -26,19 +26,18 @@ export default function AuctionIndex({
     favoriteAuctions,
     currentTab,
 }: Props) {
-    const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+    const [theme, setTheme] = useState<'dark' | 'light'>('light');
     useEffect(() => {
         const savedTheme = localStorage.getItem('koki_theme') as 'dark' | 'light' | null;
-        if (savedTheme) {
-            setTheme(savedTheme);
-        }
+        setTheme(savedTheme === 'dark' ? 'dark' : 'light');
     }, []);
 
     useEffect(() => {
         if (typeof window === 'undefined') return;
-        const isMobileDevice = window.innerWidth < 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         const urlParams = new URLSearchParams(window.location.search);
-        const isAndroidView = isMobileDevice || localStorage.getItem('koki_view_mode') === 'android';
+        const isAndroidView =
+            window.innerWidth < 768 ||
+            (urlParams.get('view') === 'android' && sessionStorage.getItem('koki_android_simulator') === '1');
         if (isAndroidView && urlParams.get('view') !== 'desktop') {
             let savedScreen = localStorage.getItem('koki_last_screen') || 'highest_auction';
             if (['seller_center', 'merchant_add_koi', 'orders', 'my_bids'].includes(savedScreen)) {
@@ -80,7 +79,7 @@ export default function AuctionIndex({
                             <span>Katalog & Beranda</span>
                         </Link>
 
-                        <div className="flex items-center gap-1.5 text-xs font-bold text-amber-500">
+                        <div className="flex items-center gap-1.5 text-xs font-bold text-[#bf1e26]">
                             <Gavel className="h-4 w-4" />
                             <span>Bursa Lelang Koi</span>
                         </div>
@@ -90,7 +89,7 @@ export default function AuctionIndex({
                         onClick={toggleTheme}
                         className={`flex h-9 w-9 items-center justify-center rounded-xl border transition ${
                             isDark
-                                ? 'border-white/10 bg-[#121824] text-amber-300 hover:border-amber-400/40'
+                                ? 'border-white/10 bg-[#121824] text-red-300 hover:border-[#bf1e26]/40'
                                 : 'border-slate-200 bg-white text-slate-600 hover:text-slate-900 shadow-xs'
                         }`}
                         title={isDark ? 'Ganti Tema Terang' : 'Ganti Tema Gelap'}
@@ -105,7 +104,7 @@ export default function AuctionIndex({
                 {/* Banner & Tab Switcher */}
                 <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
                     <div>
-                        <div className="inline-flex items-center gap-2 text-[10px] font-bold tracking-[0.2em] text-amber-500 uppercase mb-1">
+                        <div className="inline-flex items-center gap-2 text-[10px] font-bold tracking-[0.2em] text-[#bf1e26] uppercase mb-1">
                             <Radio className="h-3 w-3 animate-pulse text-red-500" />
                             <span>Live Bidding Room</span>
                         </div>
@@ -123,12 +122,12 @@ export default function AuctionIndex({
                             className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition ${
                                 currentTab === 'highest'
                                     ? isDark
-                                        ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                                        : 'bg-amber-50 text-amber-800 border border-amber-300'
+                                        ? 'bg-[#bf1e26]/20 text-red-300 border border-[#bf1e26]/30'
+                                        : 'bg-red-50 text-[#98151e] border border-[#bf1e26]/30'
                                     : 'text-slate-500 hover:text-slate-900 dark:hover:text-slate-200'
                             }`}
                         >
-                            <Flame className="h-3.5 w-3.5 text-amber-500" />
+                            <Flame className="h-3.5 w-3.5 text-[#bf1e26]" />
                             <span>Lelang Tertinggi ({highestBidAuctions.length})</span>
                         </button>
 
@@ -158,13 +157,15 @@ export default function AuctionIndex({
                                 href={`/auctions/${auction.id}`}
                                 className={`group rounded-3xl border overflow-hidden flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 ${
                                     isDark
-                                        ? 'bg-[#0E1420]/80 border-white/10 hover:border-amber-400/40 hover:shadow-xl hover:shadow-amber-500/5'
-                                        : 'bg-white border-slate-200 hover:border-amber-300 hover:shadow-lg'
+                                        ? 'bg-[#0E1420]/80 border-white/10 hover:border-[#bf1e26]/40 hover:shadow-xl hover:shadow-red-500/5'
+                                        : 'bg-white border-slate-200 hover:border-[#bf1e26]/30 hover:shadow-lg'
                                 }`}
                             >
                                 <div>
                                     <div className="relative aspect-[16/11] overflow-hidden bg-slate-950">
                                         <img
+                                    loading="lazy"
+                                    decoding="async"
                                             src={img}
                                             alt={auction.product?.name || 'Koi Lelang'}
                                             className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
@@ -179,7 +180,7 @@ export default function AuctionIndex({
 
                                         <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-[11px] text-white">
                                             <div className="flex items-center gap-1 bg-black/60 backdrop-blur px-2.5 py-1 rounded-lg">
-                                                <Clock className="h-3 w-3 text-amber-400" />
+                                                <Clock className="h-3 w-3 text-[#d52a30]" />
                                                 <span>{new Date(auction.end_time).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}</span>
                                             </div>
                                             <div className="flex items-center gap-1 bg-black/60 backdrop-blur px-2.5 py-1 rounded-lg">
@@ -192,11 +193,11 @@ export default function AuctionIndex({
                                     <div className="p-5">
                                         <div className="flex items-center justify-between text-[10px] text-slate-500 font-semibold mb-1">
                                             <span className="uppercase">{auction.product?.origin || 'Import Jepang'}</span>
-                                            <span className="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-700 dark:text-amber-300 font-bold border border-amber-500/20">
+                                            <span className="px-1.5 py-0.5 rounded bg-[#bf1e26]/10 text-[#98151e] dark:text-red-300 font-bold border border-[#bf1e26]/20">
                                                 {formatAgeInYears(auction.product?.age || auction.age)}
                                             </span>
                                         </div>
-                                        <h3 className={`text-base font-bold line-clamp-1 transition ${isDark ? 'text-slate-100 group-hover:text-amber-300' : 'text-slate-900 group-hover:text-amber-600'}`}>
+                                        <h3 className={`text-base font-bold line-clamp-1 transition ${isDark ? 'text-slate-100 group-hover:text-red-300' : 'text-slate-900 group-hover:text-[#bf1e26]'}`}>
                                             {auction.product?.name}
                                         </h3>
                                     </div>
@@ -206,7 +207,7 @@ export default function AuctionIndex({
                                     <div className="flex items-center justify-between">
                                         <div>
                                             <span className="text-[10px] text-slate-500 uppercase block font-semibold">Tawaran Tertinggi</span>
-                                            <span className="text-lg font-bold font-serif text-amber-600 dark:text-amber-300">
+                                            <span className="text-lg font-bold font-serif text-[#bf1e26] dark:text-red-300">
                                                 Rp {Number(auction.current_bid).toLocaleString('id-ID')}
                                             </span>
                                         </div>
@@ -220,13 +221,13 @@ export default function AuctionIndex({
                                         <span className="text-slate-500 dark:text-slate-400">
                                             <strong className="text-slate-700 dark:text-slate-300 font-bold">OB:</strong> Rp {Number(auction.start_price).toLocaleString('id-ID')}
                                         </span>
-                                        <span className="text-amber-600 dark:text-amber-400 font-semibold">
+                                        <span className="text-[#bf1e26] dark:text-[#d52a30] font-semibold">
                                             <strong className="font-bold">KB:</strong> +Rp {Number(auction.bid_increment).toLocaleString('id-ID')}
                                         </span>
                                     </div>
 
                                     <div className="pt-1">
-                                        <span className="w-full py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-sm">
+                                        <span className="w-full py-2 rounded-xl bg-[#bf1e26] hover:bg-[#bf1e26] text-white text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-sm">
                                             <Gavel className="w-3.5 h-3.5" />
                                             <span>Masuk Ruang Lelang</span>
                                         </span>

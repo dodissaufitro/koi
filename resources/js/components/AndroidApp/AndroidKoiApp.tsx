@@ -1416,7 +1416,7 @@ export const convertWonAuctionToMyKoi = (
 
     // Matching order for quarantine/shipping/completed status
     const safeOrders = Array.isArray(orders) ? orders : [];
-    const matchedOrder = safeOrders.find((o: any) => 
+    const matchedOrder = safeOrders.find((o: any) =>
         (o?.auctionId && String(o.auctionId) === auctionId) ||
         (o?.product?.name && name && String(o.product.name).toLowerCase() === String(name).toLowerCase())
     );
@@ -2468,7 +2468,7 @@ export default function AndroidKoiApp({
     // 1. Masuk dengan Google: MUTLAK HANYA UNTUK BIDDER (melakukan bid lelang & membeli ikan).
     // 2. Form Email & Password: Untuk Seller (upload ikan & kelola lapak) dan SuperAdmin.
     const isGoogleAccount = Boolean(
-        authUser?.google_id || 
+        authUser?.google_id ||
         (authUser as any)?.provider === 'google'
     );
 
@@ -3183,7 +3183,7 @@ export default function AndroidKoiApp({
     const handleFontSizePercentChange = (percent: number) => {
         const bounded = Math.min(140, Math.max(90, percent));
         setFontSizePercent(bounded);
-        const mappedScale: 'normal' | 'large' | 'xlarge' = 
+        const mappedScale: 'normal' | 'large' | 'xlarge' =
             bounded >= 125 ? 'xlarge' : bounded >= 108 ? 'large' : 'normal';
         setFontSizeScale(mappedScale);
         if (typeof window !== 'undefined') {
@@ -5585,7 +5585,7 @@ export default function AndroidKoiApp({
             `}</style>
 
             {/* ANDROID DEVICE WRAPPER (Mobile width container with Android aesthetics) */}
-            <div 
+            <div
                 className={`w-full sm:max-w-[420px] h-[100dvh] sm:h-[892px] sm:max-h-[92vh] bg-white sm:rounded-[40px] shadow-2xl overflow-hidden flex flex-col relative border-0 sm:border-[8px] sm:border-slate-800 font-scaler-root font-scale-${fontSizeScale}`}
                 style={{ '--f-factor': fontSizePercent / 100 } as React.CSSProperties}
             >
@@ -6001,25 +6001,25 @@ export default function AndroidKoiApp({
                                     return (
                                         <div id="beranda-event-spesial-section" className="space-y-3.5 scroll-mt-3">
                                             {/* Section Header */}
-                                            <div className="flex items-center justify-between px-0.5">
-                                                <div className="flex items-center gap-2">
-                                                    <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-500 to-red-500 text-white flex items-center justify-center shadow-md shadow-amber-500/20">
+                                            <div className="flex flex-col gap-3 px-0.5 min-[390px]:flex-row min-[390px]:items-center min-[390px]:justify-between">
+                                                <div className="flex min-w-0 items-center gap-2.5">
+                                                    <div className="w-9 h-9 shrink-0 rounded-xl bg-gradient-to-br from-amber-500 to-red-500 text-white flex items-center justify-center shadow-md shadow-amber-500/20">
                                                         <Sparkles className="w-4 h-4" />
                                                     </div>
-                                                    <div>
-                                                        <h3 className="font-extrabold text-xs sm:text-sm text-slate-900 tracking-tight flex items-center gap-1.5">
+                                                    <div className="min-w-0">
+                                                        <h3 className="font-extrabold text-sm text-slate-900 tracking-tight flex flex-wrap items-center gap-x-1.5 gap-y-0.5 leading-tight">
                                                             <span>Event & Promo Spesial</span>
-                                                            <span className="px-1.5 py-0.2 bg-red-100 text-red-700 font-black text-[9px] rounded-full border border-red-200">
+                                                            <span className="shrink-0 px-1.5 py-0.5 bg-red-100 text-red-700 font-black text-[9px] leading-none rounded-full border border-red-200">
                                                                 LIVE
                                                             </span>
                                                         </h3>
-                                                        <p className="text-[10px] text-slate-500">Lelang akbar kurasi khusus & flash bid terbatas</p>
+                                                        <p className="mt-0.5 text-[11px] leading-snug text-slate-500">Lelang akbar kurasi khusus & flash bid terbatas</p>
                                                     </div>
                                                 </div>
 
                                                 <button
                                                     onClick={() => setIsEventDetailModalOpen(true)}
-                                                    className="flex items-center gap-1 text-[11px] font-bold text-red-600 hover:text-red-700 active:scale-95 transition bg-red-50 hover:bg-red-100/70 px-2.5 py-1.5 rounded-xl cursor-pointer"
+                                                    className="flex w-full shrink-0 items-center justify-center gap-1.5 rounded-xl bg-red-50 px-3 py-2 text-xs font-bold leading-tight text-red-600 transition hover:bg-red-100/70 hover:text-red-700 active:scale-95 min-[390px]:w-auto min-[390px]:py-2.5 cursor-pointer"
                                                 >
                                                     <span>Jadwal & Aturan</span>
                                                     <ChevronRight className="w-3.5 h-3.5" />
@@ -6027,22 +6027,22 @@ export default function AndroidKoiApp({
                                             </div>
 
                                             {/* Event Selector Tab Pills */}
-                                            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth pb-0.5 select-none">
+                                            <div className="flex min-w-0 items-center gap-2 overflow-x-auto overflow-y-hidden no-scrollbar scroll-smooth pb-1 px-1 -mx-1 select-none">
                                                 {SPECIAL_EVENTS_DATA.map((evt) => {
                                                     const isSelected = activeSpecialEventId === evt.id;
                                                     return (
                                                         <button
                                                             key={evt.id}
                                                             onClick={() => setActiveSpecialEventId(evt.id)}
-                                                            className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all active:scale-95 cursor-pointer ${
+                                                        className={`w-max shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all active:scale-95 cursor-pointer ${
                                                                 isSelected
                                                                     ? 'bg-slate-900 text-white shadow-md shadow-slate-900/20 ring-2 ring-slate-900'
                                                                     : 'bg-white text-slate-700 border border-slate-200/90 hover:bg-slate-50'
                                                             }`}
                                                         >
                                                             <span className="text-amber-400">★</span>
-                                                            <span>{evt.title.split(':')[0].trim()}</span>
-                                                            <span className={`text-[8px] font-black px-1.5 py-0.2 rounded-full uppercase tracking-wider ${
+                                                            <span className="max-w-[min(48vw,15rem)] truncate">{evt.title.split(':')[0].trim()}</span>
+                                                            <span className={`shrink-0 text-[8px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-wider ${
                                                                 isSelected
                                                                     ? 'bg-amber-400 text-stone-950'
                                                                     : 'bg-slate-100 text-slate-600'
@@ -6259,7 +6259,7 @@ export default function AndroidKoiApp({
                                                 <div className="w-2 h-2 rounded-full bg-red-600 animate-pulse" />
                                                 <h3 className="font-bold text-sm text-slate-900 flex items-center gap-1.5">
                                                     <span>Kabar & Pengumuman Event</span>
-                                                    <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                                                    <Sparkles className="w-3.5 h-3.5 text-[#bf1e26]" />
                                                 </h3>
                                             </div>
                                             <span className="text-[10px] font-semibold text-slate-400 flex items-center gap-0.5">
@@ -6309,7 +6309,7 @@ export default function AndroidKoiApp({
                                                         {/* Author / Date Pill on Top Right */}
                                                         <div className="absolute top-2.5 right-2.5 z-10">
                                                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md text-white text-[9px] font-medium border border-white/10">
-                                                                <Calendar className="w-2.5 h-2.5 text-amber-300" />
+                                                                <Calendar className="w-2.5 h-2.5 text-red-300" />
                                                                 <span>{art.author_name || 'Official'}</span>
                                                             </span>
                                                         </div>
@@ -6668,7 +6668,7 @@ export default function AndroidKoiApp({
                                                         <MapPin className="w-3 h-3 text-red-400 shrink-0" />
                                                         {OFFICIAL_KOI_GALLERY.city}
                                                     </span>
-                                                    <span className="flex items-center gap-1 text-amber-400 font-bold">
+                                                    <span className="flex items-center gap-1 text-[#d52a30] font-bold">
                                                         <Star className="w-3 h-3 fill-amber-400" />
                                                         5.0 (480+ Ulasan)
                                                     </span>
@@ -6747,6 +6747,7 @@ export default function AndroidKoiApp({
                                                             alt={prod.name}
                                                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                                         />
+
                                                         {(prod as any).is_auction_eligible ? (
                                                             <span className="absolute top-2 left-2 px-2 py-0.5 bg-gradient-to-r from-amber-500 to-amber-600 text-stone-950 text-[9px] font-black rounded-full shadow-sm flex items-center gap-0.5">
                                                                 <Award className="w-2.5 h-2.5 fill-stone-950" />
@@ -6810,7 +6811,7 @@ export default function AndroidKoiApp({
                                     <div className="space-y-3 pt-2">
                                         <div className="flex justify-between items-center">
                                             <div className="flex items-center gap-1.5">
-                                                <Sparkles className="w-4 h-4 text-amber-500" />
+                                                <Sparkles className="w-4 h-4 text-[#bf1e26]" />
                                                 <h3 className="font-bold text-sm text-slate-900">Partner & Sponsor Iklan</h3>
                                             </div>
                                             <span className="text-[10px] text-slate-400 font-medium">Official Media</span>
@@ -6857,7 +6858,7 @@ export default function AndroidKoiApp({
                                                                     className="w-full h-full object-cover"
                                                                 />
                                                                 <div className="absolute top-2 left-2">
-                                                                    <span className="px-2 py-0.5 rounded-full bg-amber-500 text-stone-950 font-bold text-[9px] uppercase shadow">
+                                                                    <span className="px-2 py-0.5 rounded-full bg-[#bf1e26] text-white font-bold text-[9px] uppercase shadow">
                                                                         {ad.badge_text || 'IKLAN RESMI'}
                                                                     </span>
                                                                 </div>
@@ -6887,7 +6888,7 @@ export default function AndroidKoiApp({
                                                                         href={ad.custom_url}
                                                                         target={ad.target_type || '_blank'}
                                                                         rel="noopener noreferrer"
-                                                                        className="inline-flex items-center gap-1 px-3 py-1 bg-amber-500 hover:bg-amber-600 text-stone-950 font-bold text-[10px] rounded-full shadow-xs"
+                                                                        className="inline-flex items-center gap-1 px-3 py-1 bg-[#bf1e26] hover:bg-[#bf1e26] text-white font-bold text-[10px] rounded-full shadow-xs"
                                                                     >
                                                                         <span>Kunjungi Link</span>
                                                                         <ExternalLink className="w-2.5 h-2.5" />
@@ -6979,16 +6980,16 @@ export default function AndroidKoiApp({
 
                             {/* Info Banner Belum Dibayar */}
                             <div className="px-4 pt-3 pb-1">
-                                <div className="bg-amber-50/90 border border-amber-200/80 rounded-2xl p-3.5 flex items-start gap-3 shadow-xs">
-                                    <div className="p-2 bg-amber-100 rounded-xl text-amber-700 shrink-0 mt-0.5 shadow-2xs">
+                                <div className="bg-red-50/90 border border-[#bf1e26]/20/80 rounded-2xl p-3.5 flex items-start gap-3 shadow-xs">
+                                    <div className="p-2 bg-red-100 rounded-xl text-[#98151e] shrink-0 mt-0.5 shadow-2xs">
                                         <Clock className="w-4 h-4" />
                                     </div>
                                     <div className="text-xs text-amber-900 flex-1">
-                                        <p className="font-bold text-[11px] uppercase tracking-wide text-amber-800 flex items-center gap-1.5">
+                                        <p className="font-bold text-[11px] uppercase tracking-wide text-[#98151e] flex items-center gap-1.5">
                                             <span>Ikan Belum Dibayar Masuk Keranjang</span>
-                                            <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                                            <span className="w-2 h-2 rounded-full bg-[#bf1e26] animate-pulse"></span>
                                         </p>
-                                        <p className="text-[11px] text-amber-700 leading-relaxed mt-0.5">
+                                        <p className="text-[11px] text-[#98151e] leading-relaxed mt-0.5">
                                             Ikan yang belum dibayar tersimpan di keranjang ini. Segera selesaikan pembayaran sebelum batas waktu berakhir agar stok tidak lepas ke pembeli lain.
                                         </p>
                                     </div>
@@ -7086,8 +7087,8 @@ export default function AndroidKoiApp({
                                                                     {item.age}
                                                                 </span>
                                                             )}
-                                                            <span className="px-2 py-0.5 bg-amber-100 text-amber-800 text-[9px] font-bold rounded-full flex items-center gap-1">
-                                                                <Clock className="w-2.5 h-2.5 text-amber-600" />
+                                                            <span className="px-2 py-0.5 bg-red-100 text-[#98151e] text-[9px] font-bold rounded-full flex items-center gap-1">
+                                                                <Clock className="w-2.5 h-2.5 text-[#bf1e26]" />
                                                                 Belum Dibayar
                                                             </span>
                                                         </div>
@@ -7169,375 +7170,97 @@ export default function AndroidKoiApp({
                     {/* ========================================================================= */}
                     {currentScreen === 'highest_auction' && (
                         <div className="flex-1 flex flex-col bg-slate-50 pb-20">
-                            {/* Top Bar Header */}
-                            <div className="bg-gradient-to-b from-white via-white to-slate-50/70 border-b border-slate-200/80 shadow-xs z-20 sticky top-0 backdrop-blur-md">
-                                <div className="px-4 py-2.5 flex items-center justify-between gap-3">
-                                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                                        {screenStack.length > 1 && (
-                                            <button 
-                                                onClick={goBack} 
-                                                className="w-8 h-8 flex items-center justify-center hover:bg-slate-100 active:bg-slate-200 rounded-full text-slate-700 -ml-1 shrink-0 transition active:scale-90 cursor-pointer"
-                                                aria-label="Kembali"
-                                            >
-                                                <ArrowLeft className="w-5 h-5" />
-                                            </button>
-                                        )}
-                                        <div className="relative shrink-0">
-                                            <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-red-600 via-rose-500 to-red-500 flex items-center justify-center p-2 shadow-md shadow-red-500/25 ring-2 ring-red-100/80">
-                                                <Gavel className="w-4.5 h-4.5 text-white -rotate-12 drop-shadow-xs" />
-                                            </div>
-                                            <span className="absolute -top-0.5 -right-0.5 flex h-2.5 w-2.5">
-                                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500 ring-2 ring-white"></span>
-                                            </span>
-                                        </div>
-                                        <div className="flex flex-col items-start min-w-0">
-                                            <h3 className="font-extrabold text-[15px] text-slate-900 tracking-tight leading-none truncate">
-                                                Bursa Lelang Koi
-                                            </h3>
-                                            <div className="flex items-center gap-1.5 mt-1">
-                                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-red-600 text-white text-[8px] font-black uppercase tracking-wider shadow-2xs">
-                                                    <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
-                                                    LIVE
-                                                </span>
-                                                <span className="text-[9.5px] font-bold text-slate-400 tracking-tight">
-                                                    Realtime Bidding
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Tombol Pengatur Ukuran Tulisan (Slider Tarik Interaktif) */}
-                                    <div className="relative shrink-0">
-                                        <button
-                                            onClick={() => setIsFontSizeDropdownOpen(prev => !prev)}
-                                            className="h-8 px-2.5 rounded-xl bg-slate-100/90 hover:bg-slate-200/80 active:scale-95 border border-slate-200/90 text-slate-800 flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer group"
-                                            title="Tarik untuk atur ukuran tulisan"
-                                            aria-expanded={isFontSizeDropdownOpen}
-                                        >
-                                            <Type className="w-3.5 h-3.5 text-red-500 group-hover:scale-110 transition-transform shrink-0" />
-                                            <span className="font-extrabold text-[11px] text-slate-800 tracking-tight">
-                                                {fontSizePercent}%
-                                            </span>
-                                            <ChevronDown className={`w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600 transition-transform duration-200 ${isFontSizeDropdownOpen ? 'rotate-180 text-red-600' : ''}`} />
+                            <div className="bg-white border-b border-slate-200 px-4 py-3 sticky top-0 z-20">
+                                <div className="flex items-center justify-between gap-3">
+                                    <div className="flex items-center gap-2 min-w-0">
+                                        <button onClick={goBack} className="p-1.5 hover:bg-slate-100 rounded-full text-slate-800" aria-label="Kembali">
+                                            <ArrowLeft className="w-5 h-5" />
                                         </button>
-
-                                        {/* Slider Tarik Popover Card */}
-                                        {isFontSizeDropdownOpen && (
-                                            <>
-                                                {/* Backdrop agar klik di luar menutup menu */}
-                                                <div
-                                                    className="fixed inset-0 z-40 bg-transparent"
-                                                    onClick={() => setIsFontSizeDropdownOpen(false)}
-                                                />
-                                                <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-2xl shadow-xl border border-slate-200/90 p-3 z-50 animate-in fade-in zoom-in-95 duration-150">
-                                                    {/* Header Popover */}
-                                                    <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-                                                        <div className="flex items-center gap-1.5">
-                                                            <Type className="w-3.5 h-3.5 text-red-600 shrink-0" />
-                                                            <span className="text-[11px] font-black uppercase tracking-wider text-slate-700">
-                                                                Ukuran Teks
-                                                            </span>
-                                                        </div>
-                                                        <div className="flex items-center gap-1">
-                                                            <span className="px-2 py-0.5 rounded-full bg-red-50 text-red-600 text-[11px] font-black border border-red-200/60">
-                                                                {fontSizePercent}%
-                                                            </span>
-                                                            <span className="text-[10px] font-bold text-slate-500">
-                                                                {getFontScaleLabel(fontSizePercent)}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Live Text Preview Box */}
-                                                    <div className="my-2.5 p-2 rounded-xl bg-slate-50 border border-slate-200/70 text-center">
-                                                        <p 
-                                                            className="text-slate-900 font-bold leading-tight transition-all duration-75 truncate"
-                                                            style={{ fontSize: `${Math.round(13 * (fontSizePercent / 100))}px` }}
-                                                        >
-                                                            Lelang Koi Super Kohaku
-                                                        </p>
-                                                        <span className="text-[9px] text-slate-400 font-medium block mt-0.5">
-                                                            Tarik slider di bawah untuk menyesuaikan
-                                                        </span>
-                                                    </div>
-
-                                                    {/* Slider Tarik: A- ────────●──────── A+ */}
-                                                    <div className="space-y-1 py-1">
-                                                        <div className="flex items-center gap-2.5 px-0.5">
-                                                            <span className="font-extrabold text-[11px] text-slate-400 select-none shrink-0">A-</span>
-                                                            <input
-                                                                type="range"
-                                                                min="90"
-                                                                max="140"
-                                                                step="1"
-                                                                value={fontSizePercent}
-                                                                onChange={(e) => handleFontSizePercentChange(Number(e.target.value))}
-                                                                className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-red-600 focus:outline-none"
-                                                            />
-                                                            <span className="font-extrabold text-base text-slate-800 select-none shrink-0">A+</span>
-                                                        </div>
-
-                                                        {/* Quick Touch Preset Markers */}
-                                                        <div className="flex justify-between px-4 text-[8.5px] font-extrabold text-slate-400 select-none">
-                                                            <button 
-                                                                type="button" 
-                                                                onClick={() => handleFontSizePercentChange(90)} 
-                                                                className={`hover:text-red-600 cursor-pointer ${fontSizePercent === 90 ? 'text-red-600 font-black' : ''}`}
-                                                            >
-                                                                90%
-                                                            </button>
-                                                            <button 
-                                                                type="button" 
-                                                                onClick={() => handleFontSizePercentChange(100)} 
-                                                                className={`hover:text-red-600 cursor-pointer ${fontSizePercent === 100 ? 'text-red-600 font-black' : ''}`}
-                                                            >
-                                                                100%
-                                                            </button>
-                                                            <button 
-                                                                type="button" 
-                                                                onClick={() => handleFontSizePercentChange(115)} 
-                                                                className={`hover:text-red-600 cursor-pointer ${fontSizePercent === 115 ? 'text-red-600 font-black' : ''}`}
-                                                            >
-                                                                115%
-                                                            </button>
-                                                            <button 
-                                                                type="button" 
-                                                                onClick={() => handleFontSizePercentChange(130)} 
-                                                                className={`hover:text-red-600 cursor-pointer ${fontSizePercent === 130 ? 'text-red-600 font-black' : ''}`}
-                                                            >
-                                                                130%
-                                                            </button>
-                                                            <button 
-                                                                type="button" 
-                                                                onClick={() => handleFontSizePercentChange(140)} 
-                                                                className={`hover:text-red-600 cursor-pointer ${fontSizePercent === 140 ? 'text-red-600 font-black' : ''}`}
-                                                            >
-                                                                140%
-                                                            </button>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Footer Popover */}
-                                                    <div className="flex items-center justify-between pt-2.5 mt-2 border-t border-slate-100">
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => handleFontSizePercentChange(100)}
-                                                            className="text-[10.5px] font-bold text-slate-500 hover:text-red-600 cursor-pointer transition-colors"
-                                                        >
-                                                            Reset (100%)
-                                                        </button>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => setIsFontSizeDropdownOpen(false)}
-                                                            className="px-3 py-1 bg-red-600 hover:bg-red-700 active:scale-95 text-white rounded-xl text-[11px] font-black cursor-pointer shadow-xs transition"
-                                                        >
-                                                            Selesai
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </>
-                                        )}
+                                        <div className="min-w-0">
+                                            <h3 className="font-extrabold text-sm text-slate-900 truncate">Bursa Lelang Koi</h3>
+                                            <p className="text-[10px] text-slate-500">Lelang berlangsung dan rekor tertinggi</p>
+                                        </div>
                                     </div>
+                                    <button onClick={() => setIsFontSizeDropdownOpen((prev) => !prev)} className="px-2.5 py-2 rounded-xl bg-slate-100 text-xs font-bold text-slate-800">
+                                        Ukuran {fontSizePercent}%
+                                    </button>
                                 </div>
-
-                                {/* Search Bar Pengganti Tab Semua Lelang vs Terfavorit */}
-                                <div className="px-4 pb-2.5 pt-1">
-                                    <div className="relative">
-                                        <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                                        <input
-                                            type="text"
-                                            placeholder="Cari lelang koi (nama, jenis, ukuran)..."
-                                            value={auctionSearchQuery}
-                                            onChange={(e) => setAuctionSearchQuery(e.target.value)}
-                                            className="w-full pl-10 pr-9 py-2 bg-slate-100/90 text-xs sm:text-sm font-medium rounded-2xl border border-slate-200/80 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 text-slate-900 placeholder:text-slate-400 transition"
-                                        />
-                                        {auctionSearchQuery && (
-                                            <button
-                                                onClick={() => setAuctionSearchQuery('')}
-                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
-                                                title="Hapus pencarian"
-                                            >
-                                                <X className="w-3.5 h-3.5" />
-                                            </button>
-                                        )}
+                                {isFontSizeDropdownOpen && (
+                                    <div className="mt-3 flex items-center gap-2">
+                                        <input type="range" min="90" max="140" value={fontSizePercent} onChange={(e) => handleFontSizePercentChange(Number(e.target.value))} className="flex-1 accent-red-600" />
+                                        <button onClick={() => setIsFontSizeDropdownOpen(false)} className="text-xs font-bold text-red-600">Selesai</button>
                                     </div>
+                                )}
+                                <div className="relative mt-3">
+                                    <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                                    <input type="text" placeholder="Cari lelang koi (nama, jenis, ukuran)..." value={auctionSearchQuery} onChange={(e) => setAuctionSearchQuery(e.target.value)} className="w-full pl-9 pr-9 py-2 bg-slate-100 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-red-500/20" />
+                                    {auctionSearchQuery && <button onClick={() => setAuctionSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"><X className="w-3.5 h-3.5" /></button>}
                                 </div>
                             </div>
 
-                            {/* Scrollable list dengan Infinite Scroll (10 data bertahap) */}
-                            <div
-                                className="flex-1 overflow-y-auto p-4 space-y-4"
-                                onScroll={handleAuctionListScroll}
-                            >
-                                {displayedAuctions.length === 0 ? (
-                                    <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-                                        <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mb-3">
-                                            <Search className="w-6 h-6 text-slate-400" />
+                            <div className="flex-1 overflow-y-auto p-4 space-y-4" onScroll={handleAuctionListScroll}>
+                                {/* Incoming: rekor lelang tetap ditampilkan bersama daftar lelang current. */}
+                                {dynamicTopAuctions.length > 0 && (
+                                    <section className="space-y-2">
+                                        <div className="flex items-center gap-2">
+                                            <Crown className="w-4 h-4 text-amber-500" />
+                                            <h4 className="text-xs font-bold text-slate-800">Daftar Rekor Lelang</h4>
                                         </div>
+                                        {dynamicTopAuctions.map((record) => (
+                                            <button key={`record-${record.rank}`} type="button" onClick={() => openAuctionDetail(record)} className="w-full bg-white p-3 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-3 text-left hover:border-red-200">
+                                                <span className="w-6 h-6 rounded-full bg-amber-50 text-amber-700 font-bold text-xs flex items-center justify-center shrink-0">{record.rank}</span>
+                                                <img src={record.image} alt={record.name} className="w-12 h-12 rounded-xl object-cover bg-slate-900 shrink-0" />
+                                                <span className="flex-1 min-w-0">
+                                                    <span className="block font-bold text-xs text-slate-900 truncate">{record.name}</span>
+                                                    <span className="block text-[10px] text-slate-500 mt-0.5">{record.size} · {formatAgeInYears(record.age)}</span>
+                                                    <span className="block text-[11px] font-extrabold text-red-600 mt-0.5">Rp {record.price.toLocaleString('id-ID')}</span>
+                                                </span>
+                                            </button>
+                                        ))}
+                                    </section>
+                                )}
+
+                                {displayedAuctions.length === 0 ? (
+                                    <div className="flex flex-col items-center py-12 text-center">
+                                        <Search className="w-6 h-6 text-slate-400 mb-2" />
                                         <p className="font-bold text-slate-800 text-sm">Tidak ada lelang ditemukan</p>
-                                        <p className="text-xs text-slate-400 mt-1 max-w-[220px]">
-                                            Tidak ada hasil untuk &quot;{auctionSearchQuery}&quot;. Coba kata kunci lain atau reset pencarian.
-                                        </p>
-                                        <button
-                                            onClick={() => setAuctionSearchQuery('')}
-                                            className="mt-3.5 px-4 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl transition cursor-pointer"
-                                        >
-                                            Reset Pencarian
-                                        </button>
+                                        <p className="text-xs text-slate-400 mt-1">Coba kata kunci lain atau reset pencarian.</p>
+                                        <button onClick={() => setAuctionSearchQuery('')} className="mt-3 px-4 py-1.5 bg-red-600 text-white text-xs font-bold rounded-xl">Reset Pencarian</button>
                                     </div>
                                 ) : (
-                                    <>
-                                        <div className="grid grid-cols-2 gap-3">
+                                    <div className="grid grid-cols-2 gap-3">
                                         {paginatedAuctions.map((auc, index) => (
-                                        <React.Fragment key={auc.id || auc.rank || index}>
-                                        <div
-                                            className="bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-xs hover:shadow-md transition-shadow flex flex-col group cursor-pointer h-full"
-                                            onClick={() => openAuctionDetail(auc)}
-                                        >
-                                            {/* Image & Badges */}
-                                            <div className="relative aspect-[3/4] bg-slate-900 overflow-hidden shrink-0">
-                                                <img
-                                                    src={auc.image}
-                                                    alt={auc.name}
-                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                                />
-                                                <div className="absolute top-2 left-2 px-2 py-0.5 bg-red-600 text-white rounded-full flex items-center gap-1 text-[9px] font-bold shadow">
-                                                    <Radio className="w-2.5 h-2.5 animate-pulse" />
-                                                    <span>LIVE</span>
-                                                </div>
-                                                <div className="absolute bottom-2 left-2 px-1.5 py-0.5 bg-black/60 backdrop-blur-md text-white rounded-md text-[9px] font-semibold flex items-center gap-1 border border-white/10">
-                                                    <Clock className="w-2.5 h-2.5 text-amber-400" />
-                                                    <span className="font-mono">{formatTime(secondsLeft)}</span>
-                                                </div>
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        if (!isLoggedIn) {
-                                                            setGoogleLoginReason('favorit');
-                                                            setIsGoogleLoginModalOpen(true);
-                                                            triggerToast('🔒 Silakan login dengan Google terlebih dahulu untuk menyimpan ke Favorit');
-                                                            return;
-                                                        }
-                                                        const idStr = String(auc.id);
-                                                        if (favoritesList.includes(idStr)) {
-                                                            setFavoritesList((prev) => prev.filter((id) => id !== idStr));
-                                                            triggerToast(`💔 "${auc.name}" dihapus dari favorit`);
-                                                        } else {
-                                                            setFavoritesList((prev) => [...prev, idStr]);
-                                                            triggerToast(`❤️ "${auc.name}" ditambahkan ke favorit`);
-                                                        }
-                                                    }}
-                                                    className="absolute top-2 right-2 w-6 h-6 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-white hover:bg-black/60 transition-colors"
-                                                >
-                                                    <Heart className={`w-3.5 h-3.5 ${favoritesList.includes(String(auc.id)) ? 'fill-red-500 text-red-500' : 'text-white'}`} />
-                                                </button>
-                                            </div>
-
-                                            {/* Info */}
-                                            <div className="p-2.5 flex-1 flex flex-col justify-between">
-                                                <div className="space-y-0.5">
-                                                    <h4 className="font-extrabold text-xs sm:text-[13px] text-slate-900 line-clamp-1 leading-snug tracking-tight" title={auc.name || 'Ikan Koi'}>
-                                                        {auc.name || 'Ikan Koi'}
-                                                    </h4>
-                                                    <div className="flex items-center gap-1 text-[10.5px] sm:text-[11px] text-slate-500 font-medium leading-tight whitespace-nowrap overflow-hidden">
-                                                        <span className="text-slate-800 font-semibold shrink-0">{auc.size || '65 cm'}</span>
-                                                        <span className="text-slate-300 shrink-0">•</span>
-                                                        <span className="shrink-0">{formatAgeInYears(auc.age || (auc as any).auctionRaw?.product?.age)}</span>
-                                                        <span className="text-slate-300 shrink-0">•</span>
-                                                        <span className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded bg-blue-50 text-blue-700 text-[9.5px] font-bold border border-blue-100/80 shrink-0">
-                                                            <Gavel className="w-2.5 h-2.5 text-blue-600 shrink-0" />
-                                                            <span>{(auc as any).bidsCount || (auc as any).auctionRaw?.bids_count || 12} bid</span>
-                                                        </span>
+                                            <React.Fragment key={auc.id || auc.rank || index}>
+                                                <div onClick={() => openAuctionDetail(auc)} className="bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm flex flex-col group cursor-pointer h-full">
+                                                    <div className="relative aspect-[3/4] bg-slate-900 overflow-hidden shrink-0">
+                                                        <img src={auc.image} alt={auc.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                                                        <span className="absolute top-2 left-2 px-2 py-0.5 bg-red-600 text-white rounded-full flex items-center gap-1 text-[9px] font-bold"><Radio className="w-2.5 h-2.5 animate-pulse" /> LIVE</span>
+                                                        <span className="absolute bottom-2 left-2 px-1.5 py-0.5 bg-black/60 text-white rounded-md text-[9px] font-semibold"><Clock className="w-2.5 h-2.5 inline text-amber-400" /> {formatTime(secondsLeft)}</span>
+                                                        <button onClick={(e) => { e.stopPropagation(); if (!isLoggedIn) { setGoogleLoginReason('favorit'); setIsGoogleLoginModalOpen(true); triggerToast('🔒 Silakan login dengan Google terlebih dahulu untuk menyimpan ke Favorit'); return; } const idStr = String(auc.id); if (favoritesList.includes(idStr)) { setFavoritesList((prev) => prev.filter((id) => id !== idStr)); triggerToast(`💔 "${auc.name}" dihapus dari favorit`); } else { setFavoritesList((prev) => [...prev, idStr]); triggerToast(`❤️ "${auc.name}" ditambahkan ke favorit`); } }} className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/40 flex items-center justify-center text-white"><Heart className={`w-3.5 h-3.5 ${favoritesList.includes(String(auc.id)) ? 'fill-red-500 text-red-500' : 'text-white'}`} /></button>
                                                     </div>
-                                                    <div className="text-[11.5px] sm:text-xs font-bold text-red-600 tracking-tight leading-none break-words pt-1">
-                                                        Rp {(Number(auc.price) || 0).toLocaleString('id-ID')}
+                                                    <div className="p-2.5 flex-1 flex flex-col justify-between">
+                                                        <div>
+                                                            <h4 className="font-extrabold text-xs text-slate-900 line-clamp-1" title={auc.name || 'Ikan Koi'}>{auc.name || 'Ikan Koi'}</h4>
+                                                            <div className="flex items-center gap-1 text-[10px] text-slate-500 mt-1 flex-wrap"><span>{auc.size || '65 cm'}</span><span>·</span><span>{formatAgeInYears(auc.age || (auc as any).auctionRaw?.product?.age)}</span><span>·</span><span className="text-blue-700 font-bold">{(auc as any).bidsCount || (auc as any).auctionRaw?.bids_count || 12} bid</span></div>
+                                                            <div className="text-[11px] font-bold text-red-600 mt-1">Rp {(Number(auc.price) || 0).toLocaleString('id-ID')}</div>
+                                                            <div className="flex items-center justify-between text-[9px] text-slate-500 pt-1 mt-1 border-t border-slate-50"><span><strong>OB:</strong> Rp {(Number((auc as any).startPrice || (auc as any).auctionRaw?.start_price || Math.round(Number(auc.price) * 0.75))).toLocaleString('id-ID')}</span><span className="text-[#98151e] font-semibold"><strong>KB:</strong> +Rp {(Number((auc as any).bidIncrement || (auc as any).auctionRaw?.bid_increment || 500000)).toLocaleString('id-ID')}</span></div>
+                                                        </div>
+                                                        <button onClick={(e) => { e.stopPropagation(); openAuctionDetail(auc); }} className="w-full mt-2 py-1.5 px-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5"><Gavel className="w-3 h-3" /> Tawar</button>
                                                     </div>
                                                 </div>
-
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        openAuctionDetail(auc);
-                                                    }}
-                                                    className="w-full mt-2 py-1.5 px-2 bg-red-600 hover:bg-red-700 active:scale-[0.98] text-white text-xs font-bold rounded-xl shadow-xs shadow-red-600/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap"
-                                                    title="Tawar"
-                                                >
-                                                    <Gavel className="w-3 h-3 shrink-0" />
-                                                    <span className="font-bold">Tawar</span>
-                                                </button>
-                                            </div>
-                                        </div>
-
-                                        {/* Setiap 6 lelang, sisipkan video bersponsor yang autoplays saat discroll */}
-                                        {(index + 1) % 6 === 0 && (
-                                            <KoiCinematicVideoBanner
-                                                variant="in_feed"
-                                                title={
-                                                    Math.floor((index + 1) / 6) === 1
-                                                        ? 'RAJAWALI HIYOTO ADS VOL 2.0'
-                                                        : Math.floor((index + 1) / 6) === 2
-                                                        ? 'BIO-KOKI MINERAL & NUTRISI JUMBO'
-                                                        : 'DOKUMENTASI PANEN RAYA MUDPOND 2026'
-                                                }
-                                                subtitle="Dokumentasi live kolam & pakan nutrisi juara • Autoplay saat discroll"
-                                                badgeText="Video Bersponsor"
-                                                onNavigateToCategories={() => navigateTo('categories')}
-                                            />
-                                        )}
-                                    </React.Fragment>
-                                    ))}
-                                </div>
-
-                                {/* Sentinel Elemen untuk IntersectionObserver Trigger */}
-                                <div ref={loadMoreSentinelRef} className="h-4 w-full pointer-events-none -mt-2" />
-
-                                {/* Tombol Interaktif Muat 10 Lelang Berikutnya */}
-                                {visibleAuctionLimit < displayedAuctions.length && (
-                                    <div className="pt-1 pb-2">
-                                        <button
-                                            onClick={loadNextBatch}
-                                            disabled={isLoadingMoreAuctions}
-                                            className="w-full py-3 px-4 bg-white hover:bg-slate-50 active:scale-[0.98] text-slate-800 text-xs font-bold rounded-2xl border border-slate-200/90 shadow-2xs transition flex items-center justify-center gap-2 cursor-pointer"
-                                        >
-                                            {isLoadingMoreAuctions ? (
-                                                <>
-                                                    <Loader2 className="w-4 h-4 animate-spin text-red-600" />
-                                                    <span>Memuat 10 Lelang Berikutnya...</span>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <ChevronDown className="w-4 h-4 text-red-600" />
-                                                    <span>Muat 10 Lelang Berikutnya (Tersisa {displayedAuctions.length - visibleAuctionLimit} ikan)</span>
-                                                </>
-                                            )}
-                                        </button>
+                                                {(index + 1) % 6 === 0 && <KoiCinematicVideoBanner variant="in_feed" title={Math.floor((index + 1) / 6) === 1 ? 'RAJAWALI HIYOTO ADS VOL 2.0' : Math.floor((index + 1) / 6) === 2 ? 'BIO-KOKI MINERAL & NUTRISI JUMBO' : 'DOKUMENTASI PANEN RAYA MUDPOND 2026'} subtitle="Dokumentasi live kolam & pakan nutrisi juara • Autoplay saat discroll" badgeText="Video Bersponsor" onNavigateToCategories={() => navigateTo('categories')} />}
+                                            </React.Fragment>
+                                        ))}
                                     </div>
                                 )}
-
-                                {/* Spinner Animasi Memuat 10 Data Berikutnya */}
-                                {isLoadingMoreAuctions && (
-                                    <div className="py-3.5 flex items-center justify-center gap-2 text-slate-600 text-xs font-bold bg-slate-100/90 rounded-2xl border border-slate-200/80 animate-pulse">
-                                        <Loader2 className="w-4 h-4 animate-spin text-red-600 shrink-0" />
-                                        <span>Memuat 10 lelang berikutnya...</span>
-                                    </div>
-                                )}
-
-                                {/* Indikator saat seluruh data selesai dimuat */}
-                                {!isLoadingMoreAuctions && visibleAuctionLimit >= displayedAuctions.length && displayedAuctions.length > 10 && (
-                                    <div className="py-2.5 text-center text-[11px] text-slate-400 font-medium">
-                                        ✓ Semua data lelang ({displayedAuctions.length}) telah dimuat
-                                    </div>
-                                )}
-                                </>
-                                )}
+                                <div ref={loadMoreSentinelRef} className="h-4 w-full pointer-events-none" />
+                                {visibleAuctionLimit < displayedAuctions.length && <button onClick={loadNextBatch} disabled={isLoadingMoreAuctions} className="w-full py-3 px-4 bg-white text-slate-800 text-xs font-bold rounded-2xl border border-slate-200 shadow-sm flex items-center justify-center gap-2">{isLoadingMoreAuctions ? <Loader2 className="w-4 h-4 animate-spin text-red-600" /> : <ChevronDown className="w-4 h-4 text-red-600" />}Muat 10 Lelang Berikutnya (Tersisa {displayedAuctions.length - visibleAuctionLimit} ikan)</button>}
+                                {isLoadingMoreAuctions && <div className="py-3 text-center text-xs text-slate-600"><Loader2 className="w-4 h-4 animate-spin inline text-red-600" /> Memuat lelang berikutnya...</div>}
+                                {!isLoadingMoreAuctions && visibleAuctionLimit >= displayedAuctions.length && displayedAuctions.length > 10 && <div className="py-2 text-center text-[11px] text-slate-400">✓ Semua data lelang ({displayedAuctions.length}) telah dimuat</div>}
                             </div>
                         </div>
                     )}
 
-                    {/* ========================================================================= */}
-                    {/* SCREEN 4: IKAN LELANG FAVORIT (WATCHLIST)                                 */}
-                    {/* ========================================================================= */}
                     {currentScreen === 'favorite_auction' && (
                         <div className="flex-1 flex flex-col bg-slate-50 pb-20">
                             {/* Header */}
@@ -7613,7 +7336,7 @@ export default function AndroidKoiApp({
                                                     <div className="flex items-center gap-1.5 text-[10px] text-slate-500 mt-0.5 flex-wrap">
                                                         <span>{auc.size}</span>
                                                         <span>•</span>
-                                                        <span className="text-amber-700 font-semibold">{formatAgeInYears((auc as any).age || (auc as any).auctionRaw?.product?.age)}</span>
+                                                        <span className="text-[#98151e] font-semibold">{formatAgeInYears((auc as any).age || (auc as any).auctionRaw?.product?.age)}</span>
                                                         <span>•</span>
                                                         <span className="text-blue-600 font-semibold">{(auc as any).bidsCount || (auc as any).auctionRaw?.bids_count || 10}x bid</span>
                                                     </div>
@@ -7689,7 +7412,7 @@ export default function AndroidKoiApp({
                                     <div className="relative rounded-2xl bg-gradient-to-r from-red-600 via-rose-600 to-red-700 p-4 text-white overflow-hidden shadow-lg shadow-red-600/20">
                                         <div className="relative z-10 max-w-[70%]">
                                             <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-md text-[9px] font-bold tracking-wide uppercase text-white mb-1.5">
-                                                <Sparkles className="w-3 h-3 text-amber-300" />
+                                                <Sparkles className="w-3 h-3 text-red-300" />
                                                 <span>Koleksi Terpilih</span>
                                             </div>
                                             <h4 className="font-bold text-sm text-white leading-snug">Ikan & Koi Impian Anda</h4>
@@ -7815,7 +7538,7 @@ export default function AndroidKoiApp({
                                     {dynamicFavAuctions.length > 0 && (
                                         <div className="pt-2">
                                             <div className="flex items-center gap-1.5 mb-2.5 text-xs font-bold text-slate-900">
-                                                <Crown className="w-3.5 h-3.5 text-amber-500" />
+                                                <Crown className="w-3.5 h-3.5 text-[#bf1e26]" />
                                                 <span>Pantauan Lelang Favorit</span>
                                             </div>
 
@@ -8058,7 +7781,7 @@ export default function AndroidKoiApp({
                                                     onClick={() => navigateToArticle(article)}
                                                     className={`bg-white rounded-2xl overflow-hidden border transition-all active:scale-[0.99] cursor-pointer shadow-xs ${
                                                         isPinned
-                                                            ? 'border-amber-300 ring-2 ring-amber-100'
+                                                            ? 'border-[#bf1e26]/30 ring-2 ring-amber-100'
                                                             : 'border-slate-100 hover:border-slate-300'
                                                     }`}
                                                 >
@@ -8074,11 +7797,11 @@ export default function AndroidKoiApp({
                                                         {/* Top Badges */}
                                                         <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 flex-wrap">
                                                             {isPinned && (
-                                                                <span className="px-2 py-0.5 rounded-full bg-amber-500 text-stone-950 font-black text-[9px] uppercase shadow-sm">
+                                                                <span className="px-2 py-0.5 rounded-full bg-[#bf1e26] text-white font-black text-[9px] uppercase shadow-sm">
                                                                     📌 Pengumuman Utama
                                                                 </span>
                                                             )}
-                                                            <span className="px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-xs text-amber-300 border border-amber-400/30 font-bold text-[9px] uppercase">
+                                                            <span className="px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-xs text-red-300 border border-[#bf1e26]/30 font-bold text-[9px] uppercase">
                                                                 {article.badge_text || article.category_label || (article.category === 'tips_care' ? 'Tips Pemeliharaan' : article.category === 'event_announcement' ? 'Event' : 'Produk')}
                                                             </span>
                                                         </div>
@@ -8365,14 +8088,14 @@ export default function AndroidKoiApp({
                                                 Rp {selectedProduct.price.toLocaleString('id-ID')}
                                             </div>
                                             {selectedProduct.isPremium && (
-                                                <span className="px-2.5 py-0.5 bg-gradient-to-r from-amber-500 to-amber-600 text-white text-[10px] font-bold rounded-full shadow-xs">
+                                                <span className="px-2.5 py-0.5 bg-gradient-to-r from-[#bf1e26] to-amber-600 text-white text-[10px] font-bold rounded-full shadow-xs">
                                                     Premium
                                                 </span>
                                             )}
                                         </div>
                                         <h2 className="text-base font-bold text-slate-900 leading-snug">{selectedProduct.name}</h2>
                                         <div className="flex items-center gap-2 text-xs text-slate-500 pt-0.5">
-                                            <span className="flex items-center gap-1 text-amber-500 font-semibold">
+                                            <span className="flex items-center gap-1 text-[#bf1e26] font-semibold">
                                                 ★ {selectedProduct.rating}
                                             </span>
                                             <span>•</span>
@@ -8512,7 +8235,7 @@ export default function AndroidKoiApp({
                                                 className="flex flex-col items-center gap-1 p-2 rounded-xl bg-white border border-slate-100 shadow-xs hover:border-pink-300 active:scale-95 transition"
                                                 title="Bagikan ke Instagram"
                                             >
-                                                <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 text-white flex items-center justify-center shadow-xs">
+                                                <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#bf1e26] via-rose-500 to-purple-600 text-white flex items-center justify-center shadow-xs">
                                                     <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                                         <rect width="20" height="20" x="2" y="2" rx="5" ry="5"/>
                                                         <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
@@ -8597,7 +8320,7 @@ export default function AndroidKoiApp({
                                                                 >
                                                                     {selectedProduct.store}
                                                                 </h5>
-                                                                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-50 text-amber-700 border border-amber-200 shrink-0">
+                                                                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-red-50 text-[#98151e] border border-[#bf1e26]/20 shrink-0">
                                                                     Official
                                                                 </span>
                                                             </div>
@@ -8608,8 +8331,8 @@ export default function AndroidKoiApp({
                                                                     <span className="truncate max-w-[110px]">{selectedProduct.city}</span>
                                                                 </span>
                                                                 <span>•</span>
-                                                                <span className="flex items-center gap-0.5 font-semibold text-amber-500">
-                                                                    <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                                                                <span className="flex items-center gap-0.5 font-semibold text-[#bf1e26]">
+                                                                    <Star className="w-3 h-3 fill-amber-400 text-[#d52a30]" />
                                                                     <span>{selectedProduct.storeRating}</span>
                                                                     <span className="text-slate-400 text-[10px]">({selectedProduct.storeReviews})</span>
                                                                 </span>
@@ -8686,7 +8409,7 @@ export default function AndroidKoiApp({
                                                                                 loading="lazy"
                                                                             />
                                                                             {p.isPremium && (
-                                                                                <span className="absolute top-1 left-1 px-1 py-0.5 rounded bg-amber-500 text-white text-[8px] font-bold leading-none shadow-xs">
+                                                                                <span className="absolute top-1 left-1 px-1 py-0.5 rounded bg-[#bf1e26] text-white text-[8px] font-bold leading-none shadow-xs">
                                                                                     PRO
                                                                                 </span>
                                                                             )}
@@ -8893,8 +8616,8 @@ export default function AndroidKoiApp({
                                 <div>
                                     <div className="flex items-center gap-2 mb-1">
                                         <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                                            liveAuction.dealerType === 'import' 
-                                                ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' 
+                                            liveAuction.dealerType === 'import'
+                                                ? 'bg-indigo-50 text-indigo-700 border border-indigo-200'
                                                 : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                                         }`}>
                                             <Award className="w-3 h-3" />
@@ -8957,7 +8680,7 @@ export default function AndroidKoiApp({
                                 <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white shadow-md border border-slate-700 grid grid-cols-2 gap-4">
                                     <div>
                                         <p className="text-[10px] text-slate-300 font-medium uppercase tracking-wider">Harga Tawaran Saat Ini</p>
-                                        <p className="text-lg font-black text-amber-400 mt-0.5">
+                                        <p className="text-lg font-black text-[#d52a30] mt-0.5">
                                             Rp {(Number(liveAuction.currentBid) || 0).toLocaleString('id-ID')}
                                         </p>
                                     </div>
@@ -8974,17 +8697,20 @@ export default function AndroidKoiApp({
 
                                 {/* Status Peserta Lelang / Warning Registrasi */}
                                 {!isRegisteredParticipant && (
-                                    <div className="p-3 bg-amber-50 rounded-2xl border border-amber-200 flex items-center justify-between gap-3 text-xs">
+                                    <div className="p-3 bg-red-50 rounded-2xl border border-[#bf1e26]/20 flex items-center justify-between gap-3 text-xs">
                                         <div className="flex items-center gap-2">
-                                            <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                                            <AlertTriangle className="w-4 h-4 text-[#bf1e26] shrink-0" />
                                             <div>
                                                 <p className="font-bold text-amber-900 text-[11px]">Belum Terdaftar Peserta Lelang</p>
+
                                                 <p className="text-[10px] text-amber-700 leading-tight">Daftar sebagai peserta lelang untuk mulai menawar</p>
+                                                <p className="text-[10px] text-[#98151e] leading-tight">Bayar biaya pendaftaran Rp 250.000 untuk menawar</p>
+
                                             </div>
                                         </div>
                                         <button
                                             onClick={() => setIsTopUpOpen(true)}
-                                            className="px-2.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold text-[10px] rounded-xl shrink-0 shadow-xs cursor-pointer active:scale-95"
+                                            className="px-2.5 py-1.5 bg-[#bf1e26] hover:bg-amber-700 text-white font-bold text-[10px] rounded-xl shrink-0 shadow-xs cursor-pointer active:scale-95"
                                         >
                                             Daftar Sekarang
                                         </button>
@@ -8994,22 +8720,22 @@ export default function AndroidKoiApp({
                                 {/* Bidding Controls (KB Ditentukan Platform: Kelipatan 500rb dan 1jt) */}
                                 <div className="space-y-3">
                                     {isCurrentHighestBidder ? (
-                                        <div className="p-4 rounded-2xl bg-amber-50 border-2 border-amber-300 text-amber-950 space-y-2.5 shadow-sm">
+                                        <div className="p-4 rounded-2xl bg-red-50 border-2 border-[#bf1e26]/30 text-amber-950 space-y-2.5 shadow-sm">
                                             <div className="flex items-center gap-2.5">
                                                 <span className="text-2xl">👑</span>
                                                 <div>
                                                     <p className="text-xs font-black text-amber-950">Anda Pemegang Tawaran Tertinggi</p>
-                                                    <p className="text-[10px] text-amber-800 font-semibold">
+                                                    <p className="text-[10px] text-[#98151e] font-semibold">
                                                         Tawaran Anda Rp {Number(liveAuction.currentBid).toLocaleString('id-ID')} sedang memimpin
                                                     </p>
                                                 </div>
                                             </div>
-                                            <div className="bg-white/90 p-2.5 rounded-xl border border-amber-200 text-[11px] text-amber-900 leading-relaxed">
+                                            <div className="bg-white/90 p-2.5 rounded-xl border border-[#bf1e26]/20 text-[11px] text-amber-900 leading-relaxed">
                                                 🔒 Anda tidak dapat menawar lagi saat ini. Anda baru dapat mengajukan penawaran kembali jika tawaran Anda sudah ditimpa oleh penawar lain.
                                             </div>
                                             <button
                                                 disabled
-                                                className="w-full py-3 bg-amber-200/70 text-amber-900 font-extrabold text-xs rounded-full border border-amber-300 flex items-center justify-center gap-2 cursor-not-allowed shadow-none"
+                                                className="w-full py-3 bg-amber-200/70 text-amber-900 font-extrabold text-xs rounded-full border border-[#bf1e26]/30 flex items-center justify-center gap-2 cursor-not-allowed shadow-none"
                                             >
                                                 <span>👑 Sedang Memimpin (Menunggu Penawar Lain)</span>
                                             </button>
@@ -9094,9 +8820,9 @@ export default function AndroidKoiApp({
                                     const otherAuctions = [
                                         ...dynamicTopAuctions,
                                         ...dynamicFavAuctions,
-                                    ].filter((auc, index, self) => 
+                                    ].filter((auc, index, self) =>
                                         auc &&
-                                        auc.id !== liveAuction.id && 
+                                        auc.id !== liveAuction.id &&
                                         auc.id !== (liveAuction as any).auctionId &&
                                         self.findIndex(a => a.id === auc.id) === index
                                     );
@@ -9161,7 +8887,7 @@ export default function AndroidKoiApp({
                                                                 </p>
                                                                 <div className="flex items-center justify-between text-[9px] text-slate-500 mt-1 pt-1 border-t border-slate-100">
                                                                     <span>OB: Rp {(Number((auc as any).startPrice || (auc as any).auctionRaw?.start_price || Math.round(Number(auc.price || 15000000) * 0.75))).toLocaleString('id-ID')}</span>
-                                                                    <span className="text-amber-700 font-semibold">{formatAgeInYears((auc as any).age || (auc as any).auctionRaw?.product?.age)}</span>
+                                                                    <span className="text-[#98151e] font-semibold">{formatAgeInYears((auc as any).age || (auc as any).auctionRaw?.product?.age)}</span>
                                                                 </div>
                                                             </div>
 
@@ -9245,7 +8971,7 @@ export default function AndroidKoiApp({
                                     <div className="p-4 rounded-2xl bg-gradient-to-r from-red-600 via-rose-600 to-red-700 text-white shadow-lg shadow-red-600/20 space-y-3">
                                         <div>
                                             <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/20 text-[9px] font-bold text-white uppercase tracking-wider mb-1.5">
-                                                <Lock className="w-3 h-3 text-amber-300" />
+                                                <Lock className="w-3 h-3 text-red-300" />
                                                 <span>Akses Terproteksi</span>
                                             </div>
                                             <h4 className="font-bold text-sm text-white">Buka Akses Penuh dengan Google</h4>
@@ -9266,7 +8992,8 @@ export default function AndroidKoiApp({
                                     </div>
                                 )}
 
-                                {/* Status & Kemitraan Seller Card */}
+
+                                {/* Current: status kemitraan seller */}
                                 {authUser?.role === 'seller' ? (
                                     <div className="p-4 rounded-2xl shadow-xl border flex items-center justify-between bg-gradient-to-r from-amber-950 via-slate-900 to-amber-900 border-amber-800/80 text-white">
                                         <div className="flex items-center gap-3">
@@ -9279,35 +9006,39 @@ export default function AndroidKoiApp({
                                                 <p className="text-[10px] text-slate-400 mt-0.5">Beralih ke Mode Seller untuk upload ikan & kelola lelang</p>
                                             </div>
                                         </div>
-                                        <button
-                                            onClick={() => switchUserRole('seller')}
-                                            className="px-3.5 py-2 active:scale-95 text-xs font-bold rounded-xl transition-all shadow-md shrink-0 cursor-pointer bg-amber-600 hover:bg-amber-700 text-white shadow-amber-600/30 flex items-center gap-1"
-                                        >
-                                            <span>Mode Seller</span>
-                                            <ChevronRight className="w-3.5 h-3.5" />
+                                        <button onClick={() => switchUserRole('seller')} className="px-3.5 py-2 text-xs font-bold rounded-xl bg-amber-600 hover:bg-amber-700 text-white flex items-center gap-1">
+                                            Mode Seller <ChevronRight className="w-3.5 h-3.5" />
                                         </button>
                                     </div>
                                 ) : (
                                     <div className="p-3.5 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-center justify-between">
                                         <div className="flex items-center gap-2.5">
-                                            <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center shrink-0">
-                                                <StoreIcon className="w-4.5 h-4.5" />
-                                            </div>
+                                            <StoreIcon className="w-9 h-9 p-2 rounded-xl bg-slate-100 text-slate-500 shrink-0" />
                                             <div>
                                                 <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 block">Akses Peternak / Penjual</span>
                                                 <h5 className="text-xs font-bold text-slate-800">Ingin Upload & Jual Ikan Koi?</h5>
                                                 <p className="text-[10px] text-slate-500">Buka lapak & daftarkan farm Anda</p>
                                             </div>
                                         </div>
-                                        <button
-                                            onClick={handleOpenSellerRegistration}
-                                            className="px-3.5 py-1.5 bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white text-[11px] font-extrabold rounded-xl active:scale-95 transition shadow-sm cursor-pointer flex items-center gap-1"
-                                        >
-                                            <StoreIcon className="w-3.5 h-3.5" />
-                                            <span>Daftar Seller</span>
+                                        <button onClick={handleOpenSellerRegistration} className="px-3.5 py-1.5 bg-gradient-to-r from-orange-600 to-amber-600 text-white text-[11px] font-extrabold rounded-xl flex items-center gap-1">
+                                            <StoreIcon className="w-3.5 h-3.5" /> Daftar Seller
                                         </button>
                                     </div>
                                 )}
+
+                                {/* Incoming: status pendaftaran bidder tetap tersedia bersama kartu seller. */}
+                                <div className={`p-4 rounded-2xl shadow-xl border flex items-center justify-between ${isRegisteredParticipant ? 'bg-gradient-to-r from-emerald-950 via-slate-900 to-emerald-900 border-emerald-800 text-white' : 'bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 border-slate-800 text-white'}`}>
+                                    <div className="flex items-center gap-3">
+                                        <ShieldCheck className={`w-11 h-11 p-2.5 rounded-xl shrink-0 ${isRegisteredParticipant ? 'bg-emerald-500/20 text-emerald-400' : 'bg-white/10 text-[#d52a30]'}`} />
+                                        <div>
+                                            <p className="text-[10px] uppercase font-bold tracking-wider text-slate-300">Status Peserta Lelang</p>
+                                            <p className="text-xs font-semibold mt-1">{isRegisteredParticipant ? 'Peserta terdaftar' : 'Belum terdaftar sebagai peserta'}</p>
+                                        </div>
+                                    </div>
+                                    {!isRegisteredParticipant && (
+                                        <button onClick={() => navigateTo('highest_auction')} className="px-3 py-2 text-xs font-bold rounded-xl bg-red-600 hover:bg-red-700 text-white">Lihat Lelang</button>
+                                    )}
+                                </div>
 
                                 {/* Card Highlight: Pusat Bidder Terpadu */}
                                 <div className="p-4 rounded-2xl bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 border border-emerald-500/40 text-white shadow-xl space-y-3 relative overflow-hidden">
@@ -9365,119 +9096,122 @@ export default function AndroidKoiApp({
                                 {/* Menu List */}
                                 <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden divide-y divide-slate-100">
                                     {[
-                                        { 
+                                        {
                                             label: 'Pusat Bidder',
                                             sublabel: 'Tawaran, BNR & Riwayat',
-                                            icon: Gavel, 
+                                            icon: Gavel,
                                             iconBg: 'bg-amber-50 text-amber-700',
-                                            badge: isLoggedIn 
-                                                ? (userBids.filter(b => b.status === 'won').length > 0 
-                                                    ? `🏆 ${userBids.filter(b => b.status === 'won').length} Menang` 
+                                            badge: isLoggedIn
+                                                ? (userBids.filter(b => b.status === 'won').length > 0
+                                                    ? `🏆 ${userBids.filter(b => b.status === 'won').length} Menang`
                                                     : 'Bebas BNR')
-                                                : 'Perlu Login', 
-                                            badgeColor: isLoggedIn 
-                                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200 font-bold' 
+                                                : 'Perlu Login',
+                                            badgeColor: isLoggedIn
+                                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200 font-bold'
                                                 : 'bg-slate-100 text-slate-500 border-slate-200 font-semibold',
                                             badgeIcon: isLoggedIn ? undefined : Lock,
                                             action: () => {
                                                 setBidderActiveTab('dashboard');
                                                 navigateTo('bidder_center');
-                                            } 
+                                            }
                                         },
-                                        { 
+                                        {
                                             label: isRegisteredSeller ? 'Kelola Lapak' : 'Daftar Seller',
                                             sublabel: isRegisteredSeller ? 'Katalog, pesanan & lelang' : 'Buka lapak & jual koleksi koi',
-                                            icon: StoreIcon, 
+                                            icon: StoreIcon,
                                             iconBg: isRegisteredSeller ? 'bg-emerald-50 text-emerald-700' : 'bg-orange-50 text-orange-600',
                                             badge: isRegisteredSeller ? 'Seller Aktif' : 'Buka Lapak',
-                                            badgeColor: isRegisteredSeller 
-                                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200 font-bold' 
+                                            badgeColor: isRegisteredSeller
+                                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200 font-bold'
                                                 : 'bg-amber-50 text-amber-700 border-amber-200 font-bold',
-                                            action: handleOpenSellerRegistration 
+                                            action: handleOpenSellerRegistration
                                         },
-                                        { 
+                                        {
                                             label: 'Customer Care',
                                             sublabel: 'Bantuan WhatsApp 24/7',
-                                            icon: MessageCircle, 
+                                            icon: MessageCircle,
                                             iconBg: 'bg-emerald-50 text-emerald-600',
                                             badge: 'Online 24/7',
                                             badgeColor: 'bg-emerald-50 text-emerald-700 border-emerald-200 font-bold',
-                                            action: () => openWhatsApp('+6281288881001', 'Halo Customer Care KoiMart Premium, saya membutuhkan bantuan informasi/transaksi lelang.') 
+                                            action: () => openWhatsApp('+6281288881001', 'Halo Customer Care KoiMart Premium, saya membutuhkan bantuan informasi/transaksi lelang.')
                                         },
-                                        { 
+                                        {
                                             label: 'Ukuran Teks',
                                             sublabel: 'Kenyamanan membaca',
-                                            icon: ZoomIn, 
+                                            icon: ZoomIn,
                                             iconBg: 'bg-blue-50 text-blue-600',
                                             badge: fontSizeScale === 'xlarge' ? 'Sangat Besar' : fontSizeScale === 'large' ? 'Besar' : 'Standard',
+
                                             badgeColor: 'bg-blue-50 text-blue-700 border-blue-200 font-bold',
-                                            action: () => setIsFontSizeModalOpen(true) 
+                                            badgeColor: 'bg-red-100 text-amber-900 border border-[#bf1e26]/30 font-black',
+
+                                            action: () => setIsFontSizeModalOpen(true)
                                         },
-                                        { 
+                                        {
                                             label: 'Pesanan Saya',
                                             sublabel: 'Riwayat & resi pengiriman',
-                                            icon: ReceiptText, 
+                                            icon: ReceiptText,
                                             iconBg: 'bg-indigo-50 text-indigo-600',
                                             badge: isLoggedIn ? `${ordersList.length} Pesanan` : 'Perlu Login',
-                                            badgeColor: isLoggedIn 
-                                                ? 'bg-slate-100 text-slate-700 border-slate-200 font-bold' 
+                                            badgeColor: isLoggedIn
+                                                ? 'bg-slate-100 text-slate-700 border-slate-200 font-bold'
                                                 : 'bg-slate-100 text-slate-500 border-slate-200 font-semibold',
                                             badgeIcon: isLoggedIn ? undefined : Lock,
-                                            action: () => navigateTo('orders') 
+                                            action: () => navigateTo('orders')
                                         },
-                                        { 
+                                        {
                                             label: 'Favorit Saya',
                                             sublabel: 'Koleksi yang disimpan',
-                                            icon: Heart, 
+                                            icon: Heart,
                                             iconBg: 'bg-rose-50 text-rose-600',
                                             badge: favoritesList.length > 0 ? `${favoritesList.length} Ikan` : undefined,
                                             badgeColor: 'bg-rose-50 text-rose-700 border-rose-200 font-bold',
-                                            action: () => isLoggedIn ? navigateTo('favorite') : (setGoogleLoginReason('favorit'), setPendingLoginAction({ type: 'navigate', payload: 'favorite' }), setIsGoogleLoginModalOpen(true)) 
+                                            action: () => isLoggedIn ? navigateTo('favorite') : (setGoogleLoginReason('favorit'), setPendingLoginAction({ type: 'navigate', payload: 'favorite' }), setIsGoogleLoginModalOpen(true))
                                         },
-                                        { 
+                                        {
                                             label: 'Chat Transaksi',
                                             sublabel: 'Diskusi langsung dengan galeri',
-                                            icon: MessageCircle, 
+                                            icon: MessageCircle,
                                             iconBg: 'bg-teal-50 text-teal-600',
                                             badge: totalUnreadChatCount > 0 ? `${totalUnreadChatCount} Baru` : undefined,
                                             badgeColor: 'bg-red-500 text-white border-red-500 font-bold',
-                                            action: () => isLoggedIn ? openChatThread('thread-2') : (setGoogleLoginReason('chat'), setPendingLoginAction({ type: 'navigate', payload: 'chat_list' }), setIsGoogleLoginModalOpen(true)) 
+                                            action: () => isLoggedIn ? openChatThread('thread-2') : (setGoogleLoginReason('chat'), setPendingLoginAction({ type: 'navigate', payload: 'chat_list' }), setIsGoogleLoginModalOpen(true))
                                         },
-                                        { 
+                                        {
                                             label: 'Rekor Lelang',
                                             sublabel: 'Hall of Fame juara show',
-                                            icon: Crown, 
+                                            icon: Crown,
                                             iconBg: 'bg-yellow-50 text-amber-600',
                                             badge: 'Grand Champion',
                                             badgeColor: 'bg-amber-50 text-amber-700 border-amber-200 font-bold',
-                                            action: () => navigateTo('highest_auction') 
+                                            action: () => navigateTo('highest_auction')
                                         },
-                                        { 
+                                        {
                                             label: 'Lelang Populer',
                                             sublabel: 'Paling banyak diminati',
-                                            icon: Flame, 
+                                            icon: Flame,
                                             iconBg: 'bg-red-50 text-red-600',
                                             badge: 'Trending',
                                             badgeColor: 'bg-red-50 text-red-700 border-red-200 font-bold',
-                                            action: () => navigateTo('favorite_auction') 
+                                            action: () => navigateTo('favorite_auction')
                                         },
-                                        { 
+                                        {
                                             label: 'Metode Bayar',
                                             sublabel: 'Garansi Rekber D.O.A 100%',
-                                            icon: CreditCard, 
+                                            icon: CreditCard,
                                             iconBg: 'bg-emerald-50 text-emerald-700',
                                             badge: 'QRIS & VA',
                                             badgeColor: 'bg-emerald-50 text-emerald-700 border-emerald-200 font-bold',
-                                            action: () => triggerToast('Metode pembayaran: BCA Virtual Account, Mandiri, Transfer Bank, QRIS Instan Rekber') 
+                                            action: () => triggerToast('Metode pembayaran: BCA Virtual Account, Mandiri, Transfer Bank, QRIS Instan Rekber')
                                         },
-                                        { 
+                                        {
                                             label: 'Tentang Galeri',
                                             sublabel: 'Karantina & aklimatisasi',
-                                            icon: Info, 
+                                            icon: Info,
                                             iconBg: 'bg-slate-100 text-slate-600',
                                             badge: 'APKI & ZNA',
                                             badgeColor: 'bg-slate-100 text-slate-600 border-slate-200 font-bold',
-                                            action: () => { setSelectedStore(OFFICIAL_KOI_GALLERY); setStoreActiveTab('gallery'); navigateTo('store_gallery'); } 
+                                            action: () => { setSelectedStore(OFFICIAL_KOI_GALLERY); setStoreActiveTab('gallery'); navigateTo('store_gallery'); }
                                         },
                                     ].map((item, idx) => (
                                         <button
@@ -9539,6 +9273,7 @@ export default function AndroidKoiApp({
                                                 setGoogleLoginReason('general');
                                                 setIsGoogleLoginModalOpen(true);
                                             }}
+
                                             className="w-full px-4 py-3.5 flex items-center justify-between text-left hover:bg-amber-50/70 text-amber-800 transition-colors group cursor-pointer bg-gradient-to-r from-amber-50/30 via-white to-amber-50/10"
                                         >
                                             <div className="flex items-center gap-3 min-w-0 pr-2">
@@ -9665,7 +9400,7 @@ export default function AndroidKoiApp({
                                                             : isShipping
                                                                 ? 'bg-blue-50 text-blue-700 border-blue-200'
                                                                 : isDraft
-                                                                    ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                                                    ? 'bg-red-50 text-[#98151e] border-[#bf1e26]/20'
                                                                     : 'bg-slate-100 text-slate-600 border-slate-200'
                                                         }`}>
                                                         {isShipping && <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />}
@@ -9783,7 +9518,7 @@ export default function AndroidKoiApp({
                                         ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                                         : selectedOrderDetail.status === 'paid'
                                             ? 'bg-blue-50 text-blue-700 border-blue-200'
-                                            : 'bg-amber-50 text-amber-700 border-amber-200'
+                                            : 'bg-red-50 text-[#98151e] border-[#bf1e26]/20'
                                     }`}>
                                     {selectedOrderDetail.status === 'completed'
                                         ? 'Ikan Selesai Diterima'
@@ -9985,7 +9720,7 @@ export default function AndroidKoiApp({
                                             {selectedOrderDetail.recipient?.address || 'Jl. Graha Raya Bintaro Blok M7 No. 12, Pondok Aren, Tangerang Selatan, Banten (15220)'}
                                         </p>
                                         {selectedOrderDetail.recipient?.notes && (
-                                            <div className="p-2 rounded-lg bg-amber-50/60 border border-amber-100 text-[10px] text-amber-800">
+                                            <div className="p-2 rounded-lg bg-red-50/60 border border-amber-100 text-[10px] text-[#98151e]">
                                                 <b>Instruksi Khusus:</b> {selectedOrderDetail.recipient.notes}
                                             </div>
                                         )}
@@ -10088,7 +9823,7 @@ export default function AndroidKoiApp({
                                         <p className="text-[10px] font-mono text-slate-400">#{activeOrder.orderNumber}</p>
                                     </div>
                                 </div>
-                                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-[#98151e] border border-[#bf1e26]/20">
                                     Menunggu Bayar
                                 </span>
                             </div>
@@ -10305,7 +10040,7 @@ export default function AndroidKoiApp({
                                 {/* Message 2: Merchant */}
                                 <div className="flex flex-col items-start max-w-[85%]">
                                     <div className="bg-white p-3 rounded-2xl rounded-tl-none shadow-xs space-y-1">
-                                        <p className="text-[10px] font-bold text-amber-700">{typeof activeOrder.product?.store === 'object' ? (activeOrder.product.store as any)?.name : (activeOrder.product?.store || 'Toko Koi Sejahtera')} (Merchant)</p>
+                                        <p className="text-[10px] font-bold text-[#98151e]">{typeof activeOrder.product?.store === 'object' ? (activeOrder.product.store as any)?.name : (activeOrder.product?.store || 'Toko Koi Sejahtera')} (Merchant)</p>
                                         <p className="text-slate-800">
                                             Siap Pak Operator & Kak {userName}! Ikan koi <b>{activeOrder.product.name}</b> sudah kami puasakan & karantina. Sertifikat original Blitar sudah masuk dalam kantong ganda tabung oksigen murni.
                                         </p>
@@ -10427,32 +10162,25 @@ export default function AndroidKoiApp({
                             <div className="flex-1 overflow-y-auto p-4 space-y-4">
                                 {/* Status Kurasi Banner */}
                                 {curationStep === 'submitted_push_notif' && (
-                                    <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 space-y-3">
-                                        <div className="flex items-center gap-2 text-amber-800 font-bold text-xs">
-                                            <AlertTriangle className="w-4 h-4 text-amber-600" />
+                                    <div className="p-4 rounded-2xl bg-red-50 border border-[#bf1e26]/20 space-y-3">
+                                        <div className="flex items-center gap-2 text-[#98151e] font-bold text-xs">
+                                            <AlertTriangle className="w-4 h-4 text-[#bf1e26]" />
                                             <span>Step 3: Menunggu Kurasi Operator KoiMart</span>
                                         </div>
-                                        <p className="text-[11px] text-amber-700 leading-relaxed">
-                                            Data koi telah disubmit ke Server API. Push Notifikasi telah dikirimkan ke Operator untuk kurasi kualitas, kesehatan, dan keaslian sertifikat.
+                                        <p className="text-[11px] text-[#98151e] leading-relaxed">
+                                            Data koi telah disubmit ke Server API. Push notifikasi telah dikirimkan ke Operator untuk kurasi kualitas, kesehatan, dan keaslian sertifikat.
                                         </p>
                                         <div className="grid grid-cols-2 gap-2 pt-1">
-                                            <button
-                                                type="button"
-                                                onClick={handleOperatorApproveListing}
-                                                className="py-2.5 px-3 bg-amber-600 hover:bg-amber-700 active:scale-98 text-white font-bold text-[11px] rounded-xl shadow-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
-                                            >
-                                                <CheckCircle2 className="w-4 h-4" />
-                                                <span>Approve Instan</span>
+                                            <button type="button" onClick={handleOperatorApproveListing} className="py-2.5 px-3 bg-amber-600 hover:bg-amber-700 text-white font-bold text-[11px] rounded-xl shadow-xs flex items-center justify-center gap-1.5 transition cursor-pointer">
+                                                <CheckCircle2 className="w-4 h-4" /> <span>Approve Instan</span>
                                             </button>
-                                            <button
-                                                type="button"
-                                                onClick={handleResetMerchantKoiForm}
-                                                className="py-2.5 px-3 bg-white border border-amber-300 text-amber-900 hover:bg-amber-100/60 active:scale-98 font-bold text-[11px] rounded-xl shadow-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
-                                            >
-                                                <Plus className="w-4 h-4 text-amber-700" />
-                                                <span>Upload Ikan Lain</span>
+                                            <button type="button" onClick={handleResetMerchantKoiForm} className="py-2.5 px-3 bg-white border border-amber-300 text-amber-900 hover:bg-amber-100/60 font-bold text-[11px] rounded-xl shadow-xs flex items-center justify-center gap-1.5 transition cursor-pointer">
+                                                <Plus className="w-4 h-4 text-amber-700" /> <span>Upload Ikan Lain</span>
                                             </button>
                                         </div>
+                                        <button type="button" onClick={handleOperatorApproveListing} className="w-full py-2.5 bg-[#bf1e26] hover:bg-red-700 text-white font-bold text-xs rounded-xl shadow-xs flex items-center justify-center gap-1.5 transition">
+                                            <CheckCircle2 className="w-4 h-4" /> <span>Simulasi: Operator Approve & Publish ke Katalog</span>
+                                        </button>
                                     </div>
                                 )}
 
@@ -10462,29 +10190,15 @@ export default function AndroidKoiApp({
                                             <Check className="w-5 h-5 stroke-[3]" />
                                         </div>
                                         <div>
-                                            <h4 className="font-bold text-xs text-emerald-800">
-                                                Step 5: Produk Berhasil Terbit di Katalog!
-                                            </h4>
-                                            <p className="text-[11px] text-emerald-700 mt-1">
-                                                Ikan koi telah disetujui kurator dan sekarang dapat dilihat serta dibeli langsung oleh customer.
-                                            </p>
+                                            <h4 className="font-bold text-xs text-emerald-800">Step 5: Produk Berhasil Terbit di Katalog!</h4>
+                                            <p className="text-[11px] text-emerald-700 mt-1">Ikan koi telah disetujui kurator dan sekarang dapat dilihat serta dibeli langsung oleh customer.</p>
                                         </div>
                                         <div className="grid grid-cols-2 gap-2 pt-1">
-                                            <button
-                                                type="button"
-                                                onClick={() => navigateTo('home')}
-                                                className="py-2 px-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] rounded-xl shadow-xs cursor-pointer flex items-center justify-center gap-1"
-                                            >
-                                                <Eye className="w-3.5 h-3.5" />
-                                                <span>Lihat di Katalog</span>
+                                            <button type="button" onClick={() => navigateTo('home')} className="py-2 px-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] rounded-xl shadow-xs cursor-pointer flex items-center justify-center gap-1">
+                                                <Eye className="w-3.5 h-3.5" /> <span>Lihat di Katalog</span>
                                             </button>
-                                            <button
-                                                type="button"
-                                                onClick={handleResetMerchantKoiForm}
-                                                className="py-2 px-3 bg-white border border-emerald-300 text-emerald-800 hover:bg-emerald-100/60 font-bold text-[11px] rounded-xl shadow-xs cursor-pointer flex items-center justify-center gap-1"
-                                            >
-                                                <Plus className="w-3.5 h-3.5" />
-                                                <span>Upload Ikan Lain</span>
+                                            <button type="button" onClick={handleResetMerchantKoiForm} className="py-2 px-3 bg-white border border-emerald-300 text-emerald-800 hover:bg-emerald-100/60 font-bold text-[11px] rounded-xl shadow-xs cursor-pointer flex items-center justify-center gap-1">
+                                                <Plus className="w-3.5 h-3.5" /> <span>Upload Ikan Lain</span>
                                             </button>
                                         </div>
                                     </div>
@@ -11009,7 +10723,7 @@ export default function AndroidKoiApp({
                                                                     <ShieldCheck className="w-3.5 h-3.5 text-blue-500 shrink-0" />
                                                                 )}
                                                                 {thread.type === 'operator' && (
-                                                                    <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                                                                    <Sparkles className="w-3.5 h-3.5 text-[#bf1e26] shrink-0" />
                                                                 )}
                                                                 {thread.type === 'wag_order' && (
                                                                     <span className="px-1.5 py-0.2 bg-emerald-50 text-emerald-600 text-[9px] font-bold rounded">
@@ -11205,7 +10919,7 @@ export default function AndroidKoiApp({
                                                 }}
                                                 className="px-2 py-1.5 border border-slate-300 hover:border-slate-400 bg-white text-slate-700 font-bold text-[10px] rounded-lg shadow-2xs flex items-center gap-1 shrink-0 active:scale-95 transition-transform"
                                             >
-                                                <Tag className="w-3 h-3 text-amber-500" />
+                                                <Tag className="w-3 h-3 text-[#bf1e26]" />
                                                 <span>Tawar</span>
                                             </button>
                                             <button
@@ -11290,12 +11004,12 @@ export default function AndroidKoiApp({
 
                                                     {/* Media Attachment: CERTIFICATE */}
                                                     {msg.mediaType === 'certificate' && (
-                                                        <div className="rounded-xl p-2.5 bg-amber-50/90 border border-amber-200 text-slate-900 space-y-1.5 mt-1">
+                                                        <div className="rounded-xl p-2.5 bg-red-50/90 border border-[#bf1e26]/20 text-slate-900 space-y-1.5 mt-1">
                                                             <div className="flex items-center gap-1.5">
-                                                                <ShieldCheck className="w-4 h-4 text-amber-600 shrink-0" />
+                                                                <ShieldCheck className="w-4 h-4 text-[#bf1e26] shrink-0" />
                                                                 <span className="text-[10px] font-bold text-amber-900">Sertifikat Terverifikasi Asli</span>
                                                             </div>
-                                                            <div className="aspect-[4/3] rounded-lg overflow-hidden border border-amber-200">
+                                                            <div className="aspect-[4/3] rounded-lg overflow-hidden border border-[#bf1e26]/20">
                                                                 <img
                                                                     src={msg.mediaUrl}
                                                                     alt="Certificate"
@@ -11308,7 +11022,7 @@ export default function AndroidKoiApp({
                                                             </div>
                                                             <button
                                                                 onClick={() => triggerToast('📄 Membuka dokumen sertifikat resmi farm resolusi tinggi...')}
-                                                                className="w-full py-1 bg-amber-600 hover:bg-amber-700 text-white font-bold text-[10px] rounded-lg text-center"
+                                                                className="w-full py-1 bg-[#bf1e26] hover:bg-amber-700 text-white font-bold text-[10px] rounded-lg text-center"
                                                             >
                                                                 Lihat Sertifikat HD
                                                             </button>
@@ -11319,8 +11033,8 @@ export default function AndroidKoiApp({
                                                     {msg.mediaType === 'offer' && (
                                                         <div className="rounded-xl p-2.5 bg-slate-900 text-white space-y-1 mt-1">
                                                             <div className="flex items-center justify-between">
-                                                                <span className="text-[10px] text-amber-400 font-bold">🏷️ Tawaran Harga Diajukan</span>
-                                                                <span className="text-[9px] px-1.5 py-0.2 bg-amber-500/20 text-amber-300 rounded font-semibold">Pending</span>
+                                                                <span className="text-[10px] text-[#d52a30] font-bold">🏷️ Tawaran Harga Diajukan</span>
+                                                                <span className="text-[9px] px-1.5 py-0.2 bg-[#bf1e26]/20 text-red-300 rounded font-semibold">Pending</span>
                                                             </div>
                                                             <p className="text-sm font-extrabold text-white">
                                                                 Rp {msg.offerAmount?.toLocaleString('id-ID')}
@@ -11393,7 +11107,7 @@ export default function AndroidKoiApp({
                                             }}
                                             className="p-2.5 rounded-xl border border-slate-200 hover:border-red-500 flex flex-col items-center gap-1 text-slate-700"
                                         >
-                                            <Tag className="w-5 h-5 text-amber-500" />
+                                            <Tag className="w-5 h-5 text-[#bf1e26]" />
                                             <span className="text-[10px] font-bold">Tawar Harga</span>
                                         </button>
                                     </div>
@@ -11440,7 +11154,7 @@ export default function AndroidKoiApp({
                                         <div className="w-full bg-white rounded-t-3xl p-5 space-y-4 animate-in slide-in-from-bottom duration-200 shadow-2xl">
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-2">
-                                                    <Tag className="w-4 h-4 text-amber-500" />
+                                                    <Tag className="w-4 h-4 text-[#bf1e26]" />
                                                     <h4 className="font-bold text-sm text-slate-900">Tawar Harga Ikan</h4>
                                                 </div>
                                                 <button onClick={() => setIsNegoModalOpen(false)} className="text-slate-400 hover:text-slate-600">
@@ -11581,7 +11295,7 @@ export default function AndroidKoiApp({
 
                                     {/* Speciality Badge on Banner */}
                                     <div className="absolute top-3 left-3 px-2.5 py-1 bg-black/60 backdrop-blur-md rounded-full text-[10px] font-bold text-white border border-white/15 flex items-center gap-1.5 shadow">
-                                        <Award className="w-3.5 h-3.5 text-amber-400" />
+                                        <Award className="w-3.5 h-3.5 text-[#d52a30]" />
                                         <span>{selectedStore.speciality}</span>
                                     </div>
 
@@ -11621,7 +11335,7 @@ export default function AndroidKoiApp({
                                                     <span className="truncate">{selectedStore.city}</span>
                                                 </div>
                                                 <div className="flex items-center gap-3 mt-1.5 text-xs">
-                                                    <div className="flex items-center gap-1 text-amber-500 font-bold">
+                                                    <div className="flex items-center gap-1 text-[#bf1e26] font-bold">
                                                         <Star className="w-3.5 h-3.5 fill-amber-400" />
                                                         <span>{selectedStore.rating}</span>
                                                         <span className="text-slate-400 font-normal">({selectedStore.reviewsCount} Ulasan)</span>
@@ -11785,7 +11499,7 @@ export default function AndroidKoiApp({
                                                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                                             />
                                                             {prod.isPremium && (
-                                                                <span className="absolute top-2 left-2 px-2 py-0.5 bg-amber-500 text-white text-[9px] font-bold rounded-full shadow">
+                                                                <span className="absolute top-2 left-2 px-2 py-0.5 bg-[#bf1e26] text-white text-[9px] font-bold rounded-full shadow">
                                                                     Premium
                                                                 </span>
                                                             )}
@@ -12036,8 +11750,8 @@ export default function AndroidKoiApp({
                                             onClick={() => setBidStatusFilter('outbid')}
                                             className={`p-2.5 rounded-2xl border text-center cursor-pointer transition-all ${
                                                 bidStatusFilter === 'outbid'
-                                                    ? 'bg-amber-600 text-white border-amber-600 shadow-md shadow-amber-600/25'
-                                                    : 'bg-amber-50 text-amber-800 border-amber-200 hover:border-amber-300'
+                                                    ? 'bg-[#bf1e26] text-white border-amber-600 shadow-md shadow-amber-600/25'
+                                                    : 'bg-red-50 text-[#98151e] border-[#bf1e26]/20 hover:border-[#bf1e26]/30'
                                             }`}
                                         >
                                             <div className="text-base font-black">{outbidBids.length}</div>
@@ -12075,7 +11789,7 @@ export default function AndroidKoiApp({
                                                             isLeading
                                                                 ? 'border-emerald-300/80 shadow-emerald-500/5'
                                                                 : isOutbid
-                                                                    ? 'border-amber-300/80 shadow-amber-500/5'
+                                                                    ? 'border-[#bf1e26]/30/80 shadow-red-500/5'
                                                                     : isWon
                                                                         ? 'border-rose-300/80 shadow-rose-500/5'
                                                                         : 'border-slate-200'
@@ -12086,7 +11800,7 @@ export default function AndroidKoiApp({
                                                             isLeading
                                                                 ? 'bg-emerald-50/80 border-emerald-100 text-emerald-800'
                                                                 : isOutbid
-                                                                    ? 'bg-amber-50/80 border-amber-100 text-amber-800'
+                                                                    ? 'bg-red-50/80 border-amber-100 text-[#98151e]'
                                                                     : isWon
                                                                         ? 'bg-gradient-to-r from-rose-50 to-pink-50 border-rose-100 text-rose-800'
                                                                         : 'bg-slate-50 border-slate-100 text-slate-600'
@@ -12100,7 +11814,7 @@ export default function AndroidKoiApp({
                                                                 )}
                                                                 {isOutbid && (
                                                                     <>
-                                                                        <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
+                                                                        <AlertTriangle className="w-3.5 h-3.5 text-[#bf1e26]" />
                                                                         <span>Tawaran Terlampaui</span>
                                                                     </>
                                                                 )}
@@ -12174,8 +11888,8 @@ export default function AndroidKoiApp({
                                                                 </div>
                                                             )}
                                                             {isOutbid && (
-                                                                <div className="p-2 rounded-xl bg-amber-50/80 border border-amber-100 flex items-center gap-2 text-[10px] text-amber-800">
-                                                                    <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                                                                <div className="p-2 rounded-xl bg-red-50/80 border border-amber-100 flex items-center gap-2 text-[10px] text-[#98151e]">
+                                                                    <AlertTriangle className="w-3.5 h-3.5 text-[#bf1e26] shrink-0" />
                                                                     <span>Tawaran Anda tersalip oleh <strong>{bid.highestBidder}</strong> (+Rp {(bid.currentBid - bid.myBid).toLocaleString('id-ID')}). Naikkan tawaran sekarang!</span>
                                                                 </div>
                                                             )}
@@ -12207,7 +11921,7 @@ export default function AndroidKoiApp({
                                                                             openAuctionDetail(bid);
                                                                             triggerToast(`⚡ Silakan masukkan tawaran baru di atas Rp ${bid.currentBid.toLocaleString('id-ID')}`);
                                                                         }}
-                                                                        className="flex-1 py-2 px-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-md shadow-amber-500/25 transition active:scale-95 cursor-pointer"
+                                                                        className="flex-1 py-2 px-3 rounded-xl bg-gradient-to-r from-[#bf1e26] to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-md shadow-amber-500/25 transition active:scale-95 cursor-pointer"
                                                                     >
                                                                         <Flame className="w-3.5 h-3.5" />
                                                                         <span>Tawar Ulang</span>
@@ -12312,61 +12026,61 @@ export default function AndroidKoiApp({
                         }
 
                         const bidderNavButtons: BidderNavButtonItem[] = [
-                            { 
-                                id: 'dashboard', 
-                                label: 'Dashboard', 
+                            {
+                                id: 'dashboard',
+                                label: 'Dashboard',
                                 iconSrc: '/images/menu_icons/pusat_bidder.png',
                                 squircleBg: 'from-amber-50/90 via-amber-100/40 to-yellow-100/50 border-amber-300/60 ring-1 ring-amber-200/50 shadow-amber-900/10',
                                 desc: 'Ringkasan & Limit'
                             },
-                            { 
-                                id: 'profile', 
-                                label: 'Profil', 
+                            {
+                                id: 'profile',
+                                label: 'Profil',
                                 iconSrc: '/images/menu_icons/farm_mitra.png',
                                 squircleBg: 'from-sky-50/90 via-blue-100/40 to-cyan-100/50 border-sky-300/60 ring-1 ring-sky-200/50 shadow-sky-900/10',
                                 desc: 'Identitas & Kolam'
                             },
-                            { 
-                                id: 'my_koi', 
-                                label: 'Ikan Saya', 
+                            {
+                                id: 'my_koi',
+                                label: 'Ikan Saya',
                                 iconSrc: '/images/menu_icons/kategori_koi.png',
                                 squircleBg: 'from-rose-50/90 via-rose-100/40 to-red-100/50 border-rose-300/60 ring-1 ring-rose-200/50 shadow-rose-900/10',
                                 badge: myKoiItems.length > 0 ? myKoiItems.length : undefined,
                                 desc: 'Ikan Dimenangkan'
                             },
-                            { 
-                                id: 'my_bids', 
-                                label: 'Bid Saya', 
+                            {
+                                id: 'my_bids',
+                                label: 'Bid Saya',
                                 iconSrc: '/images/menu_icons/lelang_live.png',
                                 squircleBg: 'from-amber-50/90 via-amber-100/40 to-orange-100/50 border-amber-300/60 ring-1 ring-amber-200/50 shadow-amber-900/10',
                                 badge: userBids.length > 0 ? userBids.length : undefined,
                                 desc: 'Tawaran Aktif'
                             },
-                            { 
-                                id: 'bnr', 
-                                label: 'BNR', 
+                            {
+                                id: 'bnr',
+                                label: 'BNR',
                                 iconSrc: '/images/menu_icons/bnr.png',
                                 squircleBg: 'from-emerald-50/90 via-emerald-100/40 to-teal-100/50 border-emerald-300/60 ring-1 ring-emerald-200/50 shadow-emerald-900/10',
                                 badgeText: 'Bebas',
                                 desc: 'Anti Bid & Run'
                             },
-                            { 
-                                id: 'history', 
-                                label: 'History Bid', 
+                            {
+                                id: 'history',
+                                label: 'History Bid',
                                 iconSrc: '/images/menu_icons/rekor_harga.png',
                                 squircleBg: 'from-yellow-50/90 via-amber-100/40 to-yellow-100/50 border-yellow-300/70 ring-1 ring-yellow-200/50 shadow-yellow-900/10',
                                 desc: 'Riwayat Tawaran'
                             },
-                            { 
-                                id: 'others', 
-                                label: 'Lainnya', 
+                            {
+                                id: 'others',
+                                label: 'Lainnya',
                                 iconSrc: '/images/menu_icons/event_spesial.png',
                                 squircleBg: 'from-purple-50/90 via-fuchsia-100/40 to-rose-100/50 border-purple-300/60 ring-1 ring-purple-200/50 shadow-purple-900/10',
                                 desc: 'Garansi D.O.A'
                             },
-                            { 
-                                id: 'wa_help', 
-                                label: 'Bantuan CS', 
+                            {
+                                id: 'wa_help',
+                                label: 'Bantuan CS',
                                 iconSrc: '/images/menu_icons/chat_vip.png',
                                 squircleBg: 'from-teal-50/90 via-teal-100/40 to-emerald-100/50 border-teal-300/60 ring-1 ring-teal-200/50 shadow-teal-900/10',
                                 badgeText: '24/7',
@@ -14676,8 +14390,8 @@ export default function AndroidKoiApp({
 
                             <div className="flex justify-between items-start">
                                 <div>
-                                    <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 text-[10px] font-bold mb-1 border border-amber-300">
-                                        <Award className="w-3 h-3 text-amber-700" />
+                                    <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-red-100 text-amber-900 text-[10px] font-bold mb-1 border border-[#bf1e26]/30">
+                                        <Award className="w-3 h-3 text-[#98151e]" />
                                         <span>Khusus Koi Premium</span>
                                     </div>
                                     <h4 className="font-extrabold text-base text-slate-900">Biaya Pendaftaran Peserta Lelang</h4>
@@ -15479,14 +15193,14 @@ export default function AndroidKoiApp({
                             </div>
 
                             {/* Warning & Guarantee Info */}
-                            <div className="space-y-1.5 text-[11px] text-slate-500 bg-amber-50/60 p-2.5 rounded-xl border border-amber-200/70">
-                                <div className="flex items-start gap-1.5 text-amber-800">
-                                    <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
+                            <div className="space-y-1.5 text-[11px] text-slate-500 bg-red-50/60 p-2.5 rounded-xl border border-[#bf1e26]/20/70">
+                                <div className="flex items-start gap-1.5 text-[#98151e]">
+                                    <AlertTriangle className="w-3.5 h-3.5 text-[#bf1e26] shrink-0 mt-0.5" />
                                     <p className="leading-snug">
                                         <strong>Perhatian:</strong> Penawaran bersifat mengikat secara resmi. Jika Anda menang, Anda berkewajiban menyelesaikan pembayaran transaksi ini.
                                     </p>
                                 </div>
-                                <div className="flex items-center gap-1.5 text-emerald-700 pt-1 border-t border-amber-200/50">
+                                <div className="flex items-center gap-1.5 text-emerald-700 pt-1 border-t border-[#bf1e26]/20/50">
                                     <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                                     <span>Saldo dompet Anda mencukupi untuk jaminan penawaran lelang ini.</span>
                                 </div>
@@ -15589,7 +15303,7 @@ export default function AndroidKoiApp({
                                     onClick={() => handleShareTo('instagram')}
                                     className="flex flex-col items-center gap-1.5 p-2 rounded-2xl hover:bg-slate-50 active:scale-95 transition"
                                 >
-                                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 text-white flex items-center justify-center shadow-md shadow-rose-500/25">
+                                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#bf1e26] via-rose-500 to-purple-600 text-white flex items-center justify-center shadow-md shadow-rose-500/25">
                                         <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                             <rect width="20" height="20" x="2" y="2" rx="5" ry="5"/>
                                             <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
@@ -15662,7 +15376,7 @@ export default function AndroidKoiApp({
                             {/* Header Modal */}
                             <div className="flex justify-between items-start">
                                 <div className="flex items-center gap-2.5">
-                                    <div className="w-11 h-11 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center font-black text-lg border border-amber-300">
+                                    <div className="w-11 h-11 rounded-2xl bg-red-100 text-[#98151e] flex items-center justify-center font-black text-lg border border-[#bf1e26]/30">
                                         Aa
                                     </div>
                                     <div>
@@ -15701,7 +15415,7 @@ export default function AndroidKoiApp({
                                         id: 'xlarge' as const,
                                         title: 'Sangat Besar',
                                         badge: 'Ekstra Besar',
-                                        badgeColor: 'bg-amber-100 text-amber-900 border-amber-300',
+                                        badgeColor: 'bg-red-100 text-amber-900 border-[#bf1e26]/30',
                                         desc: 'Ukuran tulisan maksimal dan ekstra tebal.',
                                         iconText: 'A⁺⁺',
                                     },
@@ -15713,13 +15427,13 @@ export default function AndroidKoiApp({
                                             onClick={() => changeFontSizeScale(opt.id)}
                                             className={`w-full text-left p-3.5 rounded-2xl border-2 transition-all flex items-start gap-3 active:scale-98 ${
                                                 isSelected
-                                                    ? 'border-amber-500 bg-amber-50/80 shadow-md ring-2 ring-amber-400/30'
+                                                    ? 'border-[#bf1e26] bg-red-50/80 shadow-md ring-2 ring-[#bf1e26]/30'
                                                     : 'border-slate-200 hover:border-slate-300 bg-white'
                                             }`}
                                         >
                                             <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm shrink-0 border ${
-                                                isSelected 
-                                                    ? 'bg-amber-600 text-white border-amber-600 shadow-xs' 
+                                                isSelected
+                                                    ? 'bg-[#bf1e26] text-white border-amber-600 shadow-xs'
                                                     : 'bg-slate-100 text-slate-700 border-slate-200'
                                             }`}>
                                                 {opt.iconText}
@@ -15776,7 +15490,7 @@ export default function AndroidKoiApp({
                         >
                             {/* Modal Header Bar */}
                             <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between shrink-0">
-                                <span className="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 font-bold text-[10px] uppercase">
+                                <span className="px-2.5 py-0.5 rounded-full bg-red-100 text-amber-900 font-bold text-[10px] uppercase">
                                     {selectedMobileArticle.badge_text || selectedMobileArticle.category_label || selectedMobileArticle.category}
                                 </span>
                                 <button
@@ -15847,7 +15561,7 @@ export default function AndroidKoiApp({
                                         />
                                         {selectedMobileArticle.custom_url && (
                                             <div className="absolute bottom-2.5 right-2.5 px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-xs text-white text-[10px] font-semibold flex items-center gap-1 shadow-md border border-white/20">
-                                                <ExternalLink className="w-3 h-3 text-amber-400" />
+                                                <ExternalLink className="w-3 h-3 text-[#d52a30]" />
                                                 <span>Buka Link Gambar</span>
                                             </div>
                                         )}
@@ -15859,7 +15573,7 @@ export default function AndroidKoiApp({
                                 </h3>
 
                                 {selectedMobileArticle.summary && (
-                                    <div className="p-3 bg-amber-50 rounded-xl border border-amber-200/80 text-[11px] text-amber-900 font-medium leading-relaxed">
+                                    <div className="p-3 bg-red-50 rounded-xl border border-[#bf1e26]/20/80 text-[11px] text-amber-900 font-medium leading-relaxed">
                                         {selectedMobileArticle.summary}
                                     </div>
                                 )}
@@ -15882,7 +15596,7 @@ export default function AndroidKoiApp({
                                         href={selectedMobileArticle.custom_url}
                                         target={selectedMobileArticle.target_type || '_blank'}
                                         rel="noopener noreferrer"
-                                        className="flex-1 py-2.5 px-4 bg-amber-500 hover:bg-amber-600 text-stone-950 font-bold text-xs rounded-2xl shadow flex items-center justify-center gap-1.5 transition active:scale-98"
+                                        className="flex-1 py-2.5 px-4 bg-[#bf1e26] hover:bg-[#bf1e26] text-white font-bold text-xs rounded-2xl shadow flex items-center justify-center gap-1.5 transition active:scale-98"
                                     >
                                         <span>Buka Link Gambar</span>
                                         <ExternalLink className="w-3.5 h-3.5" />

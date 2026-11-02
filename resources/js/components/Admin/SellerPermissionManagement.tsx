@@ -249,7 +249,7 @@ export default function SellerPermissionManagement({
                 <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                     <div>
                         <div className="flex items-center gap-2">
-                            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-500/10 text-amber-500">
+                            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#bf1e26]/10 text-[#bf1e26]">
                                 <ShieldCheck className="h-5 w-5" />
                             </span>
                             <h2 className="text-xl font-bold tracking-tight">
@@ -265,7 +265,7 @@ export default function SellerPermissionManagement({
                         <button
                             type="button"
                             onClick={() => setCreateSellerModalOpen(true)}
-                            className="flex items-center gap-1.5 rounded-xl bg-amber-500 px-4 py-2 text-xs font-bold text-slate-950 hover:bg-amber-400 transition shadow-sm whitespace-nowrap"
+                            className="flex items-center gap-1.5 rounded-xl bg-[#bf1e26] px-4 py-2 text-xs font-bold text-white hover:bg-[#bf1e26] transition shadow-sm whitespace-nowrap"
                         >
                             <UserPlus className="h-4 w-4" />
                             <span>+ Daftarkan Seller Baru</span>
@@ -279,7 +279,7 @@ export default function SellerPermissionManagement({
                                     placeholder="Cari nama toko / pemilik..."
                                     value={searchTerm}
                                     onChange={(e) => onSearchChange(e.target.value)}
-                                    className={`w-full rounded-xl border pl-9 pr-3.5 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500 ${
+                                    className={`w-full rounded-xl border pl-9 pr-3.5 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-[#bf1e26] ${
                                         isDark
                                             ? 'border-slate-700 bg-slate-800/80 text-white placeholder-slate-400'
                                             : 'border-slate-200 bg-slate-50 text-slate-900 placeholder-slate-400'
@@ -334,7 +334,7 @@ export default function SellerPermissionManagement({
                         }`}
                     >
                         <span className="text-[11px] font-medium text-slate-400 block">Akses WhatsApp CS</span>
-                        <div className="text-lg font-bold text-amber-500 mt-0.5">
+                        <div className="text-lg font-bold text-[#bf1e26] mt-0.5">
                             {stores.filter((s) => s.permission?.can_use_whatsapp).length} Mitra
                         </div>
                     </div>
@@ -404,7 +404,7 @@ export default function SellerPermissionManagement({
                                             {/* Store & Owner info */}
                                             <td className="px-5 py-4">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-500/20 text-amber-500 font-bold border border-amber-500/30">
+                                                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#bf1e26]/20 to-orange-500/20 text-[#bf1e26] font-bold border border-[#bf1e26]/30">
                                                         <StoreIcon className="h-5 w-5" />
                                                     </div>
                                                     <div>
@@ -569,7 +569,7 @@ export default function SellerPermissionManagement({
                                             <td className="px-5 py-4 text-right">
                                                 <button
                                                     onClick={() => openEditModal(store)}
-                                                    className="inline-flex items-center gap-1 rounded-xl bg-amber-500/10 border border-amber-500/30 px-3 py-1.5 text-xs font-semibold text-amber-500 hover:bg-amber-500 hover:text-slate-950 transition"
+                                                    className="inline-flex items-center gap-1 rounded-xl bg-[#bf1e26]/10 border border-[#bf1e26]/30 px-3 py-1.5 text-xs font-semibold text-[#bf1e26] hover:bg-[#bf1e26] hover:text-white transition"
                                                 >
                                                     <Sliders className="h-3.5 w-3.5" />
                                                     <span>Atur Hak Akses</span>
@@ -602,7 +602,7 @@ export default function SellerPermissionManagement({
                                     dangerouslySetInnerHTML={{ __html: link.label }}
                                     className={`rounded-lg px-2.5 py-1 transition ${
                                         link.active
-                                            ? 'bg-amber-500 text-slate-950 font-bold'
+                                            ? 'bg-[#bf1e26] text-white font-bold'
                                             : link.url
                                             ? 'hover:bg-slate-100 dark:hover:bg-slate-800'
                                             : 'opacity-40 cursor-not-allowed'
@@ -625,7 +625,7 @@ export default function SellerPermissionManagement({
                         {/* Modal Header */}
                         <div className="flex items-center justify-between border-b pb-4 mb-5 border-slate-200 dark:border-slate-800">
                             <div className="flex items-center gap-3">
-                                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-amber-500 text-slate-950 font-bold">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#bf1e26] text-white font-bold">
                                     <ShieldCheck className="h-5 w-5" />
                                 </div>
                                 <div>
@@ -666,7 +666,7 @@ export default function SellerPermissionManagement({
                                         type="checkbox"
                                         checked={formData.is_active}
                                         onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                                        className="h-5 w-5 rounded border-slate-300 text-amber-500 focus:ring-amber-500"
+                                        className="h-5 w-5 rounded border-slate-300 text-[#bf1e26] focus:ring-[#bf1e26]"
                                     />
                                 </label>
                             </div>
@@ -690,7 +690,7 @@ export default function SellerPermissionManagement({
                                             onChange={(e) =>
                                                 setFormData({ ...formData, can_manage_products: e.target.checked })
                                             }
-                                            className="mt-0.5 h-4 w-4 rounded border-slate-300 text-amber-500 focus:ring-amber-500"
+                                            className="mt-0.5 h-4 w-4 rounded border-slate-300 text-[#bf1e26] focus:ring-[#bf1e26]"
                                         />
                                         <div>
                                             <span className="text-xs font-bold block">Katalog Produk Koi</span>
@@ -712,7 +712,7 @@ export default function SellerPermissionManagement({
                                             onChange={(e) =>
                                                 setFormData({ ...formData, can_manage_auctions: e.target.checked })
                                             }
-                                            className="mt-0.5 h-4 w-4 rounded border-slate-300 text-amber-500 focus:ring-amber-500"
+                                            className="mt-0.5 h-4 w-4 rounded border-slate-300 text-[#bf1e26] focus:ring-[#bf1e26]"
                                         />
                                         <div>
                                             <span className="text-xs font-bold block">Penyelenggaraan Lelang</span>
@@ -734,7 +734,7 @@ export default function SellerPermissionManagement({
                                             onChange={(e) =>
                                                 setFormData({ ...formData, can_manage_orders: e.target.checked })
                                             }
-                                            className="mt-0.5 h-4 w-4 rounded border-slate-300 text-amber-500 focus:ring-amber-500"
+                                            className="mt-0.5 h-4 w-4 rounded border-slate-300 text-[#bf1e26] focus:ring-[#bf1e26]"
                                         />
                                         <div>
                                             <span className="text-xs font-bold block">Pesanan & Resi Pengiriman</span>
@@ -756,7 +756,7 @@ export default function SellerPermissionManagement({
                                             onChange={(e) =>
                                                 setFormData({ ...formData, can_view_reports: e.target.checked })
                                             }
-                                            className="mt-0.5 h-4 w-4 rounded border-slate-300 text-amber-500 focus:ring-amber-500"
+                                            className="mt-0.5 h-4 w-4 rounded border-slate-300 text-[#bf1e26] focus:ring-[#bf1e26]"
                                         />
                                         <div>
                                             <span className="text-xs font-bold block">Laporan Penjualan & Payout</span>
@@ -778,7 +778,7 @@ export default function SellerPermissionManagement({
                                             onChange={(e) =>
                                                 setFormData({ ...formData, can_manage_reviews: e.target.checked })
                                             }
-                                            className="mt-0.5 h-4 w-4 rounded border-slate-300 text-amber-500 focus:ring-amber-500"
+                                            className="mt-0.5 h-4 w-4 rounded border-slate-300 text-[#bf1e26] focus:ring-[#bf1e26]"
                                         />
                                         <div>
                                             <span className="text-xs font-bold block">Manajemen Ulasan Pembeli</span>
@@ -800,7 +800,7 @@ export default function SellerPermissionManagement({
                                             onChange={(e) =>
                                                 setFormData({ ...formData, can_edit_profile: e.target.checked })
                                             }
-                                            className="mt-0.5 h-4 w-4 rounded border-slate-300 text-amber-500 focus:ring-amber-500"
+                                            className="mt-0.5 h-4 w-4 rounded border-slate-300 text-[#bf1e26] focus:ring-[#bf1e26]"
                                         />
                                         <div>
                                             <span className="text-xs font-bold block">Profil & Alamat Lapak</span>
@@ -822,7 +822,7 @@ export default function SellerPermissionManagement({
                                             onChange={(e) =>
                                                 setFormData({ ...formData, can_use_whatsapp: e.target.checked })
                                             }
-                                            className="mt-0.5 h-4 w-4 rounded border-slate-300 text-amber-500 focus:ring-amber-500"
+                                            className="mt-0.5 h-4 w-4 rounded border-slate-300 text-[#bf1e26] focus:ring-[#bf1e26]"
                                         />
                                         <div>
                                             <span className="text-xs font-bold block">WhatsApp & CS Terintegrasi</span>
@@ -844,7 +844,7 @@ export default function SellerPermissionManagement({
                                             onChange={(e) =>
                                                 setFormData({ ...formData, can_create_articles: e.target.checked })
                                             }
-                                            className="mt-0.5 h-4 w-4 rounded border-slate-300 text-amber-500 focus:ring-amber-500"
+                                            className="mt-0.5 h-4 w-4 rounded border-slate-300 text-[#bf1e26] focus:ring-[#bf1e26]"
                                         />
                                         <div>
                                             <span className="text-xs font-bold block">Publikasi Artikel & Tips</span>
@@ -870,7 +870,7 @@ export default function SellerPermissionManagement({
                                             onChange={(e) =>
                                                 setFormData({ ...formData, max_products: parseInt(e.target.value) || 0 })
                                             }
-                                            className={`w-full rounded-xl border px-3.5 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500 ${
+                                            className={`w-full rounded-xl border px-3.5 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-[#bf1e26] ${
                                                 isDark
                                                     ? 'border-slate-700 bg-slate-800 text-white'
                                                     : 'border-slate-200 bg-slate-50 text-slate-900'
@@ -891,7 +891,7 @@ export default function SellerPermissionManagement({
                                         placeholder="Contoh: Mitra Gold Blitar, Akses Khusus"
                                         value={formData.notes}
                                         onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                                        className={`w-full rounded-xl border px-3.5 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500 ${
+                                        className={`w-full rounded-xl border px-3.5 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-[#bf1e26] ${
                                             isDark
                                                 ? 'border-slate-700 bg-slate-800 text-white'
                                                 : 'border-slate-200 bg-slate-50 text-slate-900'
@@ -919,7 +919,7 @@ export default function SellerPermissionManagement({
                                 <button
                                     type="submit"
                                     disabled={processing}
-                                    className="flex items-center gap-1.5 rounded-xl bg-amber-500 px-5 py-2 text-xs font-bold text-slate-950 hover:bg-amber-400 transition disabled:opacity-50"
+                                    className="flex items-center gap-1.5 rounded-xl bg-[#bf1e26] px-5 py-2 text-xs font-bold text-white hover:bg-[#bf1e26] transition disabled:opacity-50"
                                 >
                                     <Check className="h-4 w-4" />
                                     <span>{processing ? 'Menyimpan...' : 'Simpan Hak Akses'}</span>
@@ -941,7 +941,7 @@ export default function SellerPermissionManagement({
                         {/* Modal Header */}
                         <div className="flex items-center justify-between border-b pb-4 mb-5 border-slate-200 dark:border-slate-800">
                             <div className="flex items-center gap-3">
-                                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-amber-500 text-slate-950 font-bold">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#bf1e26] text-white font-bold">
                                     <UserPlus className="h-5 w-5" />
                                 </div>
                                 <div>
@@ -964,7 +964,7 @@ export default function SellerPermissionManagement({
                             {/* Section 1: User / Account Details */}
                             <div>
                                 <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
-                                    <User className="h-3.5 w-3.5 text-amber-500" />
+                                    <User className="h-3.5 w-3.5 text-[#bf1e26]" />
                                     1. Informasi Akun Seller
                                 </h4>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -978,7 +978,7 @@ export default function SellerPermissionManagement({
                                             placeholder="Contoh: Hendra Wijaya"
                                             value={newSellerForm.name}
                                             onChange={(e) => setNewSellerForm({ ...newSellerForm, name: e.target.value })}
-                                            className={`w-full rounded-xl border px-3.5 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500 ${
+                                            className={`w-full rounded-xl border px-3.5 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-[#bf1e26] ${
                                                 isDark ? 'border-slate-700 bg-slate-800 text-white' : 'border-slate-200 bg-slate-50 text-slate-900'
                                             }`}
                                         />
@@ -993,7 +993,7 @@ export default function SellerPermissionManagement({
                                             placeholder="seller@example.com"
                                             value={newSellerForm.email}
                                             onChange={(e) => setNewSellerForm({ ...newSellerForm, email: e.target.value })}
-                                            className={`w-full rounded-xl border px-3.5 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500 ${
+                                            className={`w-full rounded-xl border px-3.5 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-[#bf1e26] ${
                                                 isDark ? 'border-slate-700 bg-slate-800 text-white' : 'border-slate-200 bg-slate-50 text-slate-900'
                                             }`}
                                         />
@@ -1008,7 +1008,7 @@ export default function SellerPermissionManagement({
                                             placeholder="password123"
                                             value={newSellerForm.password}
                                             onChange={(e) => setNewSellerForm({ ...newSellerForm, password: e.target.value })}
-                                            className={`w-full rounded-xl border px-3.5 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500 ${
+                                            className={`w-full rounded-xl border px-3.5 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-[#bf1e26] ${
                                                 isDark ? 'border-slate-700 bg-slate-800 text-white' : 'border-slate-200 bg-slate-50 text-slate-900'
                                             }`}
                                         />
@@ -1023,7 +1023,7 @@ export default function SellerPermissionManagement({
                                             placeholder="081234567890"
                                             value={newSellerForm.phone}
                                             onChange={(e) => setNewSellerForm({ ...newSellerForm, phone: e.target.value })}
-                                            className={`w-full rounded-xl border px-3.5 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500 ${
+                                            className={`w-full rounded-xl border px-3.5 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-[#bf1e26] ${
                                                 isDark ? 'border-slate-700 bg-slate-800 text-white' : 'border-slate-200 bg-slate-50 text-slate-900'
                                             }`}
                                         />
@@ -1034,7 +1034,7 @@ export default function SellerPermissionManagement({
                             {/* Section 2: Store / Lapak Details */}
                             <div>
                                 <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
-                                    <StoreIcon className="h-3.5 w-3.5 text-amber-500" />
+                                    <StoreIcon className="h-3.5 w-3.5 text-[#bf1e26]" />
                                     2. Profil Lapak Koi
                                 </h4>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -1048,7 +1048,7 @@ export default function SellerPermissionManagement({
                                             placeholder="Contoh: Blitar Nishikigoi Farm"
                                             value={newSellerForm.store_name}
                                             onChange={(e) => setNewSellerForm({ ...newSellerForm, store_name: e.target.value })}
-                                            className={`w-full rounded-xl border px-3.5 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500 ${
+                                            className={`w-full rounded-xl border px-3.5 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-[#bf1e26] ${
                                                 isDark ? 'border-slate-700 bg-slate-800 text-white' : 'border-slate-200 bg-slate-50 text-slate-900'
                                             }`}
                                         />
@@ -1062,7 +1062,7 @@ export default function SellerPermissionManagement({
                                             placeholder="Blitar / Kediri / Jakarta"
                                             value={newSellerForm.city}
                                             onChange={(e) => setNewSellerForm({ ...newSellerForm, city: e.target.value })}
-                                            className={`w-full rounded-xl border px-3.5 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500 ${
+                                            className={`w-full rounded-xl border px-3.5 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-[#bf1e26] ${
                                                 isDark ? 'border-slate-700 bg-slate-800 text-white' : 'border-slate-200 bg-slate-50 text-slate-900'
                                             }`}
                                         />
@@ -1076,7 +1076,7 @@ export default function SellerPermissionManagement({
                                             placeholder="Jl. Raya Koi No. 12, Kec. Sananwetan, Blitar"
                                             value={newSellerForm.address}
                                             onChange={(e) => setNewSellerForm({ ...newSellerForm, address: e.target.value })}
-                                            className={`w-full rounded-xl border px-3.5 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500 ${
+                                            className={`w-full rounded-xl border px-3.5 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-[#bf1e26] ${
                                                 isDark ? 'border-slate-700 bg-slate-800 text-white' : 'border-slate-200 bg-slate-50 text-slate-900'
                                             }`}
                                         />
@@ -1090,7 +1090,7 @@ export default function SellerPermissionManagement({
                                             placeholder="Pusat indukan dan bibit koi berkualitas Blitar..."
                                             value={newSellerForm.store_description}
                                             onChange={(e) => setNewSellerForm({ ...newSellerForm, store_description: e.target.value })}
-                                            className={`w-full rounded-xl border px-3.5 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500 ${
+                                            className={`w-full rounded-xl border px-3.5 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-[#bf1e26] ${
                                                 isDark ? 'border-slate-700 bg-slate-800 text-white' : 'border-slate-200 bg-slate-50 text-slate-900'
                                             }`}
                                         />
@@ -1101,7 +1101,7 @@ export default function SellerPermissionManagement({
                             {/* Section 3: Hak Akses & Batasan Awal */}
                             <div>
                                 <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
-                                    <Shield className="h-3.5 w-3.5 text-amber-500" />
+                                    <Shield className="h-3.5 w-3.5 text-[#bf1e26]" />
                                     3. Hak Akses & Batasan Awal
                                 </h4>
                                 
@@ -1116,7 +1116,7 @@ export default function SellerPermissionManagement({
                                             max={1000}
                                             value={newSellerForm.max_products}
                                             onChange={(e) => setNewSellerForm({ ...newSellerForm, max_products: parseInt(e.target.value) || 10 })}
-                                            className={`w-full rounded-xl border px-3.5 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500 ${
+                                            className={`w-full rounded-xl border px-3.5 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-[#bf1e26] ${
                                                 isDark ? 'border-slate-700 bg-slate-800 text-white' : 'border-slate-200 bg-slate-50 text-slate-900'
                                             }`}
                                         />
@@ -1129,7 +1129,7 @@ export default function SellerPermissionManagement({
                                             type="text"
                                             value={newSellerForm.notes}
                                             onChange={(e) => setNewSellerForm({ ...newSellerForm, notes: e.target.value })}
-                                            className={`w-full rounded-xl border px-3.5 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500 ${
+                                            className={`w-full rounded-xl border px-3.5 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-[#bf1e26] ${
                                                 isDark ? 'border-slate-700 bg-slate-800 text-white' : 'border-slate-200 bg-slate-50 text-slate-900'
                                             }`}
                                         />
@@ -1142,7 +1142,7 @@ export default function SellerPermissionManagement({
                                             type="checkbox"
                                             checked={newSellerForm.can_manage_products}
                                             onChange={(e) => setNewSellerForm({ ...newSellerForm, can_manage_products: e.target.checked })}
-                                            className="h-4 w-4 rounded border-slate-300 text-amber-500 focus:ring-amber-500"
+                                            className="h-4 w-4 rounded border-slate-300 text-[#bf1e26] focus:ring-[#bf1e26]"
                                         />
                                         <span>Kelola Katalog Produk</span>
                                     </label>
@@ -1152,7 +1152,7 @@ export default function SellerPermissionManagement({
                                             type="checkbox"
                                             checked={newSellerForm.can_manage_auctions}
                                             onChange={(e) => setNewSellerForm({ ...newSellerForm, can_manage_auctions: e.target.checked })}
-                                            className="h-4 w-4 rounded border-slate-300 text-amber-500 focus:ring-amber-500"
+                                            className="h-4 w-4 rounded border-slate-300 text-[#bf1e26] focus:ring-[#bf1e26]"
                                         />
                                         <span>Kelola & Buka Lelang</span>
                                     </label>
@@ -1162,7 +1162,7 @@ export default function SellerPermissionManagement({
                                             type="checkbox"
                                             checked={newSellerForm.can_manage_orders}
                                             onChange={(e) => setNewSellerForm({ ...newSellerForm, can_manage_orders: e.target.checked })}
-                                            className="h-4 w-4 rounded border-slate-300 text-amber-500 focus:ring-amber-500"
+                                            className="h-4 w-4 rounded border-slate-300 text-[#bf1e26] focus:ring-[#bf1e26]"
                                         />
                                         <span>Kelola Pesanan & Resi</span>
                                     </label>
@@ -1172,7 +1172,7 @@ export default function SellerPermissionManagement({
                                             type="checkbox"
                                             checked={newSellerForm.can_view_reports}
                                             onChange={(e) => setNewSellerForm({ ...newSellerForm, can_view_reports: e.target.checked })}
-                                            className="h-4 w-4 rounded border-slate-300 text-amber-500 focus:ring-amber-500"
+                                            className="h-4 w-4 rounded border-slate-300 text-[#bf1e26] focus:ring-[#bf1e26]"
                                         />
                                         <span>Laporan & Keuangan</span>
                                     </label>
@@ -1182,7 +1182,7 @@ export default function SellerPermissionManagement({
                                             type="checkbox"
                                             checked={newSellerForm.can_manage_reviews}
                                             onChange={(e) => setNewSellerForm({ ...newSellerForm, can_manage_reviews: e.target.checked })}
-                                            className="h-4 w-4 rounded border-slate-300 text-amber-500 focus:ring-amber-500"
+                                            className="h-4 w-4 rounded border-slate-300 text-[#bf1e26] focus:ring-[#bf1e26]"
                                         />
                                         <span>Ulasan Pembeli</span>
                                     </label>
@@ -1192,7 +1192,7 @@ export default function SellerPermissionManagement({
                                             type="checkbox"
                                             checked={newSellerForm.can_edit_profile}
                                             onChange={(e) => setNewSellerForm({ ...newSellerForm, can_edit_profile: e.target.checked })}
-                                            className="h-4 w-4 rounded border-slate-300 text-amber-500 focus:ring-amber-500"
+                                            className="h-4 w-4 rounded border-slate-300 text-[#bf1e26] focus:ring-[#bf1e26]"
                                         />
                                         <span>Edit Profil & Alamat Lapak</span>
                                     </label>
@@ -1215,7 +1215,7 @@ export default function SellerPermissionManagement({
                                 <button
                                     type="submit"
                                     disabled={processing}
-                                    className="flex items-center gap-1.5 rounded-xl bg-amber-500 px-5 py-2 text-xs font-bold text-slate-950 hover:bg-amber-400 transition disabled:opacity-50"
+                                    className="flex items-center gap-1.5 rounded-xl bg-[#bf1e26] px-5 py-2 text-xs font-bold text-white hover:bg-[#bf1e26] transition disabled:opacity-50"
                                 >
                                     <UserPlus className="h-4 w-4" />
                                     <span>{processing ? 'Mendaftarkan...' : 'Daftarkan Seller & Lapak'}</span>

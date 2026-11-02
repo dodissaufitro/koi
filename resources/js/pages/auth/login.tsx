@@ -1,9 +1,10 @@
 import InputError from '@/components/input-error';
+import AppLogoIcon from '@/components/app-logo-icon';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import {
     ArrowLeft,
     Award,
@@ -37,17 +38,13 @@ interface LoginProps {
     redirect?: string;
 }
 
-export default function Login({ status, canResetPassword, redirect }: LoginProps) {
+export default function Login({ canResetPassword, redirect }: LoginProps) {
     const [theme, setTheme] = useState<'dark' | 'light'>('light');
     const [showPassword, setShowPassword] = useState(false);
 
     // Dapatkan target redirect dari props atau query string browser
     const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
     const targetRedirect = redirect || urlParams?.get('redirect') || '';
-    const pageProps = usePage().props as any;
-    const flashError = pageProps.flash?.error || pageProps.error;
-    const flashSuccess = pageProps.flash?.success || status;
-
     // Sync theme dengan preferensi landing page
     useEffect(() => {
         const savedTheme = localStorage.getItem('koki_theme') as 'dark' | 'light' | null;
@@ -178,7 +175,7 @@ export default function Login({ status, canResetPassword, redirect }: LoginProps
 
     return (
         <div
-            className={`min-h-screen font-sans transition-colors duration-300 selection:bg-amber-500 selection:text-white flex flex-col justify-between ${
+            className={`min-h-screen font-sans transition-colors duration-300 selection:bg-[#bf1e26] selection:text-white flex flex-col justify-between ${
                 isDark ? 'dark bg-[#080B11] text-slate-100' : 'bg-[#F8FAFC] text-slate-800'
             }`}
         >
@@ -192,11 +189,11 @@ export default function Login({ status, canResetPassword, redirect }: LoginProps
                     <Link
                         href="/"
                         className={`inline-flex items-center gap-2.5 text-xs font-medium transition ${
-                            isDark ? 'text-slate-300 hover:text-amber-300' : 'text-slate-600 hover:text-amber-700'
+                            isDark ? 'text-slate-300 hover:text-red-300' : 'text-slate-600 hover:text-[#98151e]'
                         }`}
                     >
                         <div className={`flex h-8 w-8 items-center justify-center rounded-lg border transition ${
-                            isDark ? 'bg-[#141B28] border-amber-500/20 text-amber-300' : 'bg-amber-50 border-amber-300 text-amber-700'
+                            isDark ? 'bg-[#141B28] border-[#bf1e26]/20 text-red-300' : 'bg-red-50 border-[#bf1e26]/30 text-[#98151e]'
                         }`}>
                             <Fish className="h-4 w-4 stroke-[1.8]" />
                         </div>
@@ -211,13 +208,13 @@ export default function Login({ status, canResetPassword, redirect }: LoginProps
                         onClick={() => toggleTheme(isDark ? 'light' : 'dark')}
                         className={`flex h-9 w-9 items-center justify-center rounded-xl border transition ${
                             isDark
-                                ? 'border-white/[0.08] bg-[#121824] text-amber-300 hover:text-white hover:border-amber-400/30'
-                                : 'border-slate-200 bg-white text-slate-700 hover:text-amber-600 hover:border-amber-300 shadow-sm'
+                                ? 'border-white/[0.08] bg-[#121824] text-red-300 hover:text-white hover:border-[#bf1e26]/30'
+                                : 'border-slate-200 bg-white text-slate-700 hover:text-[#bf1e26] hover:border-[#bf1e26]/30 shadow-sm'
                         }`}
                         title={isDark ? 'Ganti ke Warna Cerah' : 'Ganti ke Warna Gelap'}
                         aria-label="Ubah tema tampilan"
                     >
-                        {isDark ? <Sun className="h-4 w-4 text-amber-300" /> : <Moon className="h-4 w-4 text-slate-600" />}
+                        {isDark ? <Sun className="h-4 w-4 text-red-300" /> : <Moon className="h-4 w-4 text-slate-600" />}
                     </button>
                 </div>
             </header>
@@ -236,26 +233,26 @@ export default function Login({ status, canResetPassword, redirect }: LoginProps
                             <img
                                 src="/images/koi/kohaku.jpg"
                                 alt="Nishikigoi Heritage"
-                                className="h-full w-full object-cover opacity-30 mix-blend-luminosity filter contrast-125"
+                                className="h-full w-full object-cover opacity-55"
                             />
-                            <div className="absolute inset-0 bg-gradient-to-t from-[#090D15] via-[#090D15]/80 to-transparent" />
-                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#090D15]/40 to-[#090D15]" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-[#090D15]/65 via-[#090D15]/20 to-transparent" />
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#090D15]/10 to-[#090D15]/55" />
                         </div>
 
                         {/* Top Branding */}
                         <div className="relative z-10 space-y-4">
-                            <div className="inline-flex items-center gap-2 rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1 text-[10px] font-semibold tracking-widest text-amber-300 uppercase">
-                                <Sparkles className="h-3 w-3 text-amber-400" />
+                            <div className="inline-flex items-center gap-2 rounded-full border border-[#bf1e26]/30 bg-[#bf1e26]/10 px-3 py-1 text-[10px] font-semibold tracking-widest text-red-300 uppercase">
+                                <Sparkles className="h-3 w-3 text-[#d52a30]" />
                                 <span>Official Auction & Curated Farm</span>
                             </div>
 
                             <div className="flex items-center gap-3 pt-2">
-                                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400/20 to-amber-600/10 border border-amber-400/40 text-amber-300 shadow-inner">
-                                    <Fish className="h-6 w-6 stroke-[1.8]" />
+                                <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-[#bf1e26]/40 bg-[#090D15]/35 p-1.5 shadow-inner">
+                                    <AppLogoIcon className="h-full w-full" />
                                 </div>
                                 <div>
                                     <div className="text-xl font-bold font-serif tracking-widest text-white">
-                                        KOKI <span className="font-sans text-amber-400 font-light">KOI</span>
+                                        KOKI <span className="font-sans text-[#d52a30] font-light">KOI</span>
                                     </div>
                                     <div className="text-[10px] tracking-[0.2em] uppercase font-light text-slate-400">
                                         Curated Japanese Nishikigoi
@@ -270,7 +267,7 @@ export default function Login({ status, canResetPassword, redirect }: LoginProps
                                 <p className="font-serif italic text-base sm:text-lg text-slate-200 font-light leading-relaxed">
                                     "Keindahan hidup Nishikigoi terpatri dalam harmoni pola, kemurnian warna, dan dedikasi karantina berstandar tertinggi."
                                 </p>
-                                <footer className="text-xs font-light text-amber-300/80">
+                                <footer className="text-xs font-light text-red-300/80">
                                     — Nilai Kurasi & Warisan Jepang
                                 </footer>
                             </blockquote>
@@ -283,7 +280,7 @@ export default function Login({ status, canResetPassword, redirect }: LoginProps
                                 <span>Karantina Bio-Steril 21 Hari & Garansi DOA</span>
                             </div>
                             <div className="flex items-center gap-2.5 text-xs text-slate-300 font-light">
-                                <Award className="h-4 w-4 text-amber-400 shrink-0" />
+                                <Award className="h-4 w-4 text-[#d52a30] shrink-0" />
                                 <span>Sertifikat Asli Farm Dainichi, Sakai & Isa</span>
                             </div>
                             <div className="flex items-center gap-2.5 text-xs text-slate-300 font-light">
@@ -296,7 +293,7 @@ export default function Login({ status, canResetPassword, redirect }: LoginProps
                     {/* Right Column: Interactive Role-Based Login Form */}
                     <div className="lg:col-span-7 p-6 sm:p-10 lg:p-12 flex flex-col justify-center">
                         <div className="mb-6 space-y-1.5">
-                            <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-amber-600 dark:text-amber-400">
+                            <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#bf1e26] dark:text-[#d52a30]">
                                 Protected Member Access
                             </span>
                             <h1 className={`text-2xl sm:text-3xl font-serif font-bold tracking-tight ${
@@ -309,18 +306,6 @@ export default function Login({ status, canResetPassword, redirect }: LoginProps
                             </p>
                         </div>
 
-                        {flashError && (
-                            <div className="mb-5 rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-xs font-medium text-rose-600 dark:text-rose-400 text-center">
-                                ⚠️ {flashError}
-                            </div>
-                        )}
-
-                        {flashSuccess && (
-                            <div className="mb-5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-xs font-medium text-emerald-600 dark:text-emerald-400 text-center">
-                                {flashSuccess}
-                            </div>
-                        )}
-
                         {/* Interactive 3-Role Access Selector Cards */}
                         <div className="mb-6 space-y-2.5">
                             <div className="flex items-center justify-between text-xs">
@@ -328,7 +313,7 @@ export default function Login({ status, canResetPassword, redirect }: LoginProps
                                     Pilih Peran Akun (1-Klik Isi Cepat):
                                 </span>
                                 <span className="text-[11px] text-slate-400 font-light">
-                                    Password: <code className="font-mono text-amber-600 dark:text-amber-400">password</code>
+                                    Password: <code className="font-mono text-[#bf1e26] dark:text-[#d52a30]">password</code>
                                 </span>
                             </div>
 
@@ -348,7 +333,7 @@ export default function Login({ status, canResetPassword, redirect }: LoginProps
                                                         ? 'bg-purple-500/15 border-purple-500/60 ring-2 ring-purple-500/30 shadow-md'
                                                         : role.color === 'emerald'
                                                         ? 'bg-emerald-500/15 border-emerald-500/60 ring-2 ring-emerald-500/30 shadow-md'
-                                                        : 'bg-amber-500/15 border-amber-500/60 ring-2 ring-amber-500/30 shadow-md'
+                                                        : 'bg-[#bf1e26]/15 border-[#bf1e26]/60 ring-2 ring-[#bf1e26]/30 shadow-md'
                                                     : isDark
                                                     ? 'bg-[#121824] border-white/[0.06] hover:bg-[#161E2E] hover:border-white/20'
                                                     : 'bg-slate-50 border-slate-200 hover:bg-slate-100 hover:border-slate-300'
@@ -357,7 +342,7 @@ export default function Login({ status, canResetPassword, redirect }: LoginProps
                                             {isSelected && (
                                                 <span className="absolute top-2.5 right-2.5 flex h-4 w-4 items-center justify-center rounded-full bg-white dark:bg-slate-900 shadow-sm">
                                                     <CheckCircle2 className={`h-4 w-4 ${
-                                                        role.color === 'purple' ? 'text-purple-600' : role.color === 'emerald' ? 'text-emerald-600' : 'text-amber-600'
+                                                        role.color === 'purple' ? 'text-purple-600' : role.color === 'emerald' ? 'text-emerald-600' : 'text-[#bf1e26]'
                                                     }`} />
                                                 </span>
                                             )}
@@ -368,7 +353,7 @@ export default function Login({ status, canResetPassword, redirect }: LoginProps
                                                         ? 'bg-purple-500/20 text-purple-600 dark:text-purple-400'
                                                         : role.color === 'emerald'
                                                         ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400'
-                                                        : 'bg-amber-500/20 text-amber-600 dark:text-amber-400'
+                                                        : 'bg-[#bf1e26]/20 text-[#bf1e26] dark:text-[#d52a30]'
                                                     : isDark
                                                     ? 'bg-white/5 text-slate-400 group-hover:text-slate-200'
                                                     : 'bg-white text-slate-600 group-hover:text-slate-900 shadow-sm'
@@ -382,7 +367,7 @@ export default function Login({ status, canResetPassword, redirect }: LoginProps
                                                         ? 'text-purple-700 dark:text-purple-300'
                                                         : role.color === 'emerald'
                                                         ? 'text-emerald-700 dark:text-emerald-300'
-                                                        : 'text-amber-700 dark:text-amber-300'
+                                                        : 'text-[#98151e] dark:text-red-300'
                                                     : isDark ? 'text-slate-200' : 'text-slate-800'
                                             }`}>
                                                 {role.title}
@@ -407,7 +392,7 @@ export default function Login({ status, canResetPassword, redirect }: LoginProps
                                         <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                                         <span>Peran Aktif: <strong className="font-semibold text-slate-900 dark:text-white">{currentRole.title}</strong></span>
                                     </div>
-                                    <span className="text-[11px] font-medium text-amber-600 dark:text-amber-400">
+                                    <span className="text-[11px] font-medium text-[#bf1e26] dark:text-[#d52a30]">
                                         → {currentRole.destination}
                                     </span>
                                 </div>
@@ -434,8 +419,8 @@ export default function Login({ status, canResetPassword, redirect }: LoginProps
                                         placeholder="owner@kokikoi.com"
                                         className={`pl-10 h-11 text-xs rounded-xl transition ${
                                             isDark
-                                                ? 'bg-[#121824] border-white/10 text-white placeholder:text-slate-500 focus:border-amber-400 focus:ring-amber-400/20'
-                                                : 'bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-amber-500 focus:ring-amber-500/20'
+                                                ? 'bg-[#121824] border-white/10 text-white placeholder:text-slate-500 focus:border-[#bf1e26] focus:ring-[#bf1e26]/20'
+                                                : 'bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-[#bf1e26] focus:ring-[#bf1e26]/20'
                                         }`}
                                     />
                                 </div>
@@ -450,7 +435,7 @@ export default function Login({ status, canResetPassword, redirect }: LoginProps
                                     {canResetPassword && (
                                         <Link
                                             href={route('password.request')}
-                                            className="text-[11px] text-amber-600 dark:text-amber-400 hover:underline"
+                                            className="text-[11px] text-[#bf1e26] dark:text-[#d52a30] hover:underline"
                                         >
                                             Lupa sandi?
                                         </Link>
@@ -469,8 +454,8 @@ export default function Login({ status, canResetPassword, redirect }: LoginProps
                                         placeholder="••••••••"
                                         className={`pl-10 pr-10 h-11 text-xs rounded-xl transition ${
                                             isDark
-                                                ? 'bg-[#121824] border-white/10 text-white placeholder:text-slate-500 focus:border-amber-400 focus:ring-amber-400/20'
-                                                : 'bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-amber-500 focus:ring-amber-500/20'
+                                                ? 'bg-[#121824] border-white/10 text-white placeholder:text-slate-500 focus:border-[#bf1e26] focus:ring-[#bf1e26]/20'
+                                                : 'bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-[#bf1e26] focus:ring-[#bf1e26]/20'
                                         }`}
                                     />
                                     <button
@@ -503,8 +488,8 @@ export default function Login({ status, canResetPassword, redirect }: LoginProps
                                 disabled={processing}
                                 className={`w-full h-11 rounded-xl text-xs font-semibold tracking-wide transition shadow-lg flex items-center justify-center gap-2 ${
                                     isDark
-                                        ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-amber-500/20'
-                                        : 'bg-amber-600 hover:bg-amber-500 text-white shadow-amber-600/20'
+                                        ? 'bg-[#bf1e26] hover:bg-[#bf1e26] text-white shadow-amber-500/20'
+                                        : 'bg-[#bf1e26] hover:bg-[#bf1e26] text-white shadow-red-600/20'
                                 }`}
                             >
                                 {processing ? (

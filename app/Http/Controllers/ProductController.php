@@ -74,7 +74,7 @@ class ProductController extends Controller
         return Inertia::render('Marketplace/Index', [
             'products' => $products,
             'categories' => $categories,
-            'filters' => $request->only(['search', 'category', 'condition', 'catch_type', 'min_price', 'max_price', 'sort']),
+            'filters' => (object) $request->only(['search', 'category', 'condition', 'catch_type', 'min_price', 'max_price', 'sort']),
         ]);
     }
 

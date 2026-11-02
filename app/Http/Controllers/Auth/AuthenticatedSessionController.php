@@ -64,6 +64,7 @@ class AuthenticatedSessionController extends Controller
         $request->session()->regenerate();
 
         $user = $request->user();
+        $successMessage = 'Selamat datang, ' . $user->name . '!';
 
         $destination = match (true) {
             $user->isAdmin() => route('admin.dashboard', absolute: false),
@@ -90,24 +91,24 @@ class AuthenticatedSessionController extends Controller
         if ($targetRedirect) {
             $path = parse_url($targetRedirect, PHP_URL_PATH) ?? '';
             if (!str_contains($path, '/login') && !str_contains($path, '/register') && !str_contains($path, '/logout')) {
-                return redirect()->to($targetRedirect);
+                return redirect()->to($targetRedirect)->with('success', $successMessage);
             }
         }
 
         // 2. Arahkan pasti sesuai peran pengguna (tanpa fallback redirect->intended yang bisa loop)
         if ($user->isAdmin()) {
-            return redirect()->route('admin.dashboard');
+            return redirect()->route('admin.dashboard')->with('success', $successMessage);
         }
 
         if ($user->isSeller() || $user->store) {
-            return redirect()->route('seller.dashboard');
+            return redirect()->route('seller.dashboard')->with('success', $successMessage);
         }
 
         if (app()->runningUnitTests()) {
-            return redirect()->intended(route('dashboard', absolute: false));
+            return redirect()->intended(route('dashboard', absolute: false))->with('success', $successMessage);
         }
 
-        return redirect()->route('home');
+        return redirect()->route('home')->with('success', $successMessage);
     }
 
     /**
@@ -130,8 +131,8 @@ class AuthenticatedSessionController extends Controller
             || $request->input('view') === 'android'
             || $request->cookie('koki_view_mode') === 'android';
 
-        $redirectUrl = $isAndroid ? '/?view=android&screen=highest_auction' : '/?view=android&screen=highest_auction';
+        $redirectUrl = $isAndroid ? '/?view=android&screen=highest_auction' : '/';
 
-        return redirect($redirectUrl);
+        return redirect($redirectUrl)->with('success', 'Anda berhasil keluar dari akun.');
     }
 }

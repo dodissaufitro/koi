@@ -8,7 +8,10 @@
 
 @theme {
     --font-sans:
-        'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+        'Plus Jakarta Sans', 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+        'Noto Color Emoji';
+
+    --font-serif: 'Playfair Display', Georgia, Cambria, 'Times New Roman', Times, serif;
 
     --radius-lg: var(--radius);
     --radius-md: calc(var(--radius) - 2px);
@@ -163,4 +166,82 @@
     &::-webkit-scrollbar {
         display: none;
     }
+}
+
+body {
+    font-family: var(--font-sans);
+}
+
+/* Article pages inherit the site-wide KoiMart theme preference. */
+[data-koi-theme='light'] {
+    background-color: #f5f3f0;
+    color: #1e293b;
+}
+
+[data-koi-theme='light'] [class*='bg-[#0B0F17]'],
+[data-koi-theme='light'] [class*='bg-[#080B11]'],
+[data-koi-theme='light'] [class*='bg-[#0A0E17]'],
+[data-koi-theme='light'] [class*='bg-[#0E131E]'],
+[data-koi-theme='light'] [class*='bg-[#0E1420]'],
+[data-koi-theme='light'] [class*='bg-[#111724]'],
+[data-koi-theme='light'] [class*='bg-[#121927]'],
+[data-koi-theme='light'] [class*='bg-[#0D121D]'],
+[data-koi-theme='light'] [class*='bg-[#141C2B]'],
+[data-koi-theme='light'] [class*='bg-[#161D2D]'] {
+    background-color: #ffffff !important;
+}
+
+[data-koi-theme='light'] [class*='bg-white/['] {
+    background-color: #f1f5f9 !important;
+}
+
+[data-koi-theme='light'] [class*='border-white'] {
+    border-color: #e2e8f0 !important;
+}
+
+[data-koi-theme='light'] .text-white,
+[data-koi-theme='light'] .text-slate-100,
+[data-koi-theme='light'] .text-slate-200,
+[data-koi-theme='light'] .text-slate-300 {
+    color: #1e293b !important;
+}
+
+[data-koi-theme='light'] .text-slate-400 {
+    color: #64748b !important;
+}
+
+[data-koi-theme='light'] .text-slate-500 {
+    color: #64748b !important;
+}
+
+[data-koi-theme='light'] .bg-\[\#bf1e26\].text-white,
+[data-koi-theme='light'] .bg-red-600.text-white,
+[data-koi-theme='light'] .bg-red-700.text-white {
+    color: #ffffff !important;
+}
+
+[data-koi-theme='light'] .prose-invert {
+    --tw-prose-body: #475569;
+    --tw-prose-headings: #0f172a;
+    --tw-prose-bold: #0f172a;
+    --tw-prose-links: #bf1e26;
+    --tw-prose-bullets: #bf1e26;
+    color: #475569;
+}
+
+/* Ensure red buttons/badges always have white text */
+.bg-\[\#bf1e26\],
+.bg-\[\#c82027\],
+.bg-\[\#C41E3A\],
+.bg-red-600,
+.bg-red-700 {
+    color: #ffffff !important;
+}
+
+.bg-\[\#bf1e26\] *,
+.bg-\[\#c82027\] *,
+.bg-\[\#C41E3A\] *,
+.bg-red-600 *,
+.bg-red-700 * {
+    color: inherit;
 }

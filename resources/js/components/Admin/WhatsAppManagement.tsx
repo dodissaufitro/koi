@@ -309,7 +309,7 @@ export default function WhatsAppManagement({ data, isDark }: WhatsAppManagementP
                 <div className={`p-4 rounded-2xl border transition-all ${isDark ? 'bg-slate-900/80 border-slate-800' : 'bg-white border-slate-200 shadow-xs'}`}>
                     <div className="flex items-center justify-between">
                         <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Nomor CS Publik</span>
-                        <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-[#C09B6C] flex items-center justify-center">
+                        <div className="w-8 h-8 rounded-xl bg-[#bf1e26]/10 text-[#C09B6C] flex items-center justify-center">
                             <Smartphone className="w-4 h-4" />
                         </div>
                     </div>
@@ -430,7 +430,7 @@ export default function WhatsAppManagement({ data, isDark }: WhatsAppManagementP
                                         className={`text-[11px] px-2.5 py-1 rounded-lg border font-medium transition cursor-pointer ${
                                             isDark
                                                 ? 'border-slate-700 bg-slate-800/80 text-slate-300 hover:border-[#C09B6C] hover:text-white'
-                                                : 'border-slate-200 bg-slate-50 text-slate-700 hover:border-[#C09B6C] hover:bg-amber-50/50'
+                                                : 'border-slate-200 bg-slate-50 text-slate-700 hover:border-[#C09B6C] hover:bg-red-50/50'
                                         }`}
                                     >
                                         {tpl.label}

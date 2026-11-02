@@ -153,7 +153,7 @@ export default function BackOfficeReports({ reports, isDark = false }: BackOffic
                             {[
                                 { id: 'revenue', title: 'Laporan Penjualan / Revenue', icon: DollarSign, color: 'text-emerald-600', val: formatRp(reports.revenue.total_gmv) },
                                 { id: 'commission', title: 'Laporan Potongan Komisi App', icon: PieChart, color: 'text-blue-600', val: formatRp(reports.commission.total_commission) },
-                                { id: 'payout', title: 'Rekap Payout / Utang Merchant', icon: CreditCard, color: 'text-amber-600', val: formatRp(reports.payout.total_payable) },
+                                { id: 'payout', title: 'Rekap Payout / Utang Merchant', icon: CreditCard, color: 'text-[#bf1e26]', val: formatRp(reports.payout.total_payable) },
                                 { id: 'performance', title: 'Laporan Performa Merchant & Ikan Laku', icon: TrendingUp, color: 'text-purple-600', val: `${reports.performance.auction_success_rate}% Sukses` },
                                 { id: 'profit_loss', title: 'Profit & Loss / Laba Rugi', icon: ShieldCheck, color: 'text-rose-600', val: formatRp(reports.profit_loss.net_profit) },
                             ].map((mod) => (
@@ -286,7 +286,7 @@ export default function BackOfficeReports({ reports, isDark = false }: BackOffic
                                         <td className="p-3">{sale.store}</td>
                                         <td className="p-3">
                                             <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                                                sale.type === 'Lelang' ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300' : 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300'
+                                                sale.type === 'Lelang' ? 'bg-red-100 text-[#98151e] dark:bg-amber-950 dark:text-red-300' : 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300'
                                             }`}>
                                                 {sale.type}
                                             </span>
@@ -365,7 +365,7 @@ export default function BackOfficeReports({ reports, isDark = false }: BackOffic
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
                         <div>
                             <div className="flex items-center gap-2">
-                                <span className="px-2 py-0.5 rounded text-[10px] font-black bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-400">
+                                <span className="px-2 py-0.5 rounded text-[10px] font-black bg-red-100 text-[#98151e] dark:bg-amber-950 dark:text-[#d52a30]">
                                     MODUL 3
                                 </span>
                                 <h3 className="font-extrabold text-base text-slate-900 dark:text-white">
@@ -378,7 +378,7 @@ export default function BackOfficeReports({ reports, isDark = false }: BackOffic
                         </div>
                         <div className="text-right">
                             <span className="text-[10px] text-slate-400 uppercase font-semibold block">Total Utang Payout</span>
-                            <span className="text-lg font-black text-amber-600">{formatRp(reports.payout.total_payable)}</span>
+                            <span className="text-lg font-black text-[#bf1e26]">{formatRp(reports.payout.total_payable)}</span>
                         </div>
                     </div>
 
@@ -491,7 +491,7 @@ export default function BackOfficeReports({ reports, isDark = false }: BackOffic
                                     <div key={i} className="flex items-center justify-between p-2.5 bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800">
                                         <div className="flex items-center gap-2.5">
                                             <div className={`w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center ${
-                                                i === 0 ? 'bg-amber-100 text-amber-800 font-black' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
+                                                i === 0 ? 'bg-red-100 text-[#98151e] font-black' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
                                             }`}>
                                                 {i + 1}
                                             </div>

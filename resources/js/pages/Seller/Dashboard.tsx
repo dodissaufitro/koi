@@ -207,38 +207,23 @@ export default function SellerDashboard({
     const [isAndroidMode, setIsAndroidMode] = useState<boolean>(() => {
         if (typeof window === 'undefined') return false;
         const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('view') === 'android') return true;
         if (urlParams.get('view') === 'desktop') return false;
-
-        // Jika layar berukuran mobile (< 768px) atau user agent mobile, otomatis tampilkan Mode Android
-        const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        if (window.innerWidth < 768 || isMobileDevice) return true;
-
-        const saved = localStorage.getItem('koki_seller_view_mode') || localStorage.getItem('koki_view_mode');
-        if (saved === 'android') return true;
-        if (saved === 'desktop') return false;
-        return false;
+        if (urlParams.get('view') === 'android' && sessionStorage.getItem('koki_android_simulator') === '1') return true;
+        return window.innerWidth < 768;
     });
 
     useEffect(() => {
         const handleResize = () => {
             const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('view') === 'android') {
-                setIsAndroidMode(true);
-                return;
-            }
             if (urlParams.get('view') === 'desktop') {
                 setIsAndroidMode(false);
                 return;
             }
-            const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-            if (window.innerWidth < 768 || isMobileDevice) {
+            if (urlParams.get('view') === 'android' && sessionStorage.getItem('koki_android_simulator') === '1') {
                 setIsAndroidMode(true);
-            } else {
-                const saved = localStorage.getItem('koki_seller_view_mode') || localStorage.getItem('koki_view_mode');
-                if (saved === 'android') setIsAndroidMode(true);
-                else if (saved === 'desktop') setIsAndroidMode(false);
+                return;
             }
+            setIsAndroidMode(window.innerWidth < 768);
         };
 
         window.addEventListener('resize', handleResize);
@@ -266,7 +251,7 @@ export default function SellerDashboard({
         { id: 'dashboard', label: 'Ringkasan Lapak', icon: Home, count: null, allowed: true },
         { id: 'products', label: 'Produk Saya', icon: Package, count: stats.total_products, allowed: permission.can_manage_products },
         { id: 'orders', label: 'Pesanan Masuk', icon: ShoppingCart, count: stats.pending_orders || null, badgeColor: 'bg-rose-500', allowed: permission.can_manage_orders },
-        { id: 'auctions', label: 'Sesi Lelang', icon: Tag, count: stats.active_auctions || null, badgeColor: 'bg-amber-500', allowed: permission.can_manage_auctions },
+        { id: 'auctions', label: 'Sesi Lelang', icon: Tag, count: stats.active_auctions || null, badgeColor: 'bg-[#bf1e26]', allowed: permission.can_manage_auctions },
         { id: 'reports', label: 'Laporan Omzet', icon: BarChart2, count: null, allowed: permission.can_view_reports },
         { id: 'reviews', label: 'Ulasan Pembeli', icon: MessageSquare, count: stats.total_reviews || null, allowed: permission.can_manage_reviews },
         { id: 'settings', label: 'Profil Lapak', icon: Settings, count: null, allowed: permission.can_edit_profile },
@@ -485,6 +470,7 @@ export default function SellerDashboard({
                 auth={auth}
                 onExitAndroidView={() => {
                     setIsAndroidMode(false);
+                    sessionStorage.removeItem('koki_android_simulator');
                     localStorage.setItem('koki_seller_view_mode', 'desktop');
                     localStorage.setItem('koki_view_mode', 'desktop');
                 }}
@@ -513,7 +499,7 @@ export default function SellerDashboard({
                                 <div>
                                     <h1 className="text-sm font-extrabold tracking-wide text-slate-900 dark:text-white uppercase flex items-center gap-1">
                                         KOKI KOI
-                                        <span className="text-[10px] font-bold bg-amber-500/20 text-amber-500 px-1.5 py-0.2 rounded">
+                                        <span className="text-[10px] font-bold bg-[#bf1e26]/20 text-[#bf1e26] px-1.5 py-0.2 rounded">
                                             SELLER
                                         </span>
                                     </h1>
@@ -529,9 +515,9 @@ export default function SellerDashboard({
                         </div>
 
                         {/* Store Badge & Quota Widget */}
-                        <div className="p-4 mx-3 my-3 rounded-2xl bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/20">
+                        <div className="p-4 mx-3 my-3 rounded-2xl bg-gradient-to-br from-[#bf1e26]/10 via-amber-500/5 to-transparent border border-[#bf1e26]/20">
                             <div className="flex items-center gap-2 mb-1.5">
-                                <StoreIcon className="w-4 h-4 text-amber-500 shrink-0" />
+                                <StoreIcon className="w-4 h-4 text-[#bf1e26] shrink-0" />
                                 <span className="text-xs font-bold truncate text-slate-900 dark:text-white">
                                     {store.name}
                                 </span>
@@ -548,9 +534,9 @@ export default function SellerDashboard({
                                     </span>
                                 )}
                             </div>
-                            <div className="mt-2 pt-2 border-t border-amber-500/10 flex items-center justify-between text-[10px]">
+                            <div className="mt-2 pt-2 border-t border-[#bf1e26]/10 flex items-center justify-between text-[10px]">
                                 <span className="text-slate-400">Kuota Koleksi:</span>
-                                <span className="font-semibold text-amber-500">
+                                <span className="font-semibold text-[#bf1e26]">
                                     {stats.total_products} / {permission.max_products === 0 ? 'Tanpa Batas' : `${permission.max_products} Ekor`}
                                 </span>
                             </div>
@@ -572,7 +558,7 @@ export default function SellerDashboard({
                                         onClick={() => handleTabChange(item.id)}
                                         className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all ${
                                             isActive
-                                                ? 'bg-amber-500 text-slate-950 font-bold shadow-md shadow-amber-500/20'
+                                                ? 'bg-[#bf1e26] text-white font-bold shadow-md shadow-amber-500/20'
                                                 : isAllowed
                                                 ? 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white'
                                                 : 'text-slate-400/60 dark:text-slate-600 hover:bg-slate-100/50 dark:hover:bg-slate-800/30'
@@ -591,7 +577,7 @@ export default function SellerDashboard({
                                                 <span
                                                     className={`px-1.5 py-0.5 rounded-md text-[10px] font-bold ${
                                                         isActive
-                                                            ? 'bg-slate-950 text-amber-400'
+                                                            ? 'bg-slate-950 text-[#d52a30]'
                                                             : item.badgeColor
                                                             ? `${item.badgeColor} text-white`
                                                             : 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
@@ -610,7 +596,7 @@ export default function SellerDashboard({
                         <div className="p-4 border-t border-slate-200/80 dark:border-slate-800/80">
                             <div className="rounded-xl p-3 bg-slate-100 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/40">
                                 <div className="flex items-center gap-2 text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
-                                    <ShieldCheck className="w-3.5 h-3.5 text-amber-500" />
+                                    <ShieldCheck className="w-3.5 h-3.5 text-[#bf1e26]" />
                                     <span>Hak Akses Terverifikasi</span>
                                 </div>
                                 <p className="text-[10px] text-slate-400">
@@ -658,7 +644,7 @@ export default function SellerDashboard({
                                         placeholder={`Cari dalam ${tab}...`}
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
-                                        className={`w-48 lg:w-64 rounded-xl border pl-8 pr-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500 ${
+                                        className={`w-48 lg:w-64 rounded-xl border pl-8 pr-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-[#bf1e26] ${
                                             isDark ? 'border-slate-700 bg-slate-800 text-white placeholder-slate-400' : 'border-slate-200 bg-slate-50 text-slate-800'
                                         }`}
                                     />
@@ -670,7 +656,7 @@ export default function SellerDashboard({
                                 href={`/stores/${store.slug}`}
                                 className="hidden sm:flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
                             >
-                                <Eye className="w-3.5 h-3.5 text-amber-500" />
+                                <Eye className="w-3.5 h-3.5 text-[#bf1e26]" />
                                 <span>Lihat Etalase Publik</span>
                             </Link>
 
@@ -678,6 +664,7 @@ export default function SellerDashboard({
                             <button
                                 onClick={() => {
                                     setIsAndroidMode(true);
+                                    sessionStorage.setItem('koki_android_simulator', '1');
                                     localStorage.setItem('koki_seller_view_mode', 'android');
                                     localStorage.setItem('koki_view_mode', 'android');
                                 }}
@@ -694,12 +681,12 @@ export default function SellerDashboard({
                                 className="p-2 rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
                                 title={isDark ? 'Ganti ke Mode Terang' : 'Ganti ke Mode Gelap'}
                             >
-                                {isDark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-600" />}
+                                {isDark ? <Sun className="w-4 h-4 text-[#d52a30]" /> : <Moon className="w-4 h-4 text-slate-600" />}
                             </button>
 
                             {/* User Avatar & Logout */}
                             <div className="flex items-center gap-2 pl-2 border-l border-slate-200 dark:border-slate-800">
-                                <div className="w-8 h-8 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center font-bold text-amber-500 text-xs">
+                                <div className="w-8 h-8 rounded-full bg-[#bf1e26]/20 border border-[#bf1e26]/40 flex items-center justify-center font-bold text-[#bf1e26] text-xs">
                                     {auth?.user?.name ? auth.user.name.charAt(0).toUpperCase() : 'S'}
                                 </div>
                                 <div className="hidden lg:block text-left">
@@ -741,7 +728,7 @@ export default function SellerDashboard({
                         {/* If current tab is NOT allowed by permissions, show modern access restricted notice */}
                         {!isCurrentTabAllowed ? (
                             <div className={`rounded-3xl border p-12 text-center shadow-sm ${isDark ? 'border-slate-800 bg-[#11161D]' : 'border-slate-200 bg-white'}`}>
-                                <div className="mx-auto w-16 h-16 rounded-3xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 mb-4">
+                                <div className="mx-auto w-16 h-16 rounded-3xl bg-[#bf1e26]/10 border border-[#bf1e26]/20 flex items-center justify-center text-[#bf1e26] mb-4">
                                     <Lock className="w-8 h-8" />
                                 </div>
                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white">
@@ -753,7 +740,7 @@ export default function SellerDashboard({
                                 <div className="mt-6 flex items-center justify-center gap-3">
                                     <button
                                         onClick={() => handleTabChange('dashboard')}
-                                        className="rounded-xl bg-amber-500 px-5 py-2 text-xs font-bold text-slate-950 hover:bg-amber-400 transition"
+                                        className="rounded-xl bg-[#bf1e26] px-5 py-2 text-xs font-bold text-white hover:bg-[#bf1e26] transition"
                                     >
                                         Kembali ke Dashboard Lapak
                                     </button>
@@ -772,7 +759,7 @@ export default function SellerDashboard({
                                 }`}>
                                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                                         <div>
-                                            <span className="text-[10px] uppercase font-bold tracking-widest text-amber-500 block mb-1">
+                                            <span className="text-[10px] uppercase font-bold tracking-widest text-[#bf1e26] block mb-1">
                                                 Mitra Peternak Resmi KOKI KOI
                                             </span>
                                             <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
@@ -788,7 +775,7 @@ export default function SellerDashboard({
                                                 <button
                                                     onClick={openCreateProduct}
                                                     disabled={isQuotaFull}
-                                                    className="flex items-center gap-1.5 rounded-xl bg-amber-500 px-4 py-2.5 text-xs font-bold text-slate-950 hover:bg-amber-400 transition shadow-md shadow-amber-500/20 disabled:opacity-50"
+                                                    className="flex items-center gap-1.5 rounded-xl bg-[#bf1e26] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#bf1e26] transition shadow-md shadow-amber-500/20 disabled:opacity-50"
                                                 >
                                                     <Plus className="w-4 h-4" />
                                                     <span>Tambah Produk Koi</span>
@@ -797,7 +784,7 @@ export default function SellerDashboard({
                                             {permission.can_manage_auctions && (
                                                 <button
                                                     onClick={openCreateAuction}
-                                                    className="flex items-center gap-1.5 rounded-xl bg-slate-800 text-amber-400 border border-amber-500/30 px-4 py-2.5 text-xs font-bold hover:bg-slate-700 transition"
+                                                    className="flex items-center gap-1.5 rounded-xl bg-slate-800 text-[#d52a30] border border-[#bf1e26]/30 px-4 py-2.5 text-xs font-bold hover:bg-slate-700 transition"
                                                 >
                                                     <Gavel className="w-4 h-4" />
                                                     <span>Buka Sesi Lelang</span>
@@ -827,9 +814,9 @@ export default function SellerDashboard({
                                     <div className={`rounded-2xl border p-5 shadow-sm transition ${isDark ? 'border-slate-800 bg-[#11161D]' : 'border-slate-200 bg-white'}`}>
                                         <div className="flex items-center justify-between text-slate-400 mb-2">
                                             <span className="text-xs font-medium">Pesanan Menunggu</span>
-                                            <ShoppingBag className="w-4 h-4 text-amber-500" />
+                                            <ShoppingBag className="w-4 h-4 text-[#bf1e26]" />
                                         </div>
-                                        <div className="text-2xl font-black text-amber-400">
+                                        <div className="text-2xl font-black text-[#d52a30]">
                                             {stats.pending_orders} Pesanan
                                         </div>
                                         <div className="text-[11px] text-slate-500 mt-1">
@@ -870,13 +857,13 @@ export default function SellerDashboard({
                                 <div className={`rounded-3xl border shadow-sm overflow-hidden ${isDark ? 'border-slate-800 bg-[#11161D]' : 'border-slate-200 bg-white'}`}>
                                     <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
                                         <div className="flex items-center gap-2">
-                                            <ShoppingCart className="w-4 h-4 text-amber-500" />
+                                            <ShoppingCart className="w-4 h-4 text-[#bf1e26]" />
                                             <h3 className="text-sm font-bold">Pesanan Masuk Terbaru</h3>
                                         </div>
                                         {permission.can_manage_orders && (
                                             <button
                                                 onClick={() => handleTabChange('orders')}
-                                                className="text-xs text-amber-500 hover:underline flex items-center gap-1 font-semibold"
+                                                className="text-xs text-[#bf1e26] hover:underline flex items-center gap-1 font-semibold"
                                             >
                                                 <span>Lihat Semua Pesanan</span>
                                                 <ArrowRight className="w-3.5 h-3.5" />
@@ -906,7 +893,7 @@ export default function SellerDashboard({
                                                 ) : (
                                                     data?.recent_orders?.map((ord: any) => (
                                                         <tr key={ord.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition">
-                                                            <td className="px-5 py-3.5 font-mono font-bold text-amber-500">
+                                                            <td className="px-5 py-3.5 font-mono font-bold text-[#bf1e26]">
                                                                 #{ord.order_number}
                                                             </td>
                                                             <td className="px-3 py-3.5">
@@ -924,7 +911,7 @@ export default function SellerDashboard({
                                                                         : ord.status === 'shipped'
                                                                         ? 'bg-sky-500/10 text-sky-500'
                                                                         : ord.status === 'processing'
-                                                                        ? 'bg-amber-500/10 text-amber-500'
+                                                                        ? 'bg-[#bf1e26]/10 text-[#bf1e26]'
                                                                         : 'bg-slate-500/10 text-slate-400'
                                                                 }`}>
                                                                     {ord.status}
@@ -934,7 +921,7 @@ export default function SellerDashboard({
                                                                 {permission.can_manage_orders ? (
                                                                     <button
                                                                         onClick={() => openOrderModal(ord)}
-                                                                        className="rounded-lg bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 text-[11px] font-semibold text-amber-500 hover:bg-amber-500 hover:text-slate-950 transition"
+                                                                        className="rounded-lg bg-[#bf1e26]/10 border border-[#bf1e26]/20 px-2.5 py-1 text-[11px] font-semibold text-[#bf1e26] hover:bg-[#bf1e26] hover:text-white transition"
                                                                     >
                                                                         Update Resi
                                                                     </button>
@@ -961,7 +948,7 @@ export default function SellerDashboard({
                                             <h3 className="text-lg font-bold text-slate-900 dark:text-white">
                                                 Koleksi Ikan Koi Lapak
                                             </h3>
-                                            <span className="text-[10px] font-semibold bg-amber-500/20 text-amber-500 px-2 py-0.5 rounded-full">
+                                            <span className="text-[10px] font-semibold bg-[#bf1e26]/20 text-[#bf1e26] px-2 py-0.5 rounded-full">
                                                 {stats.total_products} Ekor
                                             </span>
                                         </div>
@@ -973,7 +960,7 @@ export default function SellerDashboard({
                                     <button
                                         onClick={openCreateProduct}
                                         disabled={isQuotaFull}
-                                        className="inline-flex items-center gap-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs px-4 py-2 rounded-xl transition shadow disabled:opacity-50"
+                                        className="inline-flex items-center gap-1.5 bg-[#bf1e26] hover:bg-[#bf1e26] text-white font-bold text-xs px-4 py-2 rounded-xl transition shadow disabled:opacity-50"
                                     >
                                         <Plus className="w-4 h-4" />
                                         <span>Tambah Ikan Koi</span>
@@ -1021,7 +1008,7 @@ export default function SellerDashboard({
                                                                 </div>
                                                             </td>
                                                             <td className="px-4 py-3">
-                                                                <div className="font-semibold text-amber-500">{prod.variety || 'Kohaku'}</div>
+                                                                <div className="font-semibold text-[#bf1e26]">{prod.variety || 'Kohaku'}</div>
                                                                 <div className="text-[10px] text-slate-400">{prod.size_cm ? `${prod.size_cm} cm` : '-'}</div>
                                                             </td>
                                                             <td className="px-4 py-3 text-slate-400">{prod.age || '2 Tahun'}</td>
@@ -1101,7 +1088,7 @@ export default function SellerDashboard({
                                                 ) : (
                                                     data?.data?.map((order: any) => (
                                                         <tr key={order.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition">
-                                                            <td className="px-4 py-3 font-mono font-bold text-amber-500">
+                                                            <td className="px-4 py-3 font-mono font-bold text-[#bf1e26]">
                                                                 #{order.order_number}
                                                             </td>
                                                             <td className="px-4 py-3">
@@ -1110,7 +1097,7 @@ export default function SellerDashboard({
                                                             </td>
                                                             <td className="px-4 py-3">
                                                                 <div className="font-semibold">{order.shipping_courier || 'Kurir Lapak'}</div>
-                                                                <div className="text-[10px] text-amber-500 font-mono">
+                                                                <div className="text-[10px] text-[#bf1e26] font-mono">
                                                                     Resi: {order.shipping_tracking_number || 'Belum diinput'}
                                                                 </div>
                                                             </td>
@@ -1119,7 +1106,7 @@ export default function SellerDashboard({
                                                             </td>
                                                             <td className="px-4 py-3">
                                                                 <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                                                                    order.payment_status === 'paid' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-amber-500/10 text-amber-500'
+                                                                    order.payment_status === 'paid' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-[#bf1e26]/10 text-[#bf1e26]'
                                                                 }`}>
                                                                     {order.payment_status}
                                                                 </span>
@@ -1132,7 +1119,7 @@ export default function SellerDashboard({
                                                             <td className="px-4 py-3 text-right">
                                                                 <button
                                                                     onClick={() => openOrderModal(order)}
-                                                                    className="rounded-xl bg-amber-500 px-3 py-1.5 text-xs font-bold text-slate-950 hover:bg-amber-400 transition"
+                                                                    className="rounded-xl bg-[#bf1e26] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#bf1e26] transition"
                                                                 >
                                                                     Update Status / Resi
                                                                 </button>
@@ -1161,7 +1148,7 @@ export default function SellerDashboard({
                                     </div>
                                     <button
                                         onClick={openCreateAuction}
-                                        className="inline-flex items-center gap-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs px-4 py-2 rounded-xl transition shadow"
+                                        className="inline-flex items-center gap-1.5 bg-[#bf1e26] hover:bg-[#bf1e26] text-white font-bold text-xs px-4 py-2 rounded-xl transition shadow"
                                     >
                                         <Plus className="w-4 h-4" />
                                         <span>Buka Sesi Lelang</span>
@@ -1298,7 +1285,7 @@ export default function SellerDashboard({
                                                 ) : (
                                                     reports?.sales_list?.map((s: any, idx: number) => (
                                                         <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition">
-                                                            <td className="px-4 py-3 font-mono font-bold text-amber-500">#{s.order_number}</td>
+                                                            <td className="px-4 py-3 font-mono font-bold text-[#bf1e26]">#{s.order_number}</td>
                                                             <td className="px-4 py-3 text-slate-400">{s.date}</td>
                                                             <td className="px-4 py-3 font-semibold">{s.type}</td>
                                                             <td className="px-4 py-3">Rp {Number(s.amount).toLocaleString('id-ID')}</td>
@@ -1341,7 +1328,7 @@ export default function SellerDashboard({
                                             >
                                                 <div className="flex items-center justify-between mb-2">
                                                     <span className="font-bold text-xs">{rev.user?.name || 'Pelanggan'}</span>
-                                                    <div className="flex items-center text-amber-400">
+                                                    <div className="flex items-center text-[#d52a30]">
                                                         {[...Array(5)].map((_, i) => (
                                                             <Star
                                                                 key={i}
@@ -1354,7 +1341,7 @@ export default function SellerDashboard({
                                                     "{rev.comment || 'Kualitas ikan sangat memuaskan!'}"
                                                 </p>
                                                 <div className="mt-3 pt-2 border-t border-slate-100 dark:border-slate-800 text-[10px] text-slate-400">
-                                                    Produk: <strong className="text-amber-500">{rev.product?.name || 'Ikan Koi'}</strong>
+                                                    Produk: <strong className="text-[#bf1e26]">{rev.product?.name || 'Ikan Koi'}</strong>
                                                 </div>
                                             </div>
                                         ))
@@ -1382,7 +1369,7 @@ export default function SellerDashboard({
                                             type="text"
                                             value={profileForm.name}
                                             onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })}
-                                            className={`w-full rounded-xl border px-3.5 py-2 text-xs focus:ring-2 focus:ring-amber-500 ${isDark ? 'border-slate-700 bg-slate-800 text-white' : 'border-slate-200 bg-slate-50'}`}
+                                            className={`w-full rounded-xl border px-3.5 py-2 text-xs focus:ring-2 focus:ring-[#bf1e26] ${isDark ? 'border-slate-700 bg-slate-800 text-white' : 'border-slate-200 bg-slate-50'}`}
                                             required
                                         />
                                     </div>
@@ -1394,7 +1381,7 @@ export default function SellerDashboard({
                                                 type="text"
                                                 value={profileForm.city}
                                                 onChange={(e) => setProfileForm({ ...profileForm, city: e.target.value })}
-                                                className={`w-full rounded-xl border px-3.5 py-2 text-xs focus:ring-2 focus:ring-amber-500 ${isDark ? 'border-slate-700 bg-slate-800 text-white' : 'border-slate-200 bg-slate-50'}`}
+                                                className={`w-full rounded-xl border px-3.5 py-2 text-xs focus:ring-2 focus:ring-[#bf1e26] ${isDark ? 'border-slate-700 bg-slate-800 text-white' : 'border-slate-200 bg-slate-50'}`}
                                                 required
                                             />
                                         </div>
@@ -1404,7 +1391,7 @@ export default function SellerDashboard({
                                                 type="text"
                                                 value={profileForm.phone}
                                                 onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })}
-                                                className={`w-full rounded-xl border px-3.5 py-2 text-xs focus:ring-2 focus:ring-amber-500 ${isDark ? 'border-slate-700 bg-slate-800 text-white' : 'border-slate-200 bg-slate-50'}`}
+                                                className={`w-full rounded-xl border px-3.5 py-2 text-xs focus:ring-2 focus:ring-[#bf1e26] ${isDark ? 'border-slate-700 bg-slate-800 text-white' : 'border-slate-200 bg-slate-50'}`}
                                                 required
                                             />
                                         </div>
@@ -1416,7 +1403,7 @@ export default function SellerDashboard({
                                             rows={3}
                                             value={profileForm.address}
                                             onChange={(e) => setProfileForm({ ...profileForm, address: e.target.value })}
-                                            className={`w-full rounded-xl border px-3.5 py-2 text-xs focus:ring-2 focus:ring-amber-500 ${isDark ? 'border-slate-700 bg-slate-800 text-white' : 'border-slate-200 bg-slate-50'}`}
+                                            className={`w-full rounded-xl border px-3.5 py-2 text-xs focus:ring-2 focus:ring-[#bf1e26] ${isDark ? 'border-slate-700 bg-slate-800 text-white' : 'border-slate-200 bg-slate-50'}`}
                                             required
                                         />
                                     </div>
@@ -1427,7 +1414,7 @@ export default function SellerDashboard({
                                             rows={3}
                                             value={profileForm.description}
                                             onChange={(e) => setProfileForm({ ...profileForm, description: e.target.value })}
-                                            className={`w-full rounded-xl border px-3.5 py-2 text-xs focus:ring-2 focus:ring-amber-500 ${isDark ? 'border-slate-700 bg-slate-800 text-white' : 'border-slate-200 bg-slate-50'}`}
+                                            className={`w-full rounded-xl border px-3.5 py-2 text-xs focus:ring-2 focus:ring-[#bf1e26] ${isDark ? 'border-slate-700 bg-slate-800 text-white' : 'border-slate-200 bg-slate-50'}`}
                                         />
                                     </div>
 
@@ -1435,7 +1422,7 @@ export default function SellerDashboard({
                                         <button
                                             type="submit"
                                             disabled={processing}
-                                            className="rounded-xl bg-amber-500 px-5 py-2.5 text-xs font-bold text-slate-950 hover:bg-amber-400 transition"
+                                            className="rounded-xl bg-[#bf1e26] px-5 py-2.5 text-xs font-bold text-white hover:bg-[#bf1e26] transition"
                                         >
                                             {processing ? 'Menyimpan...' : 'Simpan Perubahan'}
                                         </button>
@@ -1455,7 +1442,7 @@ export default function SellerDashboard({
                     <div className={`relative w-full max-w-xl rounded-3xl border p-6 shadow-2xl overflow-y-auto max-h-[90vh] ${isDark ? 'border-slate-800 bg-slate-900 text-white' : 'border-slate-200 bg-white text-slate-900'}`}>
                         <div className="flex items-center justify-between border-b pb-4 mb-4 border-slate-200 dark:border-slate-800">
                             <h3 className="text-base font-bold flex items-center gap-2">
-                                <Fish className="w-5 h-5 text-amber-500" />
+                                <Fish className="w-5 h-5 text-[#bf1e26]" />
                                 {editingProduct ? 'Edit Ikan Koi' : 'Tambah Ikan Koi Baru'}
                             </h3>
                             <button onClick={() => setProductModalOpen(false)} className="rounded-xl p-1 text-slate-400 hover:text-slate-600">
@@ -1610,7 +1597,7 @@ export default function SellerDashboard({
                                 <button
                                     type="submit"
                                     disabled={processing}
-                                    className="rounded-xl bg-amber-500 px-5 py-2 text-xs font-bold text-slate-950 hover:bg-amber-400 transition"
+                                    className="rounded-xl bg-[#bf1e26] px-5 py-2 text-xs font-bold text-white hover:bg-[#bf1e26] transition"
                                 >
                                     {processing ? 'Menyimpan...' : 'Simpan Produk'}
                                 </button>
@@ -1629,7 +1616,7 @@ export default function SellerDashboard({
                         <div className="flex items-center justify-between border-b pb-4 mb-4 border-slate-200 dark:border-slate-800">
                             <div>
                                 <h3 className="text-base font-bold flex items-center gap-2">
-                                    <Truck className="w-5 h-5 text-amber-500" />
+                                    <Truck className="w-5 h-5 text-[#bf1e26]" />
                                     <span>Update Resi & Pengiriman</span>
                                 </h3>
                                 <p className="text-xs text-slate-400">Pesanan #{editingOrder.order_number}</p>
@@ -1690,7 +1677,7 @@ export default function SellerDashboard({
                                 <button
                                     type="submit"
                                     disabled={processing}
-                                    className="rounded-xl bg-amber-500 px-5 py-2 text-xs font-bold text-slate-950 hover:bg-amber-400 transition"
+                                    className="rounded-xl bg-[#bf1e26] px-5 py-2 text-xs font-bold text-white hover:bg-[#bf1e26] transition"
                                 >
                                     {processing ? 'Menyimpan...' : 'Perbarui Status'}
                                 </button>
@@ -1708,7 +1695,7 @@ export default function SellerDashboard({
                     <div className={`relative w-full max-w-lg rounded-3xl border p-6 shadow-2xl ${isDark ? 'border-slate-800 bg-slate-900 text-white' : 'border-slate-200 bg-white text-slate-900'}`}>
                         <div className="flex items-center justify-between border-b pb-4 mb-4 border-slate-200 dark:border-slate-800">
                             <h3 className="text-base font-bold flex items-center gap-2">
-                                <Gavel className="w-5 h-5 text-amber-500" />
+                                <Gavel className="w-5 h-5 text-[#bf1e26]" />
                                 <span>Buka Sesi Lelang Baru</span>
                             </h3>
                             <button onClick={() => setAuctionModalOpen(false)} className="rounded-xl p-1 text-slate-400 hover:text-slate-600">
@@ -1808,7 +1795,7 @@ export default function SellerDashboard({
                                 <button
                                     type="submit"
                                     disabled={processing}
-                                    className="rounded-xl bg-amber-500 px-5 py-2 text-xs font-bold text-slate-950 hover:bg-amber-400 transition"
+                                    className="rounded-xl bg-[#bf1e26] px-5 py-2 text-xs font-bold text-white hover:bg-[#bf1e26] transition"
                                 >
                                     {processing ? 'Menyimpan...' : 'Buka Lelang'}
                                 </button>

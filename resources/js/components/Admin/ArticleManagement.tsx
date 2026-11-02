@@ -339,13 +339,13 @@ export default function ArticleManagement({ articles, isDark }: ArticleManagemen
                     onClick={() => setSelectedCategory('event_announcement')}
                     className={`p-4 rounded-2xl border cursor-pointer transition-all active:scale-[0.98] ${
                         selectedCategory === 'event_announcement'
-                            ? 'border-amber-500 ring-2 ring-amber-500/20 shadow-md'
+                            ? 'border-[#bf1e26] ring-2 ring-[#bf1e26]/20 shadow-md'
                             : isDark ? 'bg-slate-900/80 border-slate-800 hover:border-slate-700' : 'bg-white border-slate-200/90 shadow-xs hover:border-slate-300'
                     }`}
                 >
                     <div className="flex items-center justify-between">
                         <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Event & Live</span>
-                        <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center">
+                        <div className="w-8 h-8 rounded-xl bg-[#bf1e26]/10 text-[#bf1e26] flex items-center justify-center">
                             <Megaphone className="w-4 h-4" />
                         </div>
                     </div>
@@ -355,7 +355,7 @@ export default function ArticleManagement({ articles, isDark }: ArticleManagemen
                         </p>
                         <span className="text-[10px] text-slate-400">acara</span>
                     </div>
-                    <p className="text-[10px] text-amber-600 dark:text-amber-400 font-semibold mt-1.5 flex items-center gap-1">
+                    <p className="text-[10px] text-[#bf1e26] dark:text-[#d52a30] font-semibold mt-1.5 flex items-center gap-1">
                         <Pin className="w-3 h-3 fill-current" />
                         <span>{countPinned} Pinned di Top Banner</span>
                     </p>
@@ -455,8 +455,8 @@ export default function ArticleManagement({ articles, isDark }: ArticleManagemen
                             placeholder="Cari berdasarkan judul, isi konten, atau link..."
                             className={`w-full pl-9 pr-9 py-2.5 rounded-xl text-xs border transition ${
                                 isDark
-                                    ? 'bg-slate-800/80 border-slate-700 text-white placeholder-slate-500 focus:border-amber-500'
-                                    : 'bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400 focus:border-amber-500 focus:bg-white'
+                                    ? 'bg-slate-800/80 border-slate-700 text-white placeholder-slate-500 focus:border-[#bf1e26]'
+                                    : 'bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400 focus:border-[#bf1e26] focus:bg-white'
                             }`}
                         />
                         {searchQuery && (
@@ -512,7 +512,7 @@ export default function ArticleManagement({ articles, isDark }: ArticleManagemen
                                 onClick={() => setViewMode('grid')}
                                 className={`p-1.5 rounded-lg transition ${
                                     viewMode === 'grid'
-                                        ? 'bg-amber-500 text-stone-950 font-bold shadow-xs'
+                                        ? 'bg-[#bf1e26] text-white font-bold shadow-xs'
                                         : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                                 }`}
                                 title="Tampilan Kartu Visual (Grid)"
@@ -523,7 +523,7 @@ export default function ArticleManagement({ articles, isDark }: ArticleManagemen
                                 onClick={() => setViewMode('table')}
                                 className={`p-1.5 rounded-lg transition ${
                                     viewMode === 'table'
-                                        ? 'bg-amber-500 text-stone-950 font-bold shadow-xs'
+                                        ? 'bg-[#bf1e26] text-white font-bold shadow-xs'
                                         : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                                 }`}
                                 title="Tampilan Tabel Data Padat (Table)"
@@ -642,7 +642,7 @@ export default function ArticleManagement({ articles, isDark }: ArticleManagemen
                                         isDark
                                             ? 'bg-[#11161D] border-slate-800 hover:border-slate-700'
                                             : 'bg-white border-slate-200/80 hover:border-slate-300'
-                                    } ${item.is_pinned_top ? 'ring-2 ring-amber-400/30' : ''}`}
+                                    } ${item.is_pinned_top ? 'ring-2 ring-[#bf1e26]/30' : ''}`}
                                 >
                                     {/* Card Header: Cover Image & Badges */}
                                     <div>
@@ -663,7 +663,7 @@ export default function ArticleManagement({ articles, isDark }: ArticleManagemen
                                             {/* Top Left Badges */}
                                             <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 flex-wrap z-10">
                                                 <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase shadow-xs ${
-                                                    item.category === 'event_announcement' ? 'bg-amber-500 text-stone-950' :
+                                                    item.category === 'event_announcement' ? 'bg-[#bf1e26] text-white' :
                                                     item.category === 'tips_care' ? 'bg-emerald-500 text-white' :
                                                     item.category === 'banner_ads' ? 'bg-rose-500 text-white' :
                                                     'bg-blue-500 text-white'
@@ -672,7 +672,7 @@ export default function ArticleManagement({ articles, isDark }: ArticleManagemen
                                                 </span>
 
                                                 {item.is_pinned_top && (
-                                                    <span className="px-2 py-0.5 rounded-full bg-amber-400 text-stone-950 font-bold text-[9px] flex items-center gap-0.5 shadow-xs">
+                                                    <span className="px-2 py-0.5 rounded-full bg-[#bf1e26] text-white font-bold text-[9px] flex items-center gap-0.5 shadow-xs">
                                                         <Pin className="w-2.5 h-2.5 fill-current" /> Top Pinned
                                                     </span>
                                                 )}
@@ -693,7 +693,7 @@ export default function ArticleManagement({ articles, isDark }: ArticleManagemen
                                                         href={item.custom_url}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
-                                                        className="px-2 py-0.5 rounded-full bg-black/70 backdrop-blur-xs text-amber-300 border border-amber-400/40 text-[9px] font-semibold flex items-center gap-1 hover:bg-black/90"
+                                                        className="px-2 py-0.5 rounded-full bg-black/70 backdrop-blur-xs text-red-300 border border-[#bf1e26]/40 text-[9px] font-semibold flex items-center gap-1 hover:bg-black/90"
                                                         title={`Custom URL: ${item.custom_url}`}
                                                     >
                                                         <ExternalLink className="w-2.5 h-2.5" />
@@ -732,7 +732,7 @@ export default function ArticleManagement({ articles, isDark }: ArticleManagemen
 
                                             {/* Custom URL Display if Present */}
                                             {item.custom_url && (
-                                                <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-[10px] flex items-center gap-1 text-amber-800 dark:text-amber-300 truncate">
+                                                <div className="p-2 rounded-xl bg-[#bf1e26]/10 border border-[#bf1e26]/20 text-[10px] flex items-center gap-1 text-[#98151e] dark:text-red-300 truncate">
                                                     <ExternalLink className="w-3 h-3 shrink-0" />
                                                     <span className="font-semibold shrink-0">URL Gambar:</span>
                                                     <span className="truncate">{item.custom_url}</span>
@@ -774,7 +774,7 @@ export default function ArticleManagement({ articles, isDark }: ArticleManagemen
                                                 onClick={() => handleTogglePinned(item)}
                                                 className={`p-1.5 rounded-lg border transition cursor-pointer ${
                                                     item.is_pinned_top
-                                                        ? 'border-amber-400 bg-amber-500/10 text-amber-500'
+                                                        ? 'border-[#bf1e26] bg-[#bf1e26]/10 text-[#bf1e26]'
                                                         : 'border-slate-200 dark:border-slate-700 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'
                                                 }`}
                                                 title={item.is_pinned_top ? 'Lepas Pin Top' : 'Pin ke Banner Atas'}
@@ -785,7 +785,7 @@ export default function ArticleManagement({ articles, isDark }: ArticleManagemen
                                             {/* Edit */}
                                             <button
                                                 onClick={() => openEditModal(item)}
-                                                className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-amber-50 dark:hover:bg-amber-950/30 text-slate-700 dark:text-slate-300 hover:text-amber-600 transition cursor-pointer"
+                                                className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-red-50 dark:hover:bg-amber-950/30 text-slate-700 dark:text-slate-300 hover:text-[#bf1e26] transition cursor-pointer"
                                                 title="Edit Konten"
                                             >
                                                 <Edit2 className="w-3.5 h-3.5" />
@@ -883,7 +883,7 @@ export default function ArticleManagement({ articles, isDark }: ArticleManagemen
                                             {/* Kategori & Tipe Media */}
                                             <td className="px-4 py-3 whitespace-nowrap">
                                                 <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${
-                                                    item.category === 'event_announcement' ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-400' :
+                                                    item.category === 'event_announcement' ? 'bg-red-100 text-[#98151e] dark:bg-amber-950/60 dark:text-[#d52a30]' :
                                                     item.category === 'tips_care' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-400' :
                                                     item.category === 'banner_ads' ? 'bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-400' :
                                                     'bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-400'
@@ -914,7 +914,7 @@ export default function ArticleManagement({ articles, isDark }: ArticleManagemen
                                                         href={item.custom_url}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
-                                                        className="text-[11px] text-amber-600 dark:text-amber-400 hover:underline flex items-center gap-1 truncate"
+                                                        className="text-[11px] text-[#bf1e26] dark:text-[#d52a30] hover:underline flex items-center gap-1 truncate"
                                                         title={`URL Khusus Gambar: ${item.custom_url}`}
                                                     >
                                                         <ExternalLink className="w-2.5 h-2.5 shrink-0" />
@@ -954,7 +954,7 @@ export default function ArticleManagement({ articles, isDark }: ArticleManagemen
                                                     {item.is_pinned_top && (
                                                         <button
                                                             onClick={() => handleTogglePinned(item)}
-                                                            className="p-1 rounded-full bg-amber-500/10 text-amber-600 border border-amber-500/20"
+                                                            className="p-1 rounded-full bg-[#bf1e26]/10 text-[#bf1e26] border border-[#bf1e26]/20"
                                                             title="Pinned di Top Banner"
                                                         >
                                                             <Pin className="w-2.5 h-2.5 fill-current" />
@@ -1029,7 +1029,7 @@ export default function ArticleManagement({ articles, isDark }: ArticleManagemen
                                     dangerouslySetInnerHTML={{ __html: link.label }}
                                     className={`px-3 py-1.5 rounded-xl text-xs font-bold transition border ${
                                         link.active
-                                            ? 'bg-amber-500 text-stone-950 border-amber-500 shadow-xs'
+                                            ? 'bg-[#bf1e26] text-white border-[#bf1e26] shadow-xs'
                                             : isDark
                                                 ? 'bg-slate-800/80 border-slate-700 text-slate-300 hover:bg-slate-700'
                                                 : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
@@ -1051,7 +1051,7 @@ export default function ArticleManagement({ articles, isDark }: ArticleManagemen
                     }`}>
                         {/* Header Modal */}
                         <div className="flex items-center justify-between p-4 border-b border-slate-100 dark:border-slate-800 bg-inherit">
-                            <span className="text-xs font-bold flex items-center gap-1.5 text-amber-500">
+                            <span className="text-xs font-bold flex items-center gap-1.5 text-[#bf1e26]">
                                 <Eye className="w-4 h-4" />
                                 <span>Preview Tampilan Konten</span>
                             </span>
@@ -1084,7 +1084,7 @@ export default function ArticleManagement({ articles, isDark }: ArticleManagemen
                                     />
                                     {previewItem.custom_url && (
                                         <div className="absolute bottom-2.5 right-2.5 px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-xs text-white text-[10px] font-semibold flex items-center gap-1 shadow-md border border-white/20">
-                                            <ExternalLink className="w-3 h-3 text-amber-400" />
+                                            <ExternalLink className="w-3 h-3 text-[#d52a30]" />
                                             <span>Link Gambar: {previewItem.custom_url}</span>
                                         </div>
                                     )}
@@ -1093,7 +1093,7 @@ export default function ArticleManagement({ articles, isDark }: ArticleManagemen
 
                             {/* Badge & Category */}
                             <div className="flex items-center gap-2 flex-wrap">
-                                <span className="px-2.5 py-0.5 rounded-full bg-amber-500 text-stone-950 font-bold text-[10px] uppercase">
+                                <span className="px-2.5 py-0.5 rounded-full bg-[#bf1e26] text-white font-bold text-[10px] uppercase">
                                     {previewItem.category_label || previewItem.category}
                                 </span>
                                 {previewItem.badge_text && (
@@ -1113,7 +1113,7 @@ export default function ArticleManagement({ articles, isDark }: ArticleManagemen
 
                             {/* Summary */}
                             {previewItem.summary && (
-                                <div className="p-3.5 bg-amber-500/10 rounded-2xl border border-amber-500/20 text-xs text-amber-900 dark:text-amber-200 font-medium leading-relaxed">
+                                <div className="p-3.5 bg-[#bf1e26]/10 rounded-2xl border border-[#bf1e26]/20 text-xs text-amber-900 dark:text-red-200 font-medium leading-relaxed">
                                     {previewItem.summary}
                                 </div>
                             )}
@@ -1141,7 +1141,7 @@ export default function ArticleManagement({ articles, isDark }: ArticleManagemen
                                         setPreviewItem(null);
                                         openEditModal(item);
                                     }}
-                                    className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-xs rounded-xl transition shadow"
+                                    className="px-4 py-2 bg-[#bf1e26] hover:bg-[#bf1e26] text-white font-bold text-xs rounded-xl transition shadow"
                                 >
                                     Edit Konten Ini
                                 </button>
@@ -1292,7 +1292,7 @@ export default function ArticleManagement({ articles, isDark }: ArticleManagemen
                             <div className={`p-4 rounded-2xl border space-y-3 ${isDark ? 'bg-slate-800/40 border-slate-700/80' : 'bg-slate-50/80 border-slate-200'}`}>
                                 <div className="flex items-center justify-between">
                                     <label className="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5 text-xs">
-                                        <ImageIcon className="w-4 h-4 text-amber-500" />
+                                        <ImageIcon className="w-4 h-4 text-[#bf1e26]" />
                                         <span>Pengaturan Gambar Banner & Custom URL (Opsional)</span>
                                     </label>
                                     <span className="text-[10px] text-slate-400 bg-slate-200/60 dark:bg-slate-700/60 px-2 py-0.5 rounded-full font-medium">
@@ -1331,7 +1331,7 @@ export default function ArticleManagement({ articles, isDark }: ArticleManagemen
                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-slate-200/60 dark:border-slate-700/60">
                                     <div className="sm:col-span-2">
                                         <label className="block mb-1 font-semibold text-slate-700 dark:text-slate-300 text-[11px]">
-                                            Custom URL untuk Gambar <span className="text-amber-500 font-bold">(Opsional)</span>
+                                            Custom URL untuk Gambar <span className="text-[#bf1e26] font-bold">(Opsional)</span>
                                         </label>
                                         <input
                                             type="text"
@@ -1412,11 +1412,11 @@ export default function ArticleManagement({ articles, isDark }: ArticleManagemen
                                         type="checkbox"
                                         checked={formData.is_pinned_top}
                                         onChange={(e) => setFormData({ ...formData, is_pinned_top: e.target.checked })}
-                                        className="w-4 h-4 rounded text-amber-600"
+                                        className="w-4 h-4 rounded text-[#bf1e26]"
                                     />
                                     <div>
                                         <span className="font-bold text-slate-900 dark:text-white flex items-center gap-1">
-                                            <Pin className="w-3.5 h-3.5 text-amber-500 fill-current" />
+                                            <Pin className="w-3.5 h-3.5 text-[#bf1e26] fill-current" />
                                             Tampilkan di Banner Pengumuman Bagian Atas Web & Mobile (Pinned Top)
                                         </span>
                                         <span className="text-[10px] text-slate-400 block">
