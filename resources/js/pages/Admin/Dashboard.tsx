@@ -161,37 +161,23 @@ export default function AdminDashboard({ stats, tab = 'dashboard', search: initi
     const [isAndroidMode, setIsAndroidMode] = useState<boolean>(() => {
         if (typeof window === 'undefined') return false;
         const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('view') === 'android') return true;
         if (urlParams.get('view') === 'desktop') return false;
-
-        // Jika layar berukuran mobile (< 768px) atau user agent mobile, otomatis tampilkan Mode Android
-        const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        if (window.innerWidth < 768 || isMobileDevice) return true;
-
-        const saved = localStorage.getItem('koki_admin_view_mode') || localStorage.getItem('koki_view_mode');
-        if (saved === 'android') return true;
-        if (saved === 'desktop') return false;
-        return false;
+        if (urlParams.get('view') === 'android' && sessionStorage.getItem('koki_android_simulator') === '1') return true;
+        return window.innerWidth < 768;
     });
 
     useEffect(() => {
         const handleResize = () => {
             const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('view') === 'android') {
-                setIsAndroidMode(true);
-                return;
-            }
             if (urlParams.get('view') === 'desktop') {
                 setIsAndroidMode(false);
                 return;
             }
-            const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-            if (window.innerWidth < 768 || isMobileDevice) {
+            if (urlParams.get('view') === 'android' && sessionStorage.getItem('koki_android_simulator') === '1') {
                 setIsAndroidMode(true);
                 return;
             }
-            const saved = localStorage.getItem('koki_admin_view_mode') || localStorage.getItem('koki_view_mode');
-            setIsAndroidMode(saved === 'android');
+            setIsAndroidMode(window.innerWidth < 768);
         };
 
         window.addEventListener('resize', handleResize);
@@ -218,7 +204,7 @@ export default function AdminDashboard({ stats, tab = 'dashboard', search: initi
     const navItems = [
         { id: 'dashboard', label: 'Dashboard', icon: Home, count: null },
         { id: 'whatsapp', label: 'WhatsApp CS & Blast', icon: MessageCircle, count: null, badgeColor: 'bg-emerald-500' },
-        { id: 'articles', label: 'Artikel & Banner', icon: Newspaper, count: stats.total_articles ?? null, badgeColor: 'bg-amber-500' },
+        { id: 'articles', label: 'Artikel & Banner', icon: Newspaper, count: stats.total_articles ?? null, badgeColor: 'bg-[#bf1e26]' },
         { id: 'products', label: 'Produk', icon: Package, count: stats.total_products },
         { id: 'orders', label: 'Pesanan', icon: ShoppingCart, count: 3, badgeColor: 'bg-rose-500' },
         { id: 'users', label: 'Pelanggan', icon: Users, count: stats.total_users },
@@ -471,7 +457,7 @@ export default function AdminDashboard({ stats, tab = 'dashboard', search: initi
             customer: 'Budi Santoso',
             total: 'Rp 2.100.000',
             status: 'Menunggu Pembayaran',
-            statusColor: 'bg-amber-50 text-amber-700 border-amber-200',
+            statusColor: 'bg-red-50 text-[#98151e] border-[#bf1e26]/20',
             time: '6 jam yang lalu',
             image: asset('/images/koi-tancho.jpg'),
         },
@@ -540,6 +526,7 @@ export default function AdminDashboard({ stats, tab = 'dashboard', search: initi
                 auth={auth}
                 onExitAndroidView={() => {
                     setIsAndroidMode(false);
+                    sessionStorage.removeItem('koki_android_simulator');
                     localStorage.setItem('koki_admin_view_mode', 'desktop');
                     localStorage.setItem('koki_view_mode', 'desktop');
                 }}
@@ -702,7 +689,7 @@ export default function AdminDashboard({ stats, tab = 'dashboard', search: initi
                                 className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
                                 title="Ganti Mode Terang / Gelap"
                             >
-                                {isDark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-300" />}
+                                {isDark ? <Sun className="w-4 h-4 text-[#d52a30]" /> : <Moon className="w-4 h-4 text-slate-300" />}
                             </button>
                             <Link
                                 href="/logout"
@@ -777,6 +764,7 @@ export default function AdminDashboard({ stats, tab = 'dashboard', search: initi
                         <button
                             onClick={() => {
                                 setIsAndroidMode(true);
+                                sessionStorage.setItem('koki_android_simulator', '1');
                                 localStorage.setItem('koki_admin_view_mode', 'android');
                                 localStorage.setItem('koki_view_mode', 'android');
                             }}
@@ -976,7 +964,7 @@ export default function AdminDashboard({ stats, tab = 'dashboard', search: initi
                                     }`}
                                 >
                                     <div className="flex items-center gap-3">
-                                        <div className="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 flex items-center justify-center">
+                                        <div className="w-9 h-9 rounded-xl bg-red-50 dark:bg-amber-950/40 text-[#bf1e26] flex items-center justify-center">
                                             <FileText className="w-4 h-4" />
                                         </div>
                                         <div className="text-left">
@@ -984,7 +972,7 @@ export default function AdminDashboard({ stats, tab = 'dashboard', search: initi
                                             <p className="text-[10px] text-slate-400">Lihat dan proses pesanan</p>
                                         </div>
                                     </div>
-                                    <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-1 group-hover:text-amber-600 transition" />
+                                    <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-1 group-hover:text-[#bf1e26] transition" />
                                 </button>
 
                                 <button
@@ -1047,7 +1035,7 @@ export default function AdminDashboard({ stats, tab = 'dashboard', search: initi
                                             {/* Legend */}
                                             <div className="flex items-center justify-end gap-3 text-[10px] text-slate-500 mb-2">
                                                 <span className="flex items-center gap-1.5">
-                                                    <span className="w-2 h-2 rounded-full bg-amber-500 shadow-2xs"></span> Penjualan
+                                                    <span className="w-2 h-2 rounded-full bg-[#bf1e26] shadow-2xs"></span> Penjualan
                                                 </span>
                                                 <span className="flex items-center gap-1.5">
                                                     <span className="w-2 h-2 rounded-full bg-blue-500 shadow-2xs"></span> Pesanan
@@ -1220,7 +1208,7 @@ export default function AdminDashboard({ stats, tab = 'dashboard', search: initi
                                                         <p className="text-xs font-extrabold text-slate-900 dark:text-white mt-1.5">{p.price}</p>
                                                         <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-slate-100 dark:border-slate-700/60">
                                                             <div className="text-[9px] text-slate-400">
-                                                                <span className="text-amber-500 font-bold">★ {p.rating}</span> ({p.reviews})
+                                                                <span className="text-[#bf1e26] font-bold">★ {p.rating}</span> ({p.reviews})
                                                                 <p className="text-[8px] text-slate-400">Terjual {p.sold}</p>
                                                             </div>
                                                             <button className="w-7 h-7 rounded-xl bg-[#F5EFE6] dark:bg-slate-700/60 text-[#8C6D42] dark:text-[#DEC5A5] hover:bg-[#C09B6C] hover:text-stone-950 flex items-center justify-center transition shadow-2xs active:scale-95">
@@ -1332,8 +1320,8 @@ export default function AdminDashboard({ stats, tab = 'dashboard', search: initi
                                             </svg>
                                         </div>
 
-                                        <div className="flex items-center gap-2 mb-3 text-amber-900 dark:text-amber-400 font-bold text-xs relative z-10">
-                                            <div className="w-6 h-6 rounded-full bg-amber-100/80 dark:bg-amber-900/60 flex items-center justify-center text-amber-700 dark:text-amber-300">
+                                        <div className="flex items-center gap-2 mb-3 text-amber-900 dark:text-[#d52a30] font-bold text-xs relative z-10">
+                                            <div className="w-6 h-6 rounded-full bg-red-100/80 dark:bg-amber-900/60 flex items-center justify-center text-[#98151e] dark:text-red-300">
                                                 <Lightbulb className="w-3.5 h-3.5" />
                                             </div>
                                             <span>Tips Meningkatkan Penjualan</span>
@@ -1405,7 +1393,7 @@ export default function AdminDashboard({ stats, tab = 'dashboard', search: initi
                                         <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">
                                             Log Ulasan & Feedback Pelanggan
                                         </h3>
-                                        <span className="text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-400 px-2.5 py-0.5 rounded-full border border-amber-200 dark:border-amber-900/40">
+                                        <span className="text-[10px] font-bold bg-red-100 text-[#98151e] dark:bg-amber-950/60 dark:text-[#d52a30] px-2.5 py-0.5 rounded-full border border-[#bf1e26]/20 dark:border-amber-900/40">
                                             Customer Satisfaction
                                         </span>
                                     </div>
@@ -1420,7 +1408,7 @@ export default function AdminDashboard({ stats, tab = 'dashboard', search: initi
                                 <div className={`p-4 rounded-2xl border transition-all ${isDark ? 'bg-slate-900/80 border-slate-800' : 'bg-white border-slate-200/80 shadow-xs'}`}>
                                     <div className="flex items-center justify-between">
                                         <span className="text-[11px] font-medium text-slate-400">Total Ulasan</span>
-                                        <div className="w-7 h-7 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center">
+                                        <div className="w-7 h-7 rounded-xl bg-red-100 text-[#bf1e26] flex items-center justify-center">
                                             <Star className="w-3.5 h-3.5 fill-amber-500" />
                                         </div>
                                     </div>
@@ -1435,7 +1423,7 @@ export default function AdminDashboard({ stats, tab = 'dashboard', search: initi
                                 <div className={`p-4 rounded-2xl border transition-all ${isDark ? 'bg-slate-900/80 border-slate-800' : 'bg-white border-slate-200/80 shadow-xs'}`}>
                                     <div className="flex items-center justify-between">
                                         <span className="text-[11px] font-medium text-slate-400">Rata-rata Rating</span>
-                                        <div className="w-7 h-7 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center">
+                                        <div className="w-7 h-7 rounded-xl bg-red-100 text-[#bf1e26] flex items-center justify-center">
                                             <Star className="w-3.5 h-3.5 fill-amber-500" />
                                         </div>
                                     </div>
@@ -1443,7 +1431,7 @@ export default function AdminDashboard({ stats, tab = 'dashboard', search: initi
                                         <span className="text-2xl font-black text-slate-900 dark:text-white">4.95</span>
                                         <span className="text-xs text-slate-400 font-medium">/ 5.0</span>
                                     </div>
-                                    <div className="flex items-center gap-1 text-amber-500 text-[10px] mt-0.5">
+                                    <div className="flex items-center gap-1 text-[#bf1e26] text-[10px] mt-0.5">
                                         ★★★★★ <span className="text-slate-400">(Sangat Baik)</span>
                                     </div>
                                 </div>
@@ -1485,7 +1473,7 @@ export default function AdminDashboard({ stats, tab = 'dashboard', search: initi
                             }`}>
                                 <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                                     <div className="flex items-center gap-2">
-                                        <MessageSquare className="w-4 h-4 text-amber-500" />
+                                        <MessageSquare className="w-4 h-4 text-[#bf1e26]" />
                                         <h4 className="text-xs font-bold text-slate-900 dark:text-white">
                                             Daftar Ulasan Pelanggan Terverifikasi
                                         </h4>
@@ -1550,8 +1538,8 @@ export default function AdminDashboard({ stats, tab = 'dashboard', search: initi
                                                         </td>
                                                         <td className="px-4 py-3 whitespace-nowrap">
                                                             <div className="flex items-center gap-1">
-                                                                <span className="text-amber-500 font-extrabold text-xs">★ {row.rating}</span>
-                                                                <div className="flex text-amber-400 text-[10px]">
+                                                                <span className="text-[#bf1e26] font-extrabold text-xs">★ {row.rating}</span>
+                                                                <div className="flex text-[#d52a30] text-[10px]">
                                                                     {Array.from({ length: Number(row.rating) || 5 }).map((_, i) => (
                                                                         <span key={i}>★</span>
                                                                     ))}
@@ -1763,7 +1751,7 @@ export default function AdminDashboard({ stats, tab = 'dashboard', search: initi
                                                                             ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300'
                                                                             : row.role === 'seller'
                                                                             ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300'
-                                                                            : 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300'
+                                                                            : 'bg-red-100 text-[#98151e] dark:bg-amber-900/40 dark:text-red-300'
                                                                     }`}>
                                                                         {row.role.toUpperCase()}
                                                                     </span>
@@ -1822,7 +1810,7 @@ export default function AdminDashboard({ stats, tab = 'dashboard', search: initi
                                                                     <div className="flex items-center justify-end gap-1.5">
                                                                         <button
                                                                             onClick={() => router.visit(`/admin/dashboard?tab=seller_permissions&search=${encodeURIComponent(row.name)}`)}
-                                                                            className="p-1 rounded hover:bg-amber-100 dark:hover:bg-amber-900/40 text-amber-500"
+                                                                            className="p-1 rounded hover:bg-red-100 dark:hover:bg-amber-900/40 text-[#bf1e26]"
                                                                             title="Atur Hak Akses Lapak Ini"
                                                                         >
                                                                             <ShieldCheck className="w-3.5 h-3.5" />
@@ -1910,7 +1898,7 @@ export default function AdminDashboard({ stats, tab = 'dashboard', search: initi
                                                                     <p className="text-[10px] text-slate-400">{row.size_cm ? `${row.size_cm} cm` : '-'}</p>
                                                                 </td>
                                                                 <td className="px-4 py-3">
-                                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-300 font-bold text-[11px] border border-amber-500/20">
+                                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#bf1e26]/10 text-[#98151e] dark:text-red-300 font-bold text-[11px] border border-[#bf1e26]/20">
                                                                         {formatAgeInYears(row.age)}
                                                                     </span>
                                                                 </td>
@@ -1960,7 +1948,7 @@ export default function AdminDashboard({ stats, tab = 'dashboard', search: initi
                                                                             <p className="font-semibold text-xs text-slate-900 dark:text-white leading-tight">{row.product?.name}</p>
                                                                             <div className="flex items-center gap-1.5 mt-0.5">
                                                                                 <span className="text-[10px] text-slate-400">{row.product?.store?.name}</span>
-                                                                                <span className="text-[10px] px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-700 dark:text-amber-300 font-bold border border-amber-500/20">
+                                                                                <span className="text-[10px] px-1.5 py-0.2 rounded bg-[#bf1e26]/10 text-[#98151e] dark:text-red-300 font-bold border border-[#bf1e26]/20">
                                                                                     {formatAgeInYears(row.product?.age || row.age)}
                                                                                 </span>
                                                                             </div>
@@ -1980,7 +1968,7 @@ export default function AdminDashboard({ stats, tab = 'dashboard', search: initi
                                                                     </span>
                                                                 </td>
                                                                 <td className="px-4 py-3">
-                                                                    <span className="font-black text-amber-600 dark:text-amber-400 text-xs">
+                                                                    <span className="font-black text-[#bf1e26] dark:text-[#d52a30] text-xs">
                                                                         Rp {Number(row.current_bid ?? row.current_highest_bid ?? row.start_price).toLocaleString('id-ID')}
                                                                     </span>
                                                                     {row.highest_bidder && (
@@ -2415,7 +2403,7 @@ export default function AdminDashboard({ stats, tab = 'dashboard', search: initi
                                                         key={yr}
                                                         type="button"
                                                         onClick={() => setFormData({ ...formData, age: yr, age_stage: yr })}
-                                                        className="text-[9px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-amber-500 cursor-pointer"
+                                                        className="text-[9px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-[#bf1e26] cursor-pointer"
                                                     >
                                                         {yr}
                                                     </button>

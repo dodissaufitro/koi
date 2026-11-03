@@ -1,7 +1,9 @@
+import AndroidKoiApp from '@/components/AndroidApp/AndroidKoiApp';
+import BidConfirmationDialog, { getBidFailureMessage, type BidDialogStatus } from '@/components/BidConfirmationDialog';
 import { Article, Auction, Category, Product, Review, formatAgeInYears } from '@/types/fish';
-import { SharedData } from '@/types';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import {
+    ArrowUpRight,
     Award,
     BookOpen,
     Calendar,
@@ -34,18 +36,15 @@ import {
     Star,
     Store,
     Sun,
+    Trophy,
     Truck,
     User,
     UserCheck,
     Users,
-    Volume2,
     X,
     Youtube,
-    ArrowUpRight,
-    Trophy,
 } from 'lucide-react';
-import AndroidKoiApp from '@/components/AndroidApp/AndroidKoiApp';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 interface KoiVariety {
     name: string;
@@ -99,41 +98,130 @@ export default function LandingKoi({
     const wonAuctions: Auction[] = initialWonAuctions || pageProps.wonAuctions || [];
     const whatsappCs = pageProps.whatsapp_cs || {
         phone: '+62 811-8899-0011',
-        chat_url: 'https://wa.me/6281188990011?text=' + encodeURIComponent('Halo Customer Concierge KoiMart, saya ingin konsultasi mengenai ikan koi / transaksi lelang.'),
+        chat_url:
+            'https://wa.me/6281188990011?text=' +
+            encodeURIComponent('Halo Customer Concierge KoiMart, saya ingin konsultasi mengenai ikan koi / transaksi lelang.'),
     };
     // 2 Versi Warna: 'light' (Default: Porcelain & Cerah Segar) dan 'dark' (Obsidian & Gelap Elegan)
     const [theme, setTheme] = useState<'dark' | 'light'>('light');
     const [auctionTab, setAuctionTab] = useState<'highest' | 'favorite'>('highest');
     const [faqOpen, setFaqOpen] = useState<number | null>(null);
-    const [bidSuccessMessage, setBidSuccessMessage] = useState<string | null>(null);
+    const [pendingQuickBid, setPendingQuickBid] = useState<{
+        auction: Auction;
+        amount: number;
+        status: BidDialogStatus;
+        errorMessage?: string;
+    } | null>(null);
     const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
     const [articleCategoryTab, setArticleCategoryTab] = useState<'all' | 'tips_care' | 'event_announcement' | 'banner_ads'>('all');
     const [activeAnnouncementIdx, setActiveAnnouncementIdx] = useState(0);
     const [dismissAnnouncement, setDismissAnnouncement] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-    const [infoDropdownOpen, setInfoDropdownOpen] = useState(false);
+    const [openNavDropdown, setOpenNavDropdown] = useState<string | null>(null);
+    const [isHeaderScrolled, setIsHeaderScrolled] = useState(false);
+    const [headerStackHeight, setHeaderStackHeight] = useState(0);
+    const headerStackRef = useRef<HTMLDivElement>(null);
+    const [statsVisible, setStatsVisible] = useState(false);
+    const [hasUserScrolled, setHasUserScrolled] = useState(false);
+    const [animatedStats, setAnimatedStats] = useState([0, 0, 0, 0]);
+
+    useEffect(() => {
+        const handleFirstScroll = () => {
+            if (window.scrollY > 0) {
+                setHasUserScrolled(true);
+                window.removeEventListener('scroll', handleFirstScroll);
+            }
+        };
+        window.addEventListener('scroll', handleFirstScroll, { passive: true });
+        return () => window.removeEventListener('scroll', handleFirstScroll);
+    }, []);
+
+    useEffect(() => {
+        if (!hasUserScrolled) return;
+        const strip = document.getElementById('hero-stat-strip');
+        if (!strip || typeof IntersectionObserver === 'undefined') {
+            setStatsVisible(true);
+            return;
+        }
+
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) {
+                    setStatsVisible(true);
+                    observer.disconnect();
+                }
+            },
+            { threshold: 0.25 },
+        );
+        observer.observe(strip);
+        return () => observer.disconnect();
+    }, [hasUserScrolled]);
+
+    useEffect(() => {
+        if (!statsVisible) return;
+
+        const targets = [
+            Number(stats.total_koi_delivered.replace(/[^0-9]/g, '')),
+            0,
+            Number(stats.live_arrival_rate.replace(/[^0-9]/g, '')),
+            Number(stats.show_champion_awards.replace(/[^0-9]/g, '')),
+        ];
+        const duration = 1500;
+        let frame = 0;
+        let startTime = 0;
+        const animate = (time: number) => {
+            if (!startTime) startTime = time;
+            const progress = Math.min((time - startTime) / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 4);
+            setAnimatedStats(targets.map((target) => Math.round(target * eased)));
+            if (progress < 1) frame = window.requestAnimationFrame(animate);
+        };
+
+        frame = window.requestAnimationFrame(animate);
+        return () => window.cancelAnimationFrame(frame);
+    }, [statsVisible, stats.total_koi_delivered, stats.live_arrival_rate, stats.show_champion_awards]);
+
+    const formatAnimatedStat = (value: number, source: string) => {
+        const suffix = source.replace(/[0-9.,\s]/g, '');
+        const formatted = new Intl.NumberFormat('id-ID').format(value);
+        return `${formatted}${suffix}`;
+    };
+
+    useEffect(() => {
+        const headerStack = headerStackRef.current;
+        if (!headerStack) return;
+
+        const updateHeight = () => setHeaderStackHeight(headerStack.getBoundingClientRect().height);
+        updateHeight();
+        const resizeObserver = new ResizeObserver(updateHeight);
+        resizeObserver.observe(headerStack);
+        window.addEventListener('resize', updateHeight, { passive: true });
+        return () => {
+            resizeObserver.disconnect();
+            window.removeEventListener('resize', updateHeight);
+        };
+    }, []);
+
+    useEffect(() => {
+        const updateHeaderState = () => setIsHeaderScrolled(window.scrollY > 12);
+        updateHeaderState();
+        window.addEventListener('scroll', updateHeaderState, { passive: true });
+        return () => window.removeEventListener('scroll', updateHeaderState);
+    }, []);
 
     // Deteksi Mode Tampilan Android / Mobile
     const [isAndroidMode, setIsAndroidMode] = useState<boolean>(() => {
         if (typeof window === 'undefined') return false;
         const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('view') === 'android' || urlParams.has('screen')) return true;
         if (urlParams.get('view') === 'desktop') return false;
-
-        // Jika layar berukuran mobile (< 768px) atau user agent mobile, SELALU tampilkan mode Mobile/Android
-        const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        if (window.innerWidth < 768 || isMobileDevice) return true;
-
-        const saved = localStorage.getItem('koki_view_mode');
-        if (saved === 'android') return true;
-        if (saved === 'desktop') return false;
-        return false;
+        if (urlParams.get('view') === 'android' && sessionStorage.getItem('koki_android_simulator') === '1') return true;
+        return window.innerWidth < 768;
     });
 
     useEffect(() => {
         const handleResize = () => {
             const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('view') === 'android') {
+            if (urlParams.get('view') === 'android' && sessionStorage.getItem('koki_android_simulator') === '1') {
                 setIsAndroidMode(true);
                 return;
             }
@@ -141,13 +229,7 @@ export default function LandingKoi({
                 setIsAndroidMode(false);
                 return;
             }
-            const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-            if (window.innerWidth < 768 || isMobileDevice) {
-                setIsAndroidMode(true);
-                return;
-            }
-            const saved = localStorage.getItem('koki_view_mode');
-            setIsAndroidMode(saved === 'android');
+            setIsAndroidMode(window.innerWidth < 768);
         };
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
@@ -177,26 +259,35 @@ export default function LandingKoi({
 
     const handleQuickBid = (auction: Auction) => {
         const nextMinBid = Number(auction.current_bid) + Number(auction.bid_increment);
-        const confirmBid = window.confirm(
-            `Ajukan penawaran bid resmi untuk ${auction.product?.name} sebesar Rp ${nextMinBid.toLocaleString('id-ID')}?`
-        );
+        setPendingQuickBid({ auction, amount: nextMinBid, status: 'confirm' });
+    };
 
-        if (confirmBid) {
-            router.post(
-                `/auctions/${auction.id}/bid`,
-                { amount: nextMinBid },
-                {
-                    preserveScroll: true,
-                    onSuccess: () => {
-                        setBidSuccessMessage(`Penawaran Anda sebesar Rp ${nextMinBid.toLocaleString('id-ID')} berhasil tercatat.`);
-                        setTimeout(() => setBidSuccessMessage(null), 4000);
-                    },
-                    onError: (err) => {
-                        alert(err.amount || 'Gagal memasang bid. Pastikan Anda telah masuk (login) ke akun Anda.');
-                    },
-                }
-            );
-        }
+    const confirmQuickBid = () => {
+        if (!pendingQuickBid) return;
+
+        const { auction, amount } = pendingQuickBid;
+        setPendingQuickBid((current) => (current ? { ...current, status: 'submitting' } : current));
+        router.post(
+            `/auctions/${auction.id}/bid`,
+            { amount },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    setPendingQuickBid((current) => (current ? { ...current, status: 'success', errorMessage: undefined } : current));
+                },
+                onError: (err) => {
+                    setPendingQuickBid((current) =>
+                        current
+                            ? {
+                                  ...current,
+                                  status: 'error',
+                                  errorMessage: getBidFailureMessage(err.amount || err.message),
+                              }
+                            : current,
+                    );
+                },
+            },
+        );
     };
 
     const handleToggleFavorite = (e: React.MouseEvent, auctionId: number) => {
@@ -210,7 +301,7 @@ export default function LandingKoi({
                 onError: () => {
                     alert('Silakan masuk ke akun terlebih dahulu untuk menyimpan ke daftar favorit.');
                 },
-            }
+            },
         );
     };
 
@@ -241,7 +332,7 @@ export default function LandingKoi({
         return (
             <>
                 <Head title="KoiMart - Jual Beli Ikan Koi Terpercaya" />
-                <AndroidKoiApp 
+                <AndroidKoiApp
                     products={featuredKoi}
                     highestBidAuctions={highestBidAuctions}
                     favoriteAuctions={favoriteAuctions}
@@ -253,6 +344,7 @@ export default function LandingKoi({
                     wonAuctions={wonAuctions}
                     onExitAndroidView={() => {
                         setIsAndroidMode(false);
+                        sessionStorage.removeItem('koki_android_simulator');
                         if (window.innerWidth >= 768) {
                             localStorage.setItem('koki_view_mode', 'desktop');
                         }
@@ -264,112 +356,106 @@ export default function LandingKoi({
 
     return (
         <div
-            className={`min-h-screen font-sans antialiased transition-colors duration-300 overflow-x-hidden w-full max-w-full ${
+            className={`min-h-screen w-full max-w-full overflow-x-clip font-sans antialiased transition-colors duration-300 ${
                 isDark
-                    ? 'bg-[#0B0F17] text-slate-200 selection:bg-amber-400 selection:text-slate-950'
-                    : 'bg-[#F8FAFC] text-slate-800 selection:bg-amber-200 selection:text-amber-950'
+                    ? 'bg-[#0B0F17] text-slate-200 selection:bg-[#C41E3A] selection:text-white'
+                    : 'bg-[#F5F3F0] text-slate-800 selection:bg-[#C41E3A]/20 selection:text-[#C41E3A]'
             }`}
         >
             <Head title="KOKI KOI - Curated Japanese Nishikigoi & Auction House" />
 
+            <BidConfirmationDialog
+                open={pendingQuickBid !== null}
+                auctionName={pendingQuickBid?.auction.product?.name || 'Ikan lelang'}
+                amount={pendingQuickBid?.amount || 0}
+                status={pendingQuickBid?.status || 'confirm'}
+                errorMessage={pendingQuickBid?.errorMessage}
+                isDark={isDark}
+                onOpenChange={(open) => {
+                    if (!open && pendingQuickBid?.status !== 'submitting') setPendingQuickBid(null);
+                }}
+                onConfirm={confirmQuickBid}
+            />
+
             {/* Ambient Background Glows */}
-            <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+            <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
                 {isDark ? (
                     <>
-                        <div className="absolute -top-32 left-1/3 h-[550px] w-[550px] rounded-full bg-amber-500/[0.04] blur-[150px]" />
-                        <div className="absolute top-1/2 -right-20 h-[600px] w-[600px] rounded-full bg-slate-700/[0.06] blur-[180px]" />
+                        <div className="absolute -top-32 left-1/3 h-[550px] w-[550px] rounded-full bg-red-900/[0.05] blur-[150px]" />
+                        <div className="absolute top-1/2 -right-20 h-[600px] w-[600px] rounded-full bg-slate-800/[0.1] blur-[180px]" />
                     </>
-                ) : (
-                    <>
-                        <div className="absolute -top-32 left-1/4 h-[550px] w-[550px] rounded-full bg-amber-200/30 blur-[150px]" />
-                        <div className="absolute top-1/2 -right-20 h-[600px] w-[600px] rounded-full bg-sky-100/50 blur-[180px]" />
-                        <div className="absolute -bottom-20 left-10 h-[500px] w-[500px] rounded-full bg-rose-100/40 blur-[160px]" />
-                    </>
-                )}
+                ) : null}
             </div>
-
-            {/* Floating Notification */}
-            {bidSuccessMessage && (
-                <div
-                    className={`fixed top-12 left-1/2 -translate-x-1/2 z-50 rounded-xl px-6 py-3 text-xs font-semibold shadow-2xl backdrop-blur flex items-center gap-2.5 ${
-                        isDark
-                            ? 'bg-slate-900/95 border border-amber-500/40 text-amber-200'
-                            : 'bg-white/95 border border-amber-500/40 text-slate-800'
-                    }`}
-                >
-                    <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                    <span>{bidSuccessMessage}</span>
-                </div>
-            )}
 
             {/* ========================================================= */}
             {/* 1. TOP EVENT ANNOUNCEMENT BANNER & TEXT (WEB TOP & MOBILE) */}
             {/* ========================================================= */}
-            {!dismissAnnouncement && (
-                pinnedAnnouncements.length > 0 ? (
+            <div ref={headerStackRef} className="sticky top-0 z-50">
+            {!dismissAnnouncement &&
+                (pinnedAnnouncements.length > 0 ? (
                     <aside
                         aria-label="Pengumuman Event Resmi"
-                        className="relative z-40 bg-gradient-to-r from-[#171E28] via-[#101620] to-[#171E28] text-white border-b border-amber-500/30 py-2.5 px-4 shadow-md transition-all"
+                        className="relative z-40 border-b border-[#bf1e26]/30 bg-gradient-to-r from-[#171E28] via-[#101620] to-[#171E28] px-4 py-2.5 text-white shadow-md transition-all"
                     >
                         {(() => {
                             const curEvent = pinnedAnnouncements[activeAnnouncementIdx] || pinnedAnnouncements[0];
                             return (
-                                <div className="mx-auto max-w-7xl flex flex-col sm:flex-row items-center justify-between gap-2.5 text-xs w-full overflow-hidden">
-                                    <div className="flex items-center gap-2.5 flex-1 min-w-0 w-full overflow-hidden">
+                                <div className="mx-auto flex w-full max-w-7xl flex-col items-center justify-between gap-2.5 overflow-hidden text-xs sm:flex-row">
+                                    <div className="flex w-full min-w-0 flex-1 items-center gap-2.5 overflow-hidden">
                                         {/* Thumbnail Banner */}
                                         {curEvent.banner_image && (
-                                            <div className="w-11 h-8 rounded-lg overflow-hidden shrink-0 border border-amber-500/30 hidden sm:block shadow-sm">
-                                                <img
-                                                    src={curEvent.banner_image}
-                                                    alt={curEvent.title}
-                                                    className="w-full h-full object-cover"
-                                                />
+                                            <div className="hidden h-8 w-11 shrink-0 overflow-hidden rounded-lg border border-[#bf1e26]/30 shadow-sm sm:block">
+                                                <img loading="lazy" decoding="async" src={curEvent.banner_image} alt={curEvent.title} className="h-full w-full object-cover" />
                                             </div>
                                         )}
                                         {/* Badge & Text */}
-                                        <div className="flex items-center gap-2 min-w-0 w-full overflow-hidden">
-                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500 text-stone-950 font-black text-[10px] tracking-wider uppercase shrink-0 shadow-xs">
-                                                <Sparkles className="w-3 h-3 text-stone-950" />
+                                        <div className="flex w-full min-w-0 items-center gap-2 overflow-hidden">
+                                            <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[#bf1e26] px-2 py-0.5 text-[10px] font-black tracking-wider text-white uppercase shadow-xs">
+                                                <Sparkles className="h-3 w-3 text-stone-950" />
                                                 <span>{curEvent.badge_text || 'EVENT'}</span>
                                             </span>
-                                            <span className="font-bold text-amber-200 truncate shrink-0 max-w-[120px] sm:max-w-none">
+                                            <span className="max-w-[120px] shrink-0 truncate font-bold text-red-200 sm:max-w-none">
                                                 {curEvent.title}:
                                             </span>
-                                            <span className="text-slate-300 font-light truncate flex-1 min-w-0">
+                                            <span className="min-w-0 flex-1 truncate font-light text-slate-300">
                                                 {curEvent.summary || curEvent.content?.slice(0, 110)}
                                             </span>
                                         </div>
                                     </div>
 
                                     {/* Actions */}
-                                    <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto justify-between sm:justify-end">
+                                    <div className="flex w-full shrink-0 items-center justify-between gap-2 sm:w-auto sm:justify-end">
                                         <Link
                                             href={`/articles/${curEvent.slug || curEvent.id}`}
-                                            className="px-3 py-1 rounded-full bg-amber-500 hover:bg-amber-400 active:scale-95 text-stone-950 font-bold text-[11px] transition shadow flex items-center gap-1 cursor-pointer"
+                                            className="flex cursor-pointer items-center gap-1 rounded-full bg-[#bf1e26] px-3 py-1 text-[11px] font-bold text-white shadow transition hover:bg-[#bf1e26] active:scale-95"
                                         >
                                             <span>Selengkapnya</span>
-                                            <ChevronRight className="w-3 h-3" />
+                                            <ChevronRight className="h-3 w-3" />
                                         </Link>
 
                                         {/* Navigation if multiple pinned events */}
                                         {pinnedAnnouncements.length > 1 && (
                                             <div className="flex items-center gap-1 border-l border-slate-700 pl-2">
                                                 <button
-                                                    onClick={() => setActiveAnnouncementIdx((prev) => (prev > 0 ? prev - 1 : pinnedAnnouncements.length - 1))}
-                                                    className="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-white transition"
+                                                    onClick={() =>
+                                                        setActiveAnnouncementIdx((prev) => (prev > 0 ? prev - 1 : pinnedAnnouncements.length - 1))
+                                                    }
+                                                    className="rounded p-1 text-slate-400 transition hover:bg-slate-800 hover:text-white"
                                                     title="Event Sebelumnya"
                                                 >
-                                                    <ChevronLeft className="w-3.5 h-3.5" />
+                                                    <ChevronLeft className="h-3.5 w-3.5" />
                                                 </button>
-                                                <span className="text-[10px] text-slate-400 font-mono">
+                                                <span className="font-mono text-[10px] text-slate-400">
                                                     {activeAnnouncementIdx + 1}/{pinnedAnnouncements.length}
                                                 </span>
                                                 <button
-                                                    onClick={() => setActiveAnnouncementIdx((prev) => (prev < pinnedAnnouncements.length - 1 ? prev + 1 : 0))}
-                                                    className="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-white transition"
+                                                    onClick={() =>
+                                                        setActiveAnnouncementIdx((prev) => (prev < pinnedAnnouncements.length - 1 ? prev + 1 : 0))
+                                                    }
+                                                    className="rounded p-1 text-slate-400 transition hover:bg-slate-800 hover:text-white"
                                                     title="Event Berikutnya"
                                                 >
-                                                    <ChevronRight className="w-3.5 h-3.5" />
+                                                    <ChevronRight className="h-3.5 w-3.5" />
                                                 </button>
                                             </div>
                                         )}
@@ -377,10 +463,10 @@ export default function LandingKoi({
                                         {/* Dismiss Button */}
                                         <button
                                             onClick={() => setDismissAnnouncement(true)}
-                                            className="p-1 rounded-full hover:bg-slate-800 text-slate-400 hover:text-white transition ml-1"
+                                            className="ml-1 rounded-full p-1 text-slate-400 transition hover:bg-slate-800 hover:text-white"
                                             title="Tutup Pengumuman"
                                         >
-                                            <X className="w-3.5 h-3.5" />
+                                            <X className="h-3.5 w-3.5" />
                                         </button>
                                     </div>
                                 </div>
@@ -391,281 +477,228 @@ export default function LandingKoi({
                     /* Default Strip */
                     <aside
                         aria-label="Pengumuman"
-                        className={`relative z-40 border-b py-2 px-4 text-center transition-colors ${
-                            isDark
-                                ? 'border-white/[0.06] bg-[#0E1420]/90 text-slate-400'
-                                : 'border-slate-200/80 bg-slate-100/80 text-slate-600'
+                        className={`relative z-40 border-b px-4 py-2 text-center transition-colors ${
+                            isDark ? 'border-white/[0.06] bg-[#0E1420]/90 text-slate-400' : 'border-slate-200/80 bg-slate-100/80 text-slate-600'
                         }`}
                     >
                         <div className="mx-auto flex max-w-7xl items-center justify-center gap-2.5 text-[11px] tracking-wide">
-                            <span className="h-1.5 w-1.5 rounded-full bg-amber-500"></span>
+                            <span className="h-1.5 w-1.5 rounded-full bg-[#bf1e26]"></span>
                             <span className="font-semibold text-slate-900 dark:text-slate-200">Warta Kurasi:</span>
                             <span>Koleksi import Tosai & Nisai dari Dainichi, Sakai & Isa Koi Farm telah selesai karantina.</span>
                             <a
                                 href="#lelang"
-                                className="ml-1 text-amber-600 dark:text-amber-300 hover:underline underline-offset-4 font-medium flex items-center"
+                                className="ml-1 flex items-center font-medium text-[#bf1e26] underline-offset-4 hover:underline dark:text-red-300"
                             >
-                                Lihat Lelang Aktif <ChevronRight className="h-3 w-3 ml-0.5 inline" />
+                                Lihat Lelang Aktif <ChevronRight className="ml-0.5 inline h-3 w-3" />
                             </a>
                         </div>
                     </aside>
-                )
-            )}
+                ))}
 
             {/* Main Navigation Header */}
             <header
-                className={`sticky top-0 z-30 border-b backdrop-blur-md transition-colors ${
-                    isDark
-                        ? 'border-white/[0.06] bg-[#0B0F17]/90'
-                        : 'border-slate-200/80 bg-white/90 shadow-xs'
+                className={`relative z-10 border-b backdrop-blur-xl transition-all duration-300 ${
+                    isHeaderScrolled
+                        ? isDark
+                            ? 'border-white/10 bg-[#0B0F17]/75 shadow-lg shadow-black/10 backdrop-blur-2xl'
+                            : 'border-white/60 bg-white/75 shadow-lg shadow-slate-900/5 backdrop-blur-2xl'
+                        : isDark
+                          ? 'border-white/[0.06] bg-[#0B0F17]/95'
+                          : 'border-slate-200/80 bg-white/95 shadow-sm'
                 }`}
             >
-                <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 sm:gap-4 px-3 sm:px-6 py-3">
+                <div className="relative mx-auto flex max-w-[1600px] items-center justify-between gap-2 px-4 py-3.5 sm:gap-4 sm:px-8">
                     {/* Brand Logo & Desktop Navigation */}
-                    <div className="flex items-center gap-3 sm:gap-6 xl:gap-8 min-w-0">
-                        {/* Brand Logo */}
-                        <Link href="/" className="flex items-center gap-2 sm:gap-3 group shrink-0">
-                            <div
-                                className={`flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl border transition ${
-                                    isDark
-                                        ? 'bg-[#141B28] border-amber-500/20 text-amber-300 group-hover:border-amber-400/40'
-                                        : 'bg-amber-50 border-amber-300 text-amber-700 group-hover:border-amber-400'
-                                }`}
-                            >
-                                <Fish className="h-4.5 w-4.5 sm:h-5 sm:w-5 stroke-[1.8]" />
+                    <div className="flex min-w-0 items-center gap-4 sm:gap-8 xl:gap-10">
+                        {/* Brand Logo — KOKI KOI identity preserved */}
+                        <Link href="/" className="group flex shrink-0 items-center gap-3">
+                            {/* Red circular logo badge */}
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#C41E3A] text-white shadow-sm transition group-hover:bg-[#a8192f]">
+                                <svg viewBox="0 0 40 40" fill="none" className="h-7 w-7">
+                                    <path d="M20 8C14 8 11 14 11 18C11 25 17 29 20 34C23 29 29 25 29 18C29 14 26 8 20 8Z" fill="white" />
+                                    <circle cx="20" cy="16" r="3.5" fill="#C41E3A" />
+                                    <path d="M14 22C10 21.5 8 24.5 9.5 27C11.5 28.5 14.5 26 14 22Z" fill="white" opacity="0.85" />
+                                    <path d="M26 22C30 21.5 32 24.5 30.5 27C28.5 28.5 25.5 26 26 22Z" fill="white" opacity="0.85" />
+                                </svg>
                             </div>
-                            <div className="flex flex-col">
-                                <div className="flex items-center gap-1.5 sm:gap-2">
-                                    <span
-                                        className={`text-sm sm:text-base font-extrabold tracking-widest font-serif transition ${
-                                            isDark
-                                                ? 'text-slate-100 group-hover:text-amber-200'
-                                                : 'text-slate-900 group-hover:text-amber-700'
-                                        }`}
-                                    >
-                                        KOKI<span className="text-amber-600 dark:text-amber-400/90 font-sans font-light"> KOI</span>
-                                    </span>
-                                    <span
-                                        className={`hidden sm:inline text-[9px] uppercase tracking-[0.2em] border px-1.5 py-0.5 rounded font-medium ${
-                                            isDark
-                                                ? 'text-slate-400 border-white/[0.08] bg-white/[0.02]'
-                                                : 'text-slate-500 border-slate-200 bg-slate-100'
-                                        }`}
-                                    >
-                                        Nishikigoi
-                                    </span>
-                                </div>
-                                <span className="hidden sm:block text-[9px] tracking-[0.18em] uppercase font-light text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                            <div className="flex flex-col leading-none">
+                                <span
+                                    className={`font-serif text-[15px] font-extrabold tracking-widest transition ${
+                                        isDark ? 'text-slate-100' : 'text-[#1a1a1a]'
+                                    }`}
+                                >
+                                    KOKI <span className="text-[#C41E3A]">KOI</span>
+                                </span>
+                                <span className="mt-0.5 text-[9px] font-light tracking-[0.2em] text-slate-400 uppercase dark:text-slate-500">
                                     Curated Japanese Heritage
                                 </span>
                             </div>
                         </Link>
 
-                        {/* Desktop Navigation Links */}
-                        <nav className="hidden lg:flex items-center gap-1 xl:gap-2 text-[13px] font-medium tracking-wide">
-                            {/* Bursa Lelang Special Pill */}
+                        {/* Main website navigation: keep categories visible and group related links. */}
+                        <nav className="absolute top-1/2 left-1/2 hidden -translate-x-1/2 -translate-y-1/2 items-center gap-1 text-[13px] font-medium xl:flex">
                             <a
-                                href="#lelang"
-                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition border mr-1 ${
-                                    isDark
-                                        ? 'bg-amber-500/10 border-amber-500/30 text-amber-300 hover:bg-amber-500/20 hover:border-amber-400/50'
-                                        : 'bg-amber-50 border-amber-300/80 text-amber-800 hover:bg-amber-100 hover:border-amber-400 shadow-2xs'
-                                }`}
+                                href="/"
+                                className="relative whitespace-nowrap px-2.5 py-2 font-semibold text-[#C41E3A] after:absolute after:right-2.5 after:bottom-0 after:left-2.5 after:h-0.5 after:rounded-full after:bg-[#C41E3A]"
                             >
-                                <Gavel className="h-3.5 w-3.5 text-amber-500" />
-                                <span>Bursa Lelang</span>
-                                <span className="relative flex h-2 w-2 ml-0.5">
-                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
-                                </span>
+                                Beranda
                             </a>
 
-                            <a
-                                href="#koleksi"
-                                className="px-2.5 py-1.5 rounded-lg hover:text-amber-600 dark:hover:text-amber-400 transition whitespace-nowrap"
-                            >
-                                Koleksi Kurasi
-                            </a>
-                            <a
-                                href="#varietas"
-                                className="px-2.5 py-1.5 rounded-lg hover:text-amber-600 dark:hover:text-amber-400 transition whitespace-nowrap"
-                            >
-                                Varietas
-                            </a>
-                            <a
-                                href="#iklan-banner"
-                                className="px-2.5 py-1.5 rounded-lg hover:text-amber-600 dark:hover:text-amber-400 transition whitespace-nowrap"
-                            >
-                                Promo & Iklan
-                            </a>
-                            <a
-                                href="#artikel-tips"
-                                className="px-2.5 py-1.5 rounded-lg hover:text-amber-600 dark:hover:text-amber-400 transition whitespace-nowrap"
-                            >
-                                Tips Pemeliharaan
-                            </a>
-
-                            {/* Dropdown Menu: Informasi */}
-                            <div
-                                className="relative"
-                                onMouseEnter={() => setInfoDropdownOpen(true)}
-                                onMouseLeave={() => setInfoDropdownOpen(false)}
-                            >
-                                <button
-                                    type="button"
-                                    onClick={() => setInfoDropdownOpen(!infoDropdownOpen)}
-                                    className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg transition whitespace-nowrap ${
-                                        infoDropdownOpen
-                                            ? isDark
-                                                ? 'text-amber-400 bg-white/5'
-                                                : 'text-amber-700 bg-amber-50/60'
-                                            : 'hover:text-amber-600 dark:hover:text-amber-400'
-                                    }`}
-                                    aria-expanded={infoDropdownOpen}
-                                >
-                                    <span>Informasi</span>
-                                    <ChevronDown
-                                        className={`h-3.5 w-3.5 transition-transform duration-200 ${
-                                            infoDropdownOpen ? 'rotate-180 text-amber-500' : 'text-slate-400'
-                                        }`}
-                                    />
-                                </button>
-
-                                {infoDropdownOpen && (
+                            {[
+                                {
+                                    id: 'koleksi',
+                                    label: 'Koleksi',
+                                    items: [
+                                        { href: '#koleksi', label: 'Koleksi Kurasi', icon: Fish },
+                                        { href: '#varietas', label: 'Varietas Nishikigoi', icon: Sparkles },
+                                    ],
+                                },
+                                {
+                                    id: 'jelajahi',
+                                    label: 'Jelajahi',
+                                    items: [
+                                        { href: '#lelang', label: 'Bursa Lelang Koi', icon: Gavel },
+                                        { href: '#iklan-banner', label: 'Promo & Iklan', icon: Flame },
+                                        { href: '#artikel-tips', label: 'Artikel & Tips', icon: BookOpen },
+                                    ],
+                                },
+                                {
+                                    id: 'informasi',
+                                    label: 'Informasi',
+                                    items: [
+                                        { href: '#keunggulan', label: 'Standar Karantina', icon: ShieldCheck },
+                                        { href: '#testimoni', label: 'Ulasan Pembeli', icon: Star },
+                                        { href: '#faq', label: 'Bantuan & FAQ', icon: Info },
+                                    ],
+                                },
+                            ].map((menu) => {
+                                const isOpen = openNavDropdown === menu.id;
+                                return (
                                     <div
-                                        className={`absolute top-full left-0 mt-2 w-48 rounded-xl border p-1 shadow-lg backdrop-blur-md transition z-50 animate-in fade-in slide-in-from-top-1 duration-150 ${
-                                            isDark
-                                                ? 'bg-[#0E1420]/95 border-white/10 text-slate-200 shadow-black/40'
-                                                : 'bg-white/95 border-slate-200 text-slate-800 shadow-slate-200/50'
-                                        }`}
+                                        key={menu.id}
+                                        className="relative"
+                                        onMouseEnter={() => setOpenNavDropdown(menu.id)}
+                                        onMouseLeave={() => setOpenNavDropdown(null)}
                                     >
-                                        <a
-                                            href="#keunggulan"
-                                            onClick={() => setInfoDropdownOpen(false)}
-                                            className={`group flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-lg transition-colors ${
-                                                isDark
-                                                    ? 'text-slate-300 hover:text-white hover:bg-white/[0.08]'
-                                                    : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100'
+                                        <button
+                                            type="button"
+                                            onClick={() => setOpenNavDropdown(isOpen ? null : menu.id)}
+                                            aria-expanded={isOpen}
+                                            className={`flex items-center gap-1 whitespace-nowrap rounded-lg px-2.5 py-2 transition ${
+                                                isOpen
+                                                    ? isDark
+                                                        ? 'bg-white/5 text-white'
+                                                        : 'bg-red-50 text-[#C41E3A]'
+                                                    : isDark
+                                                      ? 'text-slate-300 hover:text-white'
+                                                      : 'text-slate-700 hover:text-[#C41E3A]'
                                             }`}
                                         >
-                                            <ShieldCheck className="h-4 w-4 text-slate-400 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors" strokeWidth={1.75} />
-                                            <span>Standar Karantina</span>
-                                        </a>
-
-                                        <a
-                                            href="#testimoni"
-                                            onClick={() => setInfoDropdownOpen(false)}
-                                            className={`group flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-lg transition-colors ${
-                                                isDark
-                                                    ? 'text-slate-300 hover:text-white hover:bg-white/[0.08]'
-                                                    : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100'
-                                            }`}
-                                        >
-                                            <Star className="h-4 w-4 text-slate-400 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors" strokeWidth={1.75} />
-                                            <span>Ulasan Pembeli</span>
-                                        </a>
-
-                                        <a
-                                            href="#faq"
-                                            onClick={() => setInfoDropdownOpen(false)}
-                                            className={`group flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-lg transition-colors ${
-                                                isDark
-                                                    ? 'text-slate-300 hover:text-white hover:bg-white/[0.08]'
-                                                    : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100'
-                                            }`}
-                                        >
-                                            <Info className="h-4 w-4 text-slate-400 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors" strokeWidth={1.75} />
-                                            <span>Bantuan & FAQ</span>
-                                        </a>
+                                            {menu.label}
+                                            <ChevronDown className={`h-3.5 w-3.5 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                                        </button>
+                                        {isOpen && (
+                                            <div
+                                                className={`absolute top-full left-0 z-50 mt-1.5 min-w-52 rounded-xl border p-1.5 shadow-xl backdrop-blur-md ${
+                                                    isDark
+                                                        ? 'border-white/10 bg-[#0E1420]/95 text-slate-200 shadow-black/40'
+                                                        : 'border-slate-200 bg-white/95 text-slate-800 shadow-slate-300/40'
+                                                }`}
+                                            >
+                                                {menu.items.map(({ href, label, icon: Icon }) => (
+                                                    <a
+                                                        key={href}
+                                                        href={href}
+                                                        onClick={() => setOpenNavDropdown(null)}
+                                                        className={`flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-xs transition-colors ${
+                                                            isDark
+                                                                ? 'text-slate-300 hover:bg-white/[0.08] hover:text-white'
+                                                                : 'text-slate-700 hover:bg-red-50 hover:text-[#C41E3A]'
+                                                        }`}
+                                                    >
+                                                        <Icon className="h-4 w-4 text-slate-400" strokeWidth={1.75} />
+                                                        <span>{label}</span>
+                                                    </a>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
-                                )}
-                            </div>
+                                );
+                            })}
                         </nav>
                     </div>
 
-                    {/* Actions: Theme, Cart, Divider, Auth & Mobile Menu Toggle */}
-                    <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
-                        {/* Theme Switcher (Desktop) */}
+                    {/* Actions: Cart, Theme, Auth & Mobile Menu Toggle */}
+                    <div className="flex shrink-0 items-center gap-2">
+                        {/* Cart */}
+                        <Link
+                            href="/cart"
+                            className={`relative flex h-9 w-9 items-center justify-center rounded-lg transition ${
+                                isDark ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-800'
+                            }`}
+                            title="Keranjang Koleksi"
+                        >
+                            <ShoppingCart className="h-5 w-5" strokeWidth={1.75} />
+                        </Link>
+
+                        {/* Theme Switcher */}
                         <button
                             onClick={() => toggleTheme(isDark ? 'light' : 'dark')}
-                            className={`relative hidden sm:flex h-9 w-9 items-center justify-center rounded-xl border transition ${
-                                isDark
-                                    ? 'border-white/[0.08] bg-[#121824] text-amber-300 hover:text-white hover:border-amber-400/30'
-                                    : 'border-slate-200 bg-white text-slate-700 hover:text-amber-600 hover:border-amber-300 shadow-xs'
+                            className={`relative hidden h-9 w-9 items-center justify-center rounded-lg transition sm:flex ${
+                                isDark ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-800'
                             }`}
                             title={isDark ? 'Ganti ke Warna Cerah' : 'Ganti ke Warna Gelap'}
                             aria-label="Ubah tema tampilan"
                         >
-                            {isDark ? (
-                                <Sun className="h-4 w-4 text-amber-300" />
-                            ) : (
-                                <Moon className="h-4 w-4 text-slate-600" />
-                            )}
+                            {isDark ? <Sun className="h-4.5 w-4.5 text-red-300" /> : <Moon className="h-4.5 w-4.5" />}
                         </button>
-
-                        {/* Cart */}
-                        <Link
-                            href="/cart"
-                            className={`relative flex h-9 w-9 items-center justify-center rounded-xl border transition ${
-                                isDark
-                                    ? 'border-white/[0.08] bg-[#121824] text-slate-300 hover:text-white'
-                                    : 'border-slate-200 bg-white text-slate-700 hover:text-slate-900 shadow-xs'
-                            }`}
-                            title="Keranjang Koleksi"
-                        >
-                            <ShoppingCart className="h-4 w-4" />
-                        </Link>
 
                         {/* Mobile / Android View Switcher */}
                         <button
                             onClick={() => {
                                 setIsAndroidMode(true);
+                                sessionStorage.setItem('koki_android_simulator', '1');
                                 localStorage.setItem('koki_view_mode', 'android');
                             }}
-                            className={`relative hidden sm:flex h-9 w-9 items-center justify-center rounded-xl border transition ${
-                                isDark
-                                    ? 'border-white/[0.08] bg-[#121824] text-slate-300 hover:text-white'
-                                    : 'border-slate-200 bg-white text-slate-700 hover:text-slate-900 shadow-xs'
+                            className={`relative hidden h-9 w-9 items-center justify-center rounded-lg transition sm:flex ${
+                                isDark ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-800'
                             }`}
                             title="Pratinjau Mode Aplikasi Android / Mobile"
                             aria-label="Mode Android"
                         >
-                            <Smartphone className="h-4 w-4" />
+                            <Smartphone className="h-4.5 w-4.5" />
                         </button>
-
-                        {/* Divider */}
-                        <div className="hidden sm:block h-5 w-px bg-slate-200 dark:bg-white/10 mx-0.5" />
 
                         {/* Auth */}
                         {auth?.user ? (
-                            <div className="flex items-center gap-1.5 sm:gap-2">
+                            <div className="flex items-center gap-2">
                                 <Link
                                     href={
                                         auth.user.role === 'admin'
                                             ? '/admin/dashboard'
                                             : auth.user.role === 'seller'
-                                            ? '/seller/dashboard'
-                                            : '/dashboard'
+                                              ? '/seller/dashboard'
+                                              : '/dashboard'
                                     }
-                                    className={`inline-flex items-center gap-1.5 rounded-xl h-9 px-3.5 text-xs font-semibold whitespace-nowrap transition ${
+                                    className={`inline-flex h-9 items-center gap-1.5 rounded-xl px-3.5 text-xs font-semibold whitespace-nowrap transition ${
                                         auth.user.role === 'admin'
                                             ? isDark
                                                 ? 'border border-purple-500/30 bg-purple-500/15 text-purple-300 hover:bg-purple-500/25'
-                                                : 'border border-purple-600/30 bg-purple-50 text-purple-800 hover:bg-purple-100 shadow-xs'
+                                                : 'border border-purple-600/30 bg-purple-50 text-purple-800 shadow-xs hover:bg-purple-100'
                                             : auth.user.role === 'seller'
-                                            ? isDark
-                                                ? 'border border-emerald-500/30 bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25'
-                                                : 'border border-emerald-600/30 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 shadow-xs'
-                                            : isDark
-                                            ? 'border border-amber-400/30 bg-amber-400/10 text-amber-300 hover:bg-amber-400/20'
-                                            : 'border border-amber-600/30 bg-amber-50 text-amber-800 hover:bg-amber-100 shadow-xs'
+                                              ? isDark
+                                                  ? 'border border-emerald-500/30 bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25'
+                                                  : 'border border-emerald-600/30 bg-emerald-50 text-emerald-800 shadow-xs hover:bg-emerald-100'
+                                              : isDark
+                                                ? 'border border-[#bf1e26]/30 bg-[#bf1e26]/10 text-red-300 hover:bg-[#bf1e26]/20'
+                                                : 'border border-[#bf1e26]/30 bg-red-50 text-[#98151e] shadow-xs hover:bg-red-100'
                                     }`}
                                     title={
                                         auth.user.role === 'admin'
                                             ? 'Dashboard Administrator'
                                             : auth.user.role === 'seller'
-                                            ? 'Dashboard Lapak Toko'
-                                            : 'Dashboard Akun Pembeli'
+                                              ? 'Dashboard Lapak Toko'
+                                              : 'Dashboard Akun Pembeli'
                                     }
                                 >
                                     {auth.user.role === 'admin' ? (
@@ -681,8 +714,8 @@ export default function LandingKoi({
                                         </>
                                     ) : (
                                         <>
-                                            <User className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
-                                            <span className="max-w-[80px] sm:max-w-[120px] truncate">{auth.user.name}</span>
+                                            <User className="h-3.5 w-3.5 text-[#bf1e26] dark:text-[#d52a30]" />
+                                            <span className="max-w-[80px] truncate sm:max-w-[120px]">{auth.user.name}</span>
                                         </>
                                     )}
                                 </Link>
@@ -693,8 +726,8 @@ export default function LandingKoi({
                                     as="button"
                                     className={`flex h-9 w-9 items-center justify-center rounded-xl border transition ${
                                         isDark
-                                            ? 'border-white/[0.08] bg-[#121824] text-slate-400 hover:text-rose-400 hover:border-rose-400/30'
-                                            : 'border-slate-200 bg-white text-slate-500 hover:text-rose-600 hover:border-rose-300 shadow-xs'
+                                            ? 'border-white/[0.08] bg-[#121824] text-slate-400 hover:border-rose-400/30 hover:text-rose-400'
+                                            : 'border-slate-200 bg-white text-slate-500 shadow-xs hover:border-rose-300 hover:text-rose-600'
                                     }`}
                                     title="Keluar"
                                 >
@@ -704,9 +737,9 @@ export default function LandingKoi({
                         ) : (
                             <Link
                                 href="/login"
-                                className="inline-flex items-center justify-center gap-1.5 rounded-xl h-9 px-4 text-xs font-semibold whitespace-nowrap transition bg-orange-600 hover:bg-orange-500 text-white shadow-xs active:scale-[0.98]"
+                                className="inline-flex h-9 items-center justify-center gap-2 rounded-full bg-[#C41E3A] px-5 text-sm font-semibold whitespace-nowrap text-white shadow-sm transition hover:bg-[#a8192f] active:scale-[0.97]"
                             >
-                                <LogIn className="h-3.5 w-3.5" />
+                                <LogIn className="h-4 w-4" />
                                 <span>Masuk</span>
                             </Link>
                         )}
@@ -715,14 +748,12 @@ export default function LandingKoi({
                         <button
                             type="button"
                             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                            className={`flex lg:hidden h-9 w-9 items-center justify-center rounded-xl border transition ${
-                                isDark
-                                    ? 'border-white/10 bg-[#121824] text-slate-300 hover:text-white'
-                                    : 'border-slate-200 bg-white text-slate-700 hover:text-slate-900 shadow-xs'
+                            className={`flex h-9 w-9 items-center justify-center rounded-lg transition xl:hidden ${
+                                isDark ? 'text-slate-300 hover:text-white' : 'text-slate-600 hover:text-slate-900'
                             }`}
                             aria-label="Buka Menu Navigasi"
                         >
-                            {mobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+                            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
                         </button>
                     </div>
                 </div>
@@ -730,37 +761,37 @@ export default function LandingKoi({
                 {/* Mobile / Tablet Slide-Down Menu */}
                 {mobileMenuOpen && (
                     <div
-                        className={`lg:hidden border-t px-5 py-4 transition-all duration-200 ${
+                        className={`border-t px-5 py-4 transition-all duration-200 xl:hidden ${
                             isDark
-                                ? 'border-white/[0.06] bg-[#0E1420]/95 backdrop-blur-xl text-slate-200'
-                                : 'border-slate-200 bg-white/95 backdrop-blur-xl text-slate-800 shadow-lg'
+                                ? 'border-white/[0.06] bg-[#0E1420]/95 text-slate-200 backdrop-blur-xl'
+                                : 'border-slate-200 bg-white/95 text-slate-800 shadow-lg backdrop-blur-xl'
                         }`}
                     >
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm font-medium">
+                        <div className="grid grid-cols-1 gap-2 text-sm font-medium sm:grid-cols-2">
                             <a
                                 href="#lelang"
                                 onClick={() => setMobileMenuOpen(false)}
-                                className={`flex items-center justify-between p-2.5 rounded-xl border font-semibold ${
+                                className={`flex items-center justify-between rounded-xl border p-2.5 font-semibold ${
                                     isDark
-                                        ? 'bg-orange-500/10 border-orange-500/30 text-orange-300'
-                                        : 'bg-orange-50 border-orange-200 text-orange-700'
+                                        ? 'border-[#C41E3A]/35 bg-[#C41E3A]/12 text-red-200 shadow-sm shadow-black/10'
+                                        : 'border-[#C41E3A]/25 bg-[#C41E3A]/[0.06] text-[#A8192F] shadow-sm shadow-red-900/5'
                                 }`}
                             >
                                 <span className="flex items-center gap-2">
-                                    <Gavel className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+                                    <Gavel className="h-4 w-4 text-[#C41E3A]" />
                                     <span>Bursa Lelang Koi</span>
                                 </span>
                                 <span className="relative flex h-2 w-2">
-                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
-                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-500"></span>
+                                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#C41E3A] opacity-35"></span>
+                                    <span className="relative inline-flex h-2 w-2 rounded-full bg-[#C41E3A]"></span>
                                 </span>
                             </a>
 
                             <a
                                 href="#koleksi"
                                 onClick={() => setMobileMenuOpen(false)}
-                                className={`flex items-center gap-2.5 p-2 rounded-lg text-xs transition ${
-                                    isDark ? 'hover:bg-white/5 text-slate-300' : 'hover:bg-slate-100 text-slate-700'
+                                className={`flex items-center gap-2.5 rounded-lg p-2 text-xs transition ${
+                                    isDark ? 'text-slate-300 hover:bg-white/5' : 'text-slate-700 hover:bg-slate-100'
                                 }`}
                             >
                                 <Fish className="h-4 w-4 text-slate-400" strokeWidth={1.75} />
@@ -770,8 +801,8 @@ export default function LandingKoi({
                             <a
                                 href="#varietas"
                                 onClick={() => setMobileMenuOpen(false)}
-                                className={`flex items-center gap-2.5 p-2 rounded-lg text-xs transition ${
-                                    isDark ? 'hover:bg-white/5 text-slate-300' : 'hover:bg-slate-100 text-slate-700'
+                                className={`flex items-center gap-2.5 rounded-lg p-2 text-xs transition ${
+                                    isDark ? 'text-slate-300 hover:bg-white/5' : 'text-slate-700 hover:bg-slate-100'
                                 }`}
                             >
                                 <Sparkles className="h-4 w-4 text-slate-400" strokeWidth={1.75} />
@@ -781,8 +812,8 @@ export default function LandingKoi({
                             <a
                                 href="#iklan-banner"
                                 onClick={() => setMobileMenuOpen(false)}
-                                className={`flex items-center gap-2.5 p-2 rounded-lg text-xs transition ${
-                                    isDark ? 'hover:bg-white/5 text-slate-300' : 'hover:bg-slate-100 text-slate-700'
+                                className={`flex items-center gap-2.5 rounded-lg p-2 text-xs transition ${
+                                    isDark ? 'text-slate-300 hover:bg-white/5' : 'text-slate-700 hover:bg-slate-100'
                                 }`}
                             >
                                 <Flame className="h-4 w-4 text-slate-400" strokeWidth={1.75} />
@@ -792,8 +823,8 @@ export default function LandingKoi({
                             <a
                                 href="#artikel-tips"
                                 onClick={() => setMobileMenuOpen(false)}
-                                className={`flex items-center gap-2.5 p-2 rounded-lg text-xs transition ${
-                                    isDark ? 'hover:bg-white/5 text-slate-300' : 'hover:bg-slate-100 text-slate-700'
+                                className={`flex items-center gap-2.5 rounded-lg p-2 text-xs transition ${
+                                    isDark ? 'text-slate-300 hover:bg-white/5' : 'text-slate-700 hover:bg-slate-100'
                                 }`}
                             >
                                 <BookOpen className="h-4 w-4 text-slate-400" strokeWidth={1.75} />
@@ -803,8 +834,8 @@ export default function LandingKoi({
                             <a
                                 href="#keunggulan"
                                 onClick={() => setMobileMenuOpen(false)}
-                                className={`flex items-center gap-2.5 p-2 rounded-lg text-xs transition ${
-                                    isDark ? 'hover:bg-white/5 text-slate-300' : 'hover:bg-slate-100 text-slate-700'
+                                className={`flex items-center gap-2.5 rounded-lg p-2 text-xs transition ${
+                                    isDark ? 'text-slate-300 hover:bg-white/5' : 'text-slate-700 hover:bg-slate-100'
                                 }`}
                             >
                                 <ShieldCheck className="h-4 w-4 text-slate-400" strokeWidth={1.75} />
@@ -814,8 +845,8 @@ export default function LandingKoi({
                             <a
                                 href="#testimoni"
                                 onClick={() => setMobileMenuOpen(false)}
-                                className={`flex items-center gap-2.5 p-2 rounded-lg text-xs transition ${
-                                    isDark ? 'hover:bg-white/5 text-slate-300' : 'hover:bg-slate-100 text-slate-700'
+                                className={`flex items-center gap-2.5 rounded-lg p-2 text-xs transition ${
+                                    isDark ? 'text-slate-300 hover:bg-white/5' : 'text-slate-700 hover:bg-slate-100'
                                 }`}
                             >
                                 <Star className="h-4 w-4 text-slate-400" strokeWidth={1.75} />
@@ -825,8 +856,8 @@ export default function LandingKoi({
                             <a
                                 href="#faq"
                                 onClick={() => setMobileMenuOpen(false)}
-                                className={`flex items-center gap-2.5 p-2 rounded-lg text-xs transition ${
-                                    isDark ? 'hover:bg-white/5 text-slate-300' : 'hover:bg-slate-100 text-slate-700'
+                                className={`flex items-center gap-2.5 rounded-lg p-2 text-xs transition ${
+                                    isDark ? 'text-slate-300 hover:bg-white/5' : 'text-slate-700 hover:bg-slate-100'
                                 }`}
                             >
                                 <Info className="h-4 w-4 text-slate-400" strokeWidth={1.75} />
@@ -835,20 +866,21 @@ export default function LandingKoi({
                         </div>
 
                         {/* Theme & Mode switches inside mobile menu */}
-                        <div className="pt-2.5 mt-2.5 border-t border-slate-200 dark:border-white/10 flex items-center justify-between sm:hidden">
+                        <div className="mt-2.5 flex items-center justify-between border-t border-slate-200 pt-2.5 sm:hidden dark:border-white/10">
                             <button
                                 onClick={() => toggleTheme(isDark ? 'light' : 'dark')}
-                                className="flex items-center gap-2 p-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 transition"
+                                className="flex items-center gap-2 rounded-lg p-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-white/5"
                             >
-                                {isDark ? <Sun className="h-4 w-4 text-amber-300" /> : <Moon className="h-4 w-4 text-slate-600" />}
+                                {isDark ? <Sun className="h-4 w-4 text-red-300" /> : <Moon className="h-4 w-4 text-slate-600" />}
                                 <span>{isDark ? 'Mode Terang' : 'Mode Gelap'}</span>
                             </button>
                             <button
                                 onClick={() => {
                                     setIsAndroidMode(true);
+                                    sessionStorage.setItem('koki_android_simulator', '1');
                                     localStorage.setItem('koki_view_mode', 'android');
                                 }}
-                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-600 hover:bg-red-700 active:scale-95 text-white text-xs font-bold transition shadow-xs"
+                                className="flex items-center gap-1.5 rounded-xl bg-red-600 px-3 py-1.5 text-xs font-bold text-white shadow-xs transition hover:bg-red-700 active:scale-95"
                             >
                                 <Smartphone className="h-3.5 w-3.5" />
                                 <span>Buka App KoiMart</span>
@@ -857,60 +889,69 @@ export default function LandingKoi({
                     </div>
                 )}
             </header>
+            </div>
 
             {/* PENGUMUMAN RESMI PEMENANG LELANG DI DASHBOARD PEMENANG */}
             {auth?.user && wonAuctions.length > 0 && (
-                <section className="relative z-30 pt-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-                    <div className="rounded-3xl p-5 sm:p-6 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-white shadow-xl shadow-amber-500/20 border-2 border-amber-300/70 relative overflow-hidden">
-                        <div className="absolute -right-10 -bottom-10 opacity-15 pointer-events-none">
-                            <Trophy className="w-56 h-56 text-white" />
+                <section className="relative z-30 mx-auto max-w-7xl px-4 pt-6 sm:px-6 lg:px-8">
+                    <div className="relative overflow-hidden rounded-3xl border-2 border-amber-300/70 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 p-5 text-white shadow-xl shadow-amber-500/20 sm:p-6">
+                        <div className="pointer-events-none absolute -right-10 -bottom-10 opacity-15">
+                            <Trophy className="h-56 w-56 text-white" />
                         </div>
-                        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                        <div className="relative z-10 flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
                             <div className="space-y-1.5">
-                                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-black/25 backdrop-blur-xs border border-white/20 text-amber-200 text-xs font-black uppercase tracking-wider">
-                                    <Trophy className="w-4 h-4 text-amber-300 animate-bounce" />
+                                <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/25 px-3 py-1 text-xs font-black tracking-wider text-amber-200 uppercase backdrop-blur-xs">
+                                    <Trophy className="h-4 w-4 animate-bounce text-amber-300" />
                                     <span>PENGUMUMAN RESMI PEMENANG LELANG</span>
                                 </div>
-                                <h2 className="text-xl sm:text-2xl font-serif font-black tracking-tight text-white">
+                                <h2 className="font-serif text-xl font-black tracking-tight text-white sm:text-2xl">
                                     Selamat, {auth.user.name}! Anda Resmi Memenangkan Lelang Koi
                                 </h2>
-                                <p className="text-xs sm:text-sm text-amber-100 max-w-2xl leading-relaxed">
-                                    Tanggal dan waktu sesi lelang telah selesai dan ditutup resmi oleh platform. Anda dinyatakan sebagai pemenang sah dengan penawaran harga tertinggi!
+                                <p className="max-w-2xl text-xs leading-relaxed text-amber-100 sm:text-sm">
+                                    Tanggal dan waktu sesi lelang telah selesai dan ditutup resmi oleh platform. Anda dinyatakan sebagai pemenang sah
+                                    dengan penawaran harga tertinggi!
                                 </p>
                             </div>
                         </div>
 
-                        <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 relative z-10">
+                        <div className="relative z-10 mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                             {wonAuctions.map((auc: any) => {
                                 const prod = auc.product;
                                 const img = prod?.primary_image?.image_path || '/images/koi/kohaku.jpg';
                                 const winningBid = Number(auc.current_bid || auc.start_price);
                                 return (
-                                    <div key={auc.id} className="rounded-2xl p-4 bg-black/25 backdrop-blur-md border border-white/20 flex flex-col justify-between gap-3 shadow-md">
+                                    <div
+                                        key={auc.id}
+                                        className="flex flex-col justify-between gap-3 rounded-2xl border border-white/20 bg-black/25 p-4 shadow-md backdrop-blur-md"
+                                    >
                                         <div className="flex items-start gap-3.5">
-                                            <div className="w-16 h-16 rounded-xl overflow-hidden bg-slate-900 shrink-0 border border-white/20 shadow-sm">
-                                                <img src={img} alt={prod?.name} className="w-full h-full object-cover" />
+                                            <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-white/20 bg-slate-900 shadow-sm">
+                                                <img loading="lazy" decoding="async" src={img} alt={prod?.name} className="h-full w-full object-cover" />
                                             </div>
-                                            <div className="flex-1 min-w-0">
-                                                <span className="text-[10px] uppercase font-bold text-amber-200 block">Lelang #{auc.id} • Resmi Ditutup</span>
-                                                <h4 className="text-sm font-bold text-white truncate">{prod?.name || 'Ikan Koi Unggulan'}</h4>
-                                                <p className="text-xs text-amber-100/80">{prod?.category?.name || 'Kohaku'} • {prod?.store?.name || 'Mitra Koi Farm'}</p>
+                                            <div className="min-w-0 flex-1">
+                                                <span className="block text-[10px] font-bold text-amber-200 uppercase">
+                                                    Lelang #{auc.id} • Resmi Ditutup
+                                                </span>
+                                                <h4 className="truncate text-sm font-bold text-white">{prod?.name || 'Ikan Koi Unggulan'}</h4>
+                                                <p className="text-xs text-amber-100/80">
+                                                    {prod?.category?.name || 'Kohaku'} • {prod?.store?.name || 'Mitra Koi Farm'}
+                                                </p>
                                             </div>
                                         </div>
 
-                                        <div className="pt-2 border-t border-white/10 flex items-center justify-between">
+                                        <div className="flex items-center justify-between border-t border-white/10 pt-2">
                                             <div>
-                                                <span className="text-[10px] text-amber-200 uppercase font-semibold block">Harga Tertinggi Pemenang</span>
-                                                <span className="text-base font-black text-white">
-                                                    Rp {winningBid.toLocaleString('id-ID')}
+                                                <span className="block text-[10px] font-semibold text-amber-200 uppercase">
+                                                    Harga Tertinggi Pemenang
                                                 </span>
+                                                <span className="text-base font-black text-white">Rp {winningBid.toLocaleString('id-ID')}</span>
                                             </div>
                                             <Link
                                                 href={`/auctions/${auc.id}`}
-                                                className="px-3.5 py-2 rounded-xl bg-white text-slate-900 hover:bg-amber-100 text-xs font-bold transition shadow-sm active:scale-95 flex items-center gap-1.5"
+                                                className="flex items-center gap-1.5 rounded-xl bg-white px-3.5 py-2 text-xs font-bold text-slate-900 shadow-sm transition hover:bg-amber-100 active:scale-95"
                                             >
                                                 <span>Lihat Lelang</span>
-                                                <ArrowUpRight className="w-3.5 h-3.5" />
+                                                <ArrowUpRight className="h-3.5 w-3.5" />
                                             </Link>
                                         </div>
                                     </div>
@@ -922,193 +963,273 @@ export default function LandingKoi({
             )}
 
             {/* Hero Section */}
-            <section className="relative pt-16 pb-24 lg:pt-24 lg:pb-32 overflow-hidden">
-                <div className="mx-auto max-w-7xl px-6 lg:px-8">
-                    <div className="grid grid-cols-1 items-center gap-14 lg:grid-cols-12">
+            <section
+                className="relative isolate min-h-[calc(100svh-10rem)] overflow-hidden pt-2 pb-10 lg:min-h-[var(--desktop-hero-height)] lg:py-0"
+                style={{
+                    background: isDark ? '#0B0F17' : 'linear-gradient(110deg, #faf8f5 0%, #ffffff 50%, #f7f4ef 100%)',
+                    '--desktop-hero-height': `calc(100svh - ${headerStackHeight}px)`,
+                } as React.CSSProperties}
+            >
+                {/* Japanese koi pond backdrop, moved here from the varieties section. */}
+                <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden" aria-hidden="true">
+                    <svg className="absolute inset-0 h-full w-full" style={{ zIndex: 0 }} viewBox="0 0 1700 1000" preserveAspectRatio="none">
+                        <defs>
+                            <linearGradient id="koiRedGradient" x1="0" y1="0" x2="1" y2="1">
+                                <stop offset="0%" stopColor="#ce292d" />
+                                <stop offset="42%" stopColor="#bd1c25" />
+                                <stop offset="100%" stopColor="#94151d" />
+                            </linearGradient>
+                            <pattern id="koiWaveTexture" width="65" height="65" patternUnits="userSpaceOnUse" patternTransform="rotate(-24)">
+                                <path d="M 0 18 Q 16 5 32 18 T 65 18 M 0 38 Q 16 25 32 38 T 65 38" fill="none" stroke="#ffffff" strokeWidth="1" opacity="0.4" />
+                            </pattern>
+                            <clipPath id="koiRedClip"><path d="M 1700 0 L 1700 1000 L 0 1000 C 90 995, 175 985, 265 960 C 350 930, 410 890, 500 855 C 605 815, 675 825, 770 785 C 865 745, 900 690, 970 635 C 1050 565, 1115 515, 1205 475 C 1305 430, 1405 410, 1480 350 C 1560 285, 1625 190, 1700 120 Z" /></clipPath>
+                        </defs>
+                        <path d="M 1700 0 L 1700 1000 L 0 1000 C 90 995, 175 985, 265 960 C 350 930, 410 890, 500 855 C 605 815, 675 825, 770 785 C 865 745, 900 690, 970 635 C 1050 565, 1115 515, 1205 475 C 1305 430, 1405 410, 1480 350 C 1560 285, 1625 190, 1700 120 Z" fill="url(#koiRedGradient)" />
+                        <rect width="1700" height="1000" fill="url(#koiWaveTexture)" clipPath="url(#koiRedClip)" opacity="0.12" />
+                    </svg>
+                    <svg className="absolute -top-3 -right-3" style={{ zIndex: 1, width: 'min(32vw, 450px)', minWidth: '240px' }} viewBox="0 0 440 310" fill="none">
+                        <defs>
+                            <radialGradient id="sakuraPetal"><stop offset="0%" stopColor="#ffb2a5" /><stop offset="65%" stopColor="#e74740" /><stop offset="100%" stopColor="#bd2028" /></radialGradient>
+                            <g id="sakuraFlower"><ellipse cx="0" cy="-10" rx="6.5" ry="11" fill="url(#sakuraPetal)" /><ellipse cx="9.5" cy="-3" rx="6.5" ry="11" transform="rotate(72 9.5 -3)" fill="url(#sakuraPetal)" /><ellipse cx="6" cy="8" rx="6.5" ry="11" transform="rotate(144 6 8)" fill="url(#sakuraPetal)" /><ellipse cx="-6" cy="8" rx="6.5" ry="11" transform="rotate(216 -6 8)" fill="url(#sakuraPetal)" /><ellipse cx="-9.5" cy="-3" rx="6.5" ry="11" transform="rotate(288 -9.5 -3)" fill="url(#sakuraPetal)" /><circle r="3.2" fill="#fff" /></g>
+                        </defs>
+                        <g stroke="#392a25" strokeLinecap="round" strokeLinejoin="round"><path d="M 450 -15 C 395 28, 352 54, 305 70 C 260 84, 230 105, 190 139 C 160 164, 129 180, 94 194" strokeWidth="5" /><path d="M 345 52 C 327 29, 319 14, 319 -8 M 290 76 C 286 51, 270 37, 249 27 M 235 104 C 232 80, 218 66, 200 55 M 183 144 C 175 119, 159 110, 140 107 M 132 176 C 115 158, 95 153, 77 157 M 385 25 C 405 12, 419 2, 428 -14" strokeWidth="3" /></g>
+                        <use href="#sakuraFlower" transform="translate(320 20) scale(1.05)" /><use href="#sakuraFlower" transform="translate(275 43) scale(.82)" /><use href="#sakuraFlower" transform="translate(243 83) scale(1.15)" /><use href="#sakuraFlower" transform="translate(204 68) scale(.72)" /><use href="#sakuraFlower" transform="translate(184 121) scale(1.05)" /><use href="#sakuraFlower" transform="translate(151 135) scale(.8)" /><use href="#sakuraFlower" transform="translate(113 166) scale(.95)" /><use href="#sakuraFlower" transform="translate(366 10) scale(.75)" /><use href="#sakuraFlower" transform="translate(395 35) scale(.9)" /><use href="#sakuraFlower" transform="translate(345 65) scale(.65)" />
+                        <g fill="#bd2028"><ellipse cx="294" cy="33" rx="4" ry="7" transform="rotate(32 294 33)" /><ellipse cx="219" cy="55" rx="4" ry="7" transform="rotate(38 219 55)" /><ellipse cx="168" cy="106" rx="4" ry="7" transform="rotate(40 168 106)" /><ellipse cx="85" cy="147" rx="4" ry="7" transform="rotate(50 85 147)" /></g>
+                    </svg>
+                    <svg className="absolute top-16 -left-6" style={{ zIndex: 0, width: '190px', height: '300px', color: '#c9bdb5', opacity: isDark ? 0.08 : 0.22, transform: 'rotate(-12deg)' }} viewBox="0 0 180 300" fill="none">
+                        <g stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M 91 28 C 112 48, 122 83, 111 115 C 103 140, 88 163, 83 188 C 78 210, 89 233, 100 253 L 72 237 L 54 265 L 49 229 C 25 213, 22 185, 35 158 C 47 134, 51 111, 44 87 C 35 61, 52 36, 68 23 L 76 53 Z" /><path d="M 61 67 Q 82 83 102 66 M 49 107 Q 77 123 106 100 M 40 148 Q 67 163 93 142 M 48 190 Q 67 201 83 185 M 82 52 Q 119 28 131 5 Q 130 39 104 66 M 51 73 Q 21 48 11 26 Q 17 62 43 91 M 69 216 Q 40 241 20 252" /></g>
+                    </svg>
+                    <svg className="absolute -bottom-8 -left-8" style={{ zIndex: 0, width: '430px', height: '490px', color: '#c9b9ad', opacity: isDark ? 0.05 : 0.22 }} viewBox="0 0 430 490" fill="none"><defs><pattern id="seigaihaLeft" width="72" height="36" patternUnits="userSpaceOnUse"><g stroke="currentColor" strokeWidth="1.5"><path d="M-36 36 A36 36 0 0 1 36 36 M-24 36 A24 24 0 0 1 24 36 M-12 36 A12 12 0 0 1 12 36 M36 36 A36 36 0 0 1 108 36 M48 36 A24 24 0 0 1 96 36 M60 36 A12 12 0 0 1 84 36" /></g></pattern></defs><rect width="430" height="490" fill="url(#seigaihaLeft)" /></svg>
+                    <svg className="absolute -right-8 -bottom-16 hidden sm:block" style={{ zIndex: 0, width: '390px', height: '390px', color: '#c9b9ad', opacity: isDark ? 0.04 : 0.2 }} viewBox="0 0 430 490" fill="none"><defs><pattern id="seigaihaRight" width="72" height="36" patternUnits="userSpaceOnUse"><g stroke="currentColor" strokeWidth="1.5"><path d="M-36 36 A36 36 0 0 1 36 36 M-24 36 A24 24 0 0 1 24 36 M-12 36 A12 12 0 0 1 12 36 M36 36 A36 36 0 0 1 108 36 M48 36 A24 24 0 0 1 96 36 M60 36 A12 12 0 0 1 84 36" /></g></pattern></defs><rect width="430" height="490" fill="url(#seigaihaRight)" /></svg>
+                </div>
+                <div className="relative z-20 mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-10 px-6 lg:min-h-[var(--desktop-hero-height)] lg:grid-cols-12 lg:gap-8 lg:px-8">
                         {/* Text Col */}
-                        <div className="lg:col-span-7 space-y-7">
+                        <div className="space-y-7 lg:col-span-6">
                             {/* Eyebrow / Kicker */}
-                            <div className="inline-flex items-center gap-2.5 rounded-full border border-slate-200/80 bg-white/90 dark:border-white/10 dark:bg-white/5 px-3.5 py-1.5 text-xs font-medium text-slate-800 dark:text-slate-200 shadow-2xs backdrop-blur-sm">
-                                <span className="h-2 w-2 rounded-full bg-orange-500 animate-pulse"></span>
-                                <span className="text-[11px] font-semibold tracking-wide text-slate-700 dark:text-slate-300">Kurasi Nishikigoi Bersertifikat • Niigata & Blitar</span>
+                            <div className="inline-flex items-center gap-2.5 rounded-full border border-slate-200/80 bg-white/90 px-3.5 py-1.5 text-xs font-medium text-slate-800 shadow-2xs backdrop-blur-sm dark:border-white/10 dark:bg-white/5 dark:text-slate-200">
+                                <span className="h-2 w-2 animate-pulse rounded-full bg-orange-500"></span>
+                                <span className="text-[11px] font-semibold tracking-wide text-slate-700 dark:text-slate-300">
+                                    Kurasi Nishikigoi Bersertifikat • Niigata & Blitar
+                                </span>
                             </div>
 
+                            {/* Headline */}
                             <h1
-                                className={`text-4xl sm:text-5xl lg:text-6xl font-serif font-bold leading-[1.16] tracking-tight ${
-                                    isDark ? 'text-white' : 'text-slate-950'
+                                className={`font-serif text-4xl leading-[1.14] font-extrabold tracking-tight sm:text-5xl lg:text-[52px] xl:text-[58px] ${
+                                    isDark ? 'text-white' : 'text-[#1a1a1a]'
                                 }`}
                             >
-                                Keindahan Seni & Keagungan{' '}
-                                <span className="relative inline-block text-orange-600 dark:text-orange-400 font-serif italic font-medium">
-                                    Nishikigoi
-                                    <span className="absolute -bottom-1 left-0 right-0 h-[2px] bg-orange-500/30 rounded-full" />
-                                </span>{' '}
+                                Keindahan Seni &<br />
+                                Keagungan <em className="font-serif text-[#C41E3A] italic not-italic">Nishikigoi</em>
+                                <br />
                                 Pilihan.
                             </h1>
 
-                            <p
-                                className={`text-sm sm:text-base leading-relaxed max-w-xl ${
-                                    isDark ? 'text-slate-300 font-light' : 'text-slate-700'
-                                }`}
-                            >
-                                Kurasi eksklusif ikan koi berkelas kontes dan indukan terpilih dari farm ternama Niigata dan Blitar. Dibimbing standar karantina bio-security 21 hari dengan garansi hidup seutuhnya.
+                            {/* Sub-copy */}
+                            <p className={`max-w-md text-sm leading-relaxed sm:text-[15px] ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+                                Kurasi eksklusif ikan koi berkualitas kontes dan indukan terpilih dari farm ternama Niigata dan Blitar. Dibimbing
+                                standar karantina bio-security 21 hari dengan garansi hidup seutuhnya.
                             </p>
 
-                            {/* Trust Pillars */}
-                            <div className="grid grid-cols-3 gap-6 pt-2 max-w-lg border-t border-slate-200 dark:border-white/10">
-                                <div>
-                                    <div className={`text-xs font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>21 Hari Karantina</div>
-                                    <div className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5">Bio-Steril Teruji</div>
+                            {/* Trust Pillars — icon + label inline */}
+                            <div className="flex flex-wrap items-start gap-x-8 gap-y-3">
+                                {/* 21 Hari */}
+                                <div className="flex items-center gap-2.5">
+                                    <div
+                                        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
+                                            isDark ? 'bg-white/[0.06]' : 'bg-white shadow-sm'
+                                        }`}
+                                    >
+                                        <ShieldCheck className="h-4.5 w-4.5 text-[#C41E3A]" strokeWidth={1.75} />
+                                    </div>
+                                    <div>
+                                        <div className={`text-xs leading-none font-bold ${isDark ? 'text-white' : 'text-[#1a1a1a]'}`}>
+                                            21 Hari Karantina
+                                        </div>
+                                        <div className="mt-0.5 text-[11px] text-slate-500 dark:text-slate-400">Bio-Steril Teruji</div>
+                                    </div>
                                 </div>
-                                <div>
-                                    <div className={`text-xs font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Garansi 100% DOA</div>
-                                    <div className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5">Jaminan Tiba Sehat</div>
+                                {/* DOA */}
+                                <div className="flex items-center gap-2.5">
+                                    <div
+                                        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
+                                            isDark ? 'bg-white/[0.06]' : 'bg-white shadow-sm'
+                                        }`}
+                                    >
+                                        <Award className="h-4.5 w-4.5 text-[#C41E3A]" strokeWidth={1.75} />
+                                    </div>
+                                    <div>
+                                        <div className={`text-xs leading-none font-bold ${isDark ? 'text-white' : 'text-[#1a1a1a]'}`}>
+                                            Garansi 100% DOA
+                                        </div>
+                                        <div className="mt-0.5 text-[11px] text-slate-500 dark:text-slate-400">Jaminan Tiba Sehat</div>
+                                    </div>
                                 </div>
-                                <div>
-                                    <div className={`text-xs font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Sertifikat Resmi</div>
-                                    <div className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5">ZNA & APKI Pedigree</div>
+                                {/* Sertifikat */}
+                                <div className="flex items-center gap-2.5">
+                                    <div
+                                        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
+                                            isDark ? 'bg-white/[0.06]' : 'bg-white shadow-sm'
+                                        }`}
+                                    >
+                                        <CheckCircle2 className="h-4.5 w-4.5 text-[#C41E3A]" strokeWidth={1.75} />
+                                    </div>
+                                    <div>
+                                        <div className={`text-xs leading-none font-bold ${isDark ? 'text-white' : 'text-[#1a1a1a]'}`}>
+                                            Sertifikat Resmi
+                                        </div>
+                                        <div className="mt-0.5 text-[11px] text-slate-500 dark:text-slate-400">ZNA & APKI Pedigree</div>
+                                    </div>
                                 </div>
                             </div>
 
-                            {/* CTA Action Buttons */}
-                            <div className="flex flex-wrap items-center gap-3.5 pt-2">
+                            {/* CTA Buttons */}
+                            <div className="relative z-50 flex flex-wrap items-center gap-3.5">
                                 <a
                                     href="#lelang"
-                                    className="flex items-center gap-2.5 rounded-xl px-6 py-3.5 text-xs font-semibold tracking-wide text-white transition-all shadow-md bg-orange-600 hover:bg-orange-500 shadow-orange-600/25 active:scale-[0.98]"
+                                    className="relative z-50 flex items-center gap-2.5 rounded-xl bg-[#C41E3A] px-7 py-3.5 text-sm font-bold text-white shadow-lg shadow-red-900/20 transition-all hover:bg-[#a8192f] active:scale-[0.97]"
                                 >
-                                    <Gavel className="h-4 w-4" />
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        className="h-4 w-4"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                        strokeWidth={2}
+                                    >
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                                    </svg>
                                     <span>Masuk Bursa Lelang</span>
                                 </a>
 
                                 <a
                                     href="#koleksi"
-                                    className={`flex items-center gap-2 rounded-xl border px-6 py-3.5 text-xs font-semibold tracking-wide transition ${
+                                    className={`relative z-50 flex items-center gap-2.5 rounded-xl border px-7 py-3.5 text-sm font-semibold transition active:scale-[0.97] ${
                                         isDark
-                                            ? 'border-white/15 bg-white/5 text-slate-200 hover:bg-white/10'
-                                            : 'border-slate-300 bg-white text-slate-800 hover:text-orange-600 hover:border-orange-300 hover:bg-orange-50/50 shadow-xs'
+                                            ? 'border-white/15 bg-white/5 text-slate-100 hover:bg-white/10'
+                                            : 'border-slate-300 bg-white text-slate-800 shadow-xs hover:border-[#C41E3A]/40 hover:text-[#C41E3A]'
                                     }`}
                                 >
-                                    <Fish className="h-4 w-4 text-orange-500" />
+                                    <PackageCheck className="h-4 w-4 text-[#C41E3A]" strokeWidth={1.75} />
                                     <span>Koleksi Siap Kirim</span>
                                 </a>
                             </div>
                         </div>
 
-                        {/* Visual Card (Gallery Presentation) */}
-                        <div className="lg:col-span-5">
+                        {/* ── Right: Hero koi card persis spesifikasi ── */}
+                        <div className="relative z-10 flex items-center justify-end py-6 lg:col-span-6 lg:justify-self-end lg:py-4">
                             <div
-                                className={`relative rounded-2xl border p-2.5 shadow-xl transition ${
-                                    isDark
-                                        ? 'border-white/[0.08] bg-[#121824]'
-                                        : 'border-slate-200 bg-white shadow-slate-200/50'
-                                }`}
+                                className="w-full max-w-[590px] overflow-hidden rounded-2xl shadow-2xl shadow-black/40"
                             >
-                                <div className="relative aspect-[4/5] rounded-xl overflow-hidden bg-slate-950">
-                                    <img
-                                        src="/images/koi/kohaku.jpg"
-                                        alt="Kohaku Champion"
-                                        className="h-full w-full object-cover"
-                                    />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-black/30"></div>
-
-                                    {/* Top Badges */}
-                                    <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
-                                        <span className="rounded-md bg-black/60 backdrop-blur px-2.5 py-1 text-[10px] font-semibold tracking-wider text-slate-200 uppercase border border-white/10">
-                                             Seleksi Grand Champion
-                                        </span>
-                                        <span className="rounded-md bg-black/60 backdrop-blur px-2.5 py-1 text-[10px] text-slate-300 font-medium">
+                                {/* Image with overlay badges */}
+                                <div className="relative">
+                                    <div className="absolute top-4 right-4 left-4 z-10 flex items-center justify-between">
+                                        <div className="flex items-center gap-1.5 rounded-md bg-[#C41E3A] px-3 py-1.5 text-[10px] font-bold tracking-wider text-white uppercase shadow">
+                                            <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-white/80" />
+                                            Seleksi Grand Champion
+                                        </div>
+                                        <div className="rounded-lg bg-white/95 px-3 py-1.5 text-[10px] font-medium text-slate-700 shadow-sm backdrop-blur-sm">
                                             Dainichi Bloodline
-                                        </span>
+                                        </div>
                                     </div>
+                                    <img
+                                    loading="lazy"
+                                    decoding="async"
+                                        src="/images/koi/kohaku.jpg"
+                                        alt="Kohaku Maruten 3-Step Nisai — Seleksi Grand Champion"
+                                        className="block h-[400px] w-full object-cover lg:h-[450px]"
+                                        style={{ objectPosition: 'center 30%' }}
+                                    />
+                                </div>
 
-                                    {/* Bottom Info Mat */}
-                                    <div className="absolute bottom-4 left-4 right-4 rounded-xl border border-white/10 bg-black/80 backdrop-blur-md p-4 text-white">
-                                        <div className="flex items-center justify-between text-xs text-slate-300 mb-1.5">
-                                            <span className="font-medium text-white">Kohaku Maruten 3-Step (Nisai)</span>
-                                            <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Ready</span>
-                                        </div>
-                                        <div className="flex items-baseline justify-between pt-1 border-t border-white/10">
-                                            <div className="text-xs text-slate-400">Ukuran: <span className="text-white font-medium">48 cm</span></div>
-                                            <div className="text-white font-serif font-bold text-lg tracking-tight">Rp 14.500.000</div>
-                                        </div>
+                                {/* Info bar — solid block BELOW the image */}
+                                <div className="bg-[#1a1a1a] px-6 py-4 text-white">
+                                    <div className="flex items-center justify-between gap-3">
+                                        <span className="text-sm leading-snug font-semibold">Kohaku Maruten 3-Step (Nisai)</span>
+                                        <span className="shrink-0 rounded-md bg-[#C41E3A] px-2.5 py-1 text-[10px] font-bold text-white">Ready</span>
+                                    </div>
+                                    <div className="mt-3 flex items-baseline justify-between border-t border-white/10 pt-3">
+                                        <span className="text-xs text-slate-400">
+                                            Ukuran: <span className="font-medium text-white">48 cm</span>
+                                        </span>
+                                        <span className="font-serif text-xl font-bold tracking-tight">Rp 14.500.000</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Stat Counter Strip */}
-                    <div
-                        className={`mt-16 grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 rounded-2xl border p-6 lg:p-8 transition ${
-                            isDark
-                                ? 'border-white/[0.08] bg-[#0E1420]/80'
-                                : 'border-slate-200/90 bg-white shadow-xs'
-                        }`}
-                    >
-                        <div className="space-y-1">
-                            <div className={`text-2xl sm:text-3xl font-serif font-bold tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                                {stats.total_koi_delivered}
-                            </div>
-                            <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">Koi Terkirim Aman</div>
-                        </div>
+            </section>
 
-                        <div className="space-y-1">
-                            <div className={`text-2xl sm:text-3xl font-serif font-bold tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                                {stats.certified_breeders}
+            {/* Stat Counter Strip: sits between Hero (section 1) and Auctions (section 2). */}
+                <div id="hero-stat-strip" className={`relative z-10 overflow-hidden border-t ${isDark ? 'border-white/[0.06] bg-[#0E131E]/70' : 'border-slate-200 bg-white'}`}>
+                    <div className="mx-auto max-w-7xl px-6 lg:px-8">
+                        <div className="grid grid-cols-2 divide-x divide-slate-200 lg:grid-cols-4 dark:divide-white/[0.06]">
+                            <div className="space-y-1 px-6 py-6 transition-all duration-700 ease-out motion-reduce:transform-none" style={{ opacity: statsVisible ? 1 : 0, transform: `translateY(${statsVisible ? 0 : 28}px)`, transitionDelay: '0ms' }}>
+                                <div
+                                    className={`font-serif text-2xl font-bold tracking-tight sm:text-3xl ${isDark ? 'text-white' : 'text-[#1a1a1a]'}`}
+                                >
+                                    {statsVisible ? formatAnimatedStat(animatedStats[0], stats.total_koi_delivered) : '0'}
+                                </div>
+                                <div className="text-xs font-medium text-slate-500 dark:text-slate-400">Koi Terkirim Aman</div>
                             </div>
-                            <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">Sertifikasi ZNA & APKI</div>
-                        </div>
-
-                        <div className="space-y-1">
-                            <div className={`text-2xl sm:text-3xl font-serif font-bold tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                                {stats.live_arrival_rate}
+                            <div className="space-y-1 px-6 py-6 transition-all duration-700 ease-out motion-reduce:transform-none" style={{ opacity: statsVisible ? 1 : 0, transform: `translateY(${statsVisible ? 0 : 28}px)`, transitionDelay: '100ms' }}>
+                                <div
+                                    className={`font-serif text-2xl font-bold tracking-tight sm:text-3xl ${isDark ? 'text-white' : 'text-[#1a1a1a]'}`}
+                                >
+                                    {stats.certified_breeders}
+                                </div>
+                                <div className="text-xs font-medium text-slate-500 dark:text-slate-400">Sertifikasi ZNA & APKI</div>
                             </div>
-                            <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">Tingkat Keselamatan (DOA)</div>
-                        </div>
-
-                        <div className="space-y-1">
-                            <div className={`text-2xl sm:text-3xl font-serif font-bold tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                                {stats.show_champion_awards}
+                            <div className="space-y-1 px-6 py-6 transition-all duration-700 ease-out motion-reduce:transform-none" style={{ opacity: statsVisible ? 1 : 0, transform: `translateY(${statsVisible ? 0 : 28}px)`, transitionDelay: '200ms' }}>
+                                <div
+                                    className={`font-serif text-2xl font-bold tracking-tight sm:text-3xl ${isDark ? 'text-white' : 'text-[#1a1a1a]'}`}
+                                >
+                                    {statsVisible ? formatAnimatedStat(animatedStats[2], stats.live_arrival_rate) : '0%'}
+                                </div>
+                                <div className="text-xs font-medium text-slate-500 dark:text-slate-400">Tingkat Keselamatan (DOA)</div>
                             </div>
-                            <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">Piala Kontes Koi Nasional</div>
+                            <div className="space-y-1 px-6 py-6 transition-all duration-700 ease-out motion-reduce:transform-none" style={{ opacity: statsVisible ? 1 : 0, transform: `translateY(${statsVisible ? 0 : 28}px)`, transitionDelay: '300ms' }}>
+                                <div
+                                    className={`font-serif text-2xl font-bold tracking-tight sm:text-3xl ${isDark ? 'text-white' : 'text-[#1a1a1a]'}`}
+                                >
+                                    {statsVisible ? formatAnimatedStat(animatedStats[3], stats.show_champion_awards) : '0'}
+                                </div>
+                                <div className="text-xs font-medium text-slate-500 dark:text-slate-400">Piala Kontes Koi Nasional</div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </section>
 
             {/* ========================================================= */}
             {/* SECTION: BURSA LELANG TERTINGGI & FAVORIT (2 VERSI WARNA) */}
             {/* ========================================================= */}
             <section
                 id="lelang"
-                className={`py-24 border-t relative transition-colors ${
-                    isDark
-                        ? 'border-white/[0.06] bg-[#0E131E]/70'
-                        : 'border-slate-200 bg-slate-100/60'
+                className={`relative border-t py-24 transition-colors ${
+                    isDark ? 'border-white/[0.06] bg-[#0E131E]/70' : 'border-slate-200 bg-[#fbf9f6]'
                 }`}
             >
                 <div className="mx-auto max-w-7xl px-6 lg:px-8">
                     {/* Header */}
-                    <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
+                    <div className="mb-12 flex flex-col justify-between gap-6 md:flex-row md:items-end">
                         <div>
-                            <div className="inline-flex items-center gap-2 text-[10px] font-semibold tracking-[0.25em] text-amber-600 dark:text-amber-300/80 uppercase mb-2">
+                            <div className="mb-2 inline-flex items-center gap-2 text-[10px] font-semibold tracking-[0.25em] text-[#bf1e26] uppercase dark:text-red-300/80">
                                 <Gavel className="h-3.5 w-3.5" />
                                 <span>Curated Live Auction Room</span>
                             </div>
-                            <h2 className={`text-3xl font-serif tracking-tight ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>
+                            <h2 className={`font-serif text-3xl tracking-tight ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>
                                 Bursa Lelang Prestisius
                             </h2>
-                            <p className="mt-2 text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-xl font-light">
+                            <p className="mt-2 max-w-xl text-sm font-medium leading-relaxed text-slate-700 sm:text-base dark:text-slate-300">
                                 Pilih tawaran lelang dengan nilai tertinggi atau pantau koleksi yang paling banyak diminati oleh komunitas kolektor.
                             </p>
                         </div>
 
                         {/* Tab Switcher */}
                         <div
-                            className={`inline-flex p-1 rounded-xl border self-start md:self-auto ${
-                                isDark
-                                    ? 'bg-[#090D14] border-white/[0.08]'
-                                    : 'bg-white border-slate-200 shadow-sm'
+                            className={`inline-flex self-start rounded-xl border p-1 md:self-auto ${
+                                isDark ? 'border-white/[0.08] bg-[#090D14]' : 'border-slate-200 bg-white shadow-sm'
                             }`}
                         >
                             <button
@@ -1116,12 +1237,12 @@ export default function LandingKoi({
                                 className={`flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-medium transition ${
                                     auctionTab === 'highest'
                                         ? isDark
-                                            ? 'bg-[#161F2E] text-amber-300 border border-amber-500/30'
-                                            : 'bg-amber-50 text-amber-800 border border-amber-300 font-semibold'
+                                            ? 'border border-[#bf1e26]/30 bg-[#161F2E] text-red-300'
+                                            : 'border border-[#bf1e26]/30 bg-red-50 font-semibold text-[#98151e]'
                                         : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'
                                 }`}
                             >
-                                <Flame className="h-3.5 w-3.5 text-amber-500" />
+                                <Flame className="h-3.5 w-3.5 text-[#bf1e26]" />
                                 <span>Lelang Tertinggi ({highestBidAuctions.length})</span>
                             </button>
 
@@ -1130,8 +1251,8 @@ export default function LandingKoi({
                                 className={`flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-medium transition ${
                                     auctionTab === 'favorite'
                                         ? isDark
-                                            ? 'bg-[#161F2E] text-amber-300 border border-amber-500/30'
-                                            : 'bg-amber-50 text-amber-800 border border-amber-300 font-semibold'
+                                            ? 'border border-[#bf1e26]/30 bg-[#161F2E] text-red-300'
+                                            : 'border border-[#bf1e26]/30 bg-red-50 font-semibold text-[#98151e]'
                                         : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'
                                 }`}
                             >
@@ -1144,36 +1265,35 @@ export default function LandingKoi({
                     {/* Auction Cards */}
                     {displayedAuctions.length === 0 ? (
                         <div className={`rounded-2xl border border-dashed p-12 text-center ${isDark ? 'border-white/10' : 'border-slate-300'}`}>
-                            <Gavel className="mx-auto h-10 w-10 text-slate-400 mb-3" />
+                            <Gavel className="mx-auto mb-3 h-10 w-10 text-slate-400" />
                             <h3 className="text-sm font-semibold">Belum Ada Sesi Lelang Aktif</h3>
-                            <p className="text-xs text-slate-500 mt-1">Sesi baru akan diperbarui oleh kurator kami.</p>
+                            <p className="mt-1 text-xs text-slate-500">Sesi baru akan diperbarui oleh kurator kami.</p>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7">
+                        <div className="grid grid-cols-1 gap-7 md:grid-cols-2 lg:grid-cols-3">
                             {displayedAuctions.map((auction, idx) => {
                                 const isTopRank = idx === 0;
 
                                 return (
                                     <div
                                         key={auction.id}
-                                        className={`group relative flex flex-col justify-between rounded-2xl border overflow-hidden transition duration-300 ${
+                                        className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border transition duration-300 ${
                                             isDark
                                                 ? isTopRank
-                                                    ? 'bg-[#111724]/90 border-amber-500/40 hover:border-amber-400/60'
-                                                    : 'bg-[#111724]/90 border-white/[0.08] hover:border-white/20'
+                                                    ? 'border-[#bf1e26]/40 bg-[#111724]/90 hover:border-[#bf1e26]/60'
+                                                    : 'border-white/[0.08] bg-[#111724]/90 hover:border-white/20'
                                                 : isTopRank
-                                                ? 'bg-white border-amber-400 shadow-md ring-1 ring-amber-300'
-                                                : 'bg-white border-slate-200 shadow-sm hover:shadow-md hover:border-slate-300'
+                                                  ? 'border-[#bf1e26] bg-white shadow-md ring-1 ring-red-300'
+                                                  : 'border-slate-200 bg-white shadow-sm hover:border-slate-300 hover:shadow-md'
                                         }`}
                                     >
                                         <div>
                                             {/* Photo presentation */}
                                             <div className="relative aspect-[16/11] w-full overflow-hidden bg-slate-900">
                                                 <img
-                                                    src={
-                                                        auction.product?.primary_image?.image_path ||
-                                                        '/images/koi/kohaku.jpg'
-                                                    }
+                                    loading="lazy"
+                                    decoding="async"
+                                                    src={auction.product?.primary_image?.image_path || '/images/koi/kohaku.jpg'}
                                                     alt={auction.product?.name}
                                                     className="h-full w-full object-cover opacity-90 transition duration-500 group-hover:scale-105"
                                                 />
@@ -1181,12 +1301,12 @@ export default function LandingKoi({
 
                                                 {/* Status Tag */}
                                                 <div className="absolute top-3 left-3 flex items-center gap-2">
-                                                    <span className="rounded-md bg-black/60 backdrop-blur px-2.5 py-1 text-[9px] font-medium tracking-widest text-white border border-white/10 uppercase">
+                                                    <span className="rounded-md border border-white/10 bg-black/60 px-2.5 py-1 text-[9px] font-medium tracking-widest text-white uppercase backdrop-blur">
                                                         Live Bidding
                                                     </span>
 
                                                     {isTopRank && (
-                                                        <span className="rounded-md bg-amber-500 text-slate-950 px-2 py-0.5 text-[9px] font-bold shadow">
+                                                        <span className="rounded-md bg-[#bf1e26] px-2 py-0.5 text-[9px] font-bold text-white shadow">
                                                             {auctionTab === 'highest' ? 'Posisi #1 Tertinggi' : 'Paling Difavoritkan'}
                                                         </span>
                                                     )}
@@ -1195,20 +1315,27 @@ export default function LandingKoi({
                                                 {/* Favorite Toggle */}
                                                 <button
                                                     onClick={(e) => handleToggleFavorite(e, auction.id)}
-                                                    className="absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-lg bg-black/50 backdrop-blur text-white hover:text-rose-400 transition border border-white/10"
+                                                    className="absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-black/50 text-white backdrop-blur transition hover:text-rose-400"
                                                     title="Simpan ke favorit"
                                                 >
                                                     <Heart className="h-4 w-4" />
                                                 </button>
 
                                                 {/* Countdown Pill */}
-                                                <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-[11px] text-slate-200">
-                                                    <div className="flex items-center gap-1.5 rounded-md bg-black/70 backdrop-blur px-2.5 py-1">
-                                                        <Clock className="h-3 w-3 text-amber-400" />
-                                                        <span>Selesai: {new Date(auction.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} WIB</span>
+                                                <div className="absolute right-3 bottom-3 left-3 flex items-center justify-between text-[11px] text-slate-200">
+                                                    <div className="flex items-center gap-1.5 rounded-md bg-black/70 px-2.5 py-1 backdrop-blur">
+                                                        <Clock className="h-3 w-3 text-[#d52a30]" />
+                                                        <span>
+                                                            Selesai:{' '}
+                                                            {new Date(auction.end_time).toLocaleTimeString([], {
+                                                                hour: '2-digit',
+                                                                minute: '2-digit',
+                                                            })}{' '}
+                                                            WIB
+                                                        </span>
                                                     </div>
 
-                                                    <div className="flex items-center gap-1 rounded-md bg-black/70 backdrop-blur px-2 py-1 text-[10px]">
+                                                    <div className="flex items-center gap-1 rounded-md bg-black/70 px-2 py-1 text-[10px] backdrop-blur">
                                                         <Users className="h-3 w-3 text-slate-300" />
                                                         <span>{auction.bids_count} Tawaran</span>
                                                     </div>
@@ -1217,10 +1344,10 @@ export default function LandingKoi({
 
                                             {/* Details */}
                                             <div className="p-5">
-                                                <div className="flex items-center justify-between text-[11px] text-slate-500 mb-1.5">
-                                                    <div className="flex items-center gap-1.5 flex-wrap">
+                                                <div className="mb-1.5 flex items-center justify-between text-[11px] text-slate-500">
+                                                    <div className="flex flex-wrap items-center gap-1.5">
                                                         <span>{auction.product?.origin || 'Japan Certified'}</span>
-                                                        <span className="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-700 dark:text-amber-300 font-bold text-[10px] border border-amber-500/20">
+                                                        <span className="rounded border border-[#bf1e26]/20 bg-[#bf1e26]/10 px-1.5 py-0.5 text-[10px] font-bold text-[#98151e] dark:text-red-300">
                                                             {formatAgeInYears(auction.product?.age || auction.age)}
                                                         </span>
                                                     </div>
@@ -1231,7 +1358,9 @@ export default function LandingKoi({
                                                 </div>
 
                                                 <Link href={`/auctions/${auction.id}`} className="block">
-                                                    <h3 className={`line-clamp-2 text-sm font-semibold transition ${isDark ? 'text-slate-100 group-hover:text-amber-200' : 'text-slate-900 group-hover:text-amber-700'}`}>
+                                                    <h3
+                                                        className={`line-clamp-2 text-sm font-semibold transition ${isDark ? 'text-slate-100 group-hover:text-red-200' : 'text-slate-900 group-hover:text-[#98151e]'}`}
+                                                    >
                                                         {auction.product?.name}
                                                     </h3>
                                                 </Link>
@@ -1239,14 +1368,19 @@ export default function LandingKoi({
                                                 {/* Leading Bidder Strip */}
                                                 {auction.highest_bidder && (
                                                     <div
-                                                        className={`mt-3 flex items-center gap-1.5 text-[11px] rounded-lg px-2.5 py-1 border ${
+                                                        className={`mt-3 flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[11px] ${
                                                             isDark
-                                                                ? 'bg-[#0B0F17] border-white/[0.04] text-slate-400'
-                                                                : 'bg-slate-50 border-slate-200 text-slate-600'
+                                                                ? 'border-white/[0.04] bg-[#0B0F17] text-slate-400'
+                                                                : 'border-slate-200 bg-slate-50 text-slate-600'
                                                         }`}
                                                     >
                                                         <UserCheck className="h-3.5 w-3.5 text-slate-500" />
-                                                        <span className="truncate">Penawar Tertinggi: <strong className={isDark ? 'text-slate-300 font-medium' : 'text-slate-800'}>{auction.highest_bidder.name}</strong></span>
+                                                        <span className="truncate">
+                                                            Penawar Tertinggi:{' '}
+                                                            <strong className={isDark ? 'font-medium text-slate-300' : 'text-slate-800'}>
+                                                                {auction.highest_bidder.name}
+                                                            </strong>
+                                                        </span>
                                                     </div>
                                                 )}
                                             </div>
@@ -1255,32 +1389,34 @@ export default function LandingKoi({
                                         {/* Bottom Price & Bid Trigger */}
                                         <div
                                             className={`border-t p-5 transition ${
-                                                isDark
-                                                    ? 'border-white/[0.06] bg-[#0B0F17]/50'
-                                                    : 'border-slate-200 bg-slate-50/60'
+                                                isDark ? 'border-white/[0.06] bg-[#0B0F17]/50' : 'border-slate-200 bg-slate-50/60'
                                             }`}
                                         >
-                                            <div className="space-y-2 mb-3.5">
+                                            <div className="mb-3.5 space-y-2">
                                                 <div className="flex items-baseline justify-between">
                                                     <div>
-                                                        <span className="text-[10px] text-slate-500 uppercase tracking-wider block font-semibold">Tawaran Tertinggi</span>
-                                                        <span className="text-xl font-serif text-amber-600 dark:text-amber-200 font-black">
+                                                        <span className="block text-[10px] font-semibold tracking-wider text-slate-500 uppercase">
+                                                            Tawaran Tertinggi
+                                                        </span>
+                                                        <span className="font-serif text-xl font-black text-[#bf1e26] dark:text-red-200">
                                                             Rp {Number(auction.current_bid).toLocaleString('id-ID')}
                                                         </span>
                                                     </div>
                                                     <div className="text-right">
-                                                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-300 border border-blue-500/20 text-[10px] font-bold">
+                                                        <span className="inline-flex items-center gap-1 rounded-full border border-blue-500/20 bg-blue-500/10 px-2.5 py-1 text-[10px] font-bold text-blue-600 dark:text-blue-300">
                                                             <Gavel className="h-3 w-3" />
                                                             {auction.bids_count || 0}x bid
                                                         </span>
                                                     </div>
                                                 </div>
-                                                <div className="flex items-center justify-between pt-2 border-t border-slate-200/60 dark:border-white/10 text-[11px]">
+                                                <div className="flex items-center justify-between border-t border-slate-200/60 pt-2 text-[11px] dark:border-white/10">
                                                     <span className="text-slate-500 dark:text-slate-400">
-                                                        <strong className="text-slate-700 dark:text-slate-300 font-bold">OB:</strong> Rp {Number(auction.start_price).toLocaleString('id-ID')}
+                                                        <strong className="font-bold text-slate-700 dark:text-slate-300">OB:</strong> Rp{' '}
+                                                        {Number(auction.start_price).toLocaleString('id-ID')}
                                                     </span>
-                                                    <span className="text-amber-600 dark:text-amber-400 font-semibold">
-                                                        <strong className="font-bold">KB:</strong> +Rp {Number(auction.bid_increment).toLocaleString('id-ID')}
+                                                    <span className="font-semibold text-[#bf1e26] dark:text-[#d52a30]">
+                                                        <strong className="font-bold">KB:</strong> +Rp{' '}
+                                                        {Number(auction.bid_increment).toLocaleString('id-ID')}
                                                     </span>
                                                 </div>
                                             </div>
@@ -1291,7 +1427,7 @@ export default function LandingKoi({
                                                     className={`flex items-center justify-center gap-1 rounded-xl border py-2 text-xs font-medium transition ${
                                                         isDark
                                                             ? 'border-white/10 bg-[#141B28] text-slate-300 hover:text-white'
-                                                            : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50 shadow-sm'
+                                                            : 'border-slate-300 bg-white text-slate-700 shadow-sm hover:bg-slate-50'
                                                     }`}
                                                 >
                                                     <Eye className="h-3.5 w-3.5" />
@@ -1302,8 +1438,8 @@ export default function LandingKoi({
                                                     onClick={() => handleQuickBid(auction)}
                                                     className={`flex items-center justify-center gap-1 rounded-xl border py-2 text-xs font-semibold transition ${
                                                         isDark
-                                                            ? 'bg-amber-500/15 border-amber-500/30 text-amber-300 hover:bg-amber-500/25'
-                                                            : 'bg-amber-600 border-amber-600 text-white hover:bg-amber-700 shadow-sm'
+                                                            ? 'border-[#bf1e26]/30 bg-[#bf1e26]/15 text-red-300 hover:bg-[#bf1e26]/25'
+                                                            : 'border-[#bf1e26] bg-[#bf1e26] text-white shadow-sm hover:bg-[#98151e]'
                                                     }`}
                                                 >
                                                     <Gavel className="h-3.5 w-3.5" />
@@ -1319,96 +1455,163 @@ export default function LandingKoi({
                 </div>
             </section>
 
-            {/* Varieties Section */}
-            <section id="varietas" className={`py-24 border-t transition-colors ${isDark ? 'border-white/[0.06] bg-[#0B0F17]' : 'border-slate-200 bg-white'}`}>
-                <div className="mx-auto max-w-7xl px-6 lg:px-8">
-                    <div className="text-center max-w-2xl mx-auto mb-16">
-                        <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-amber-600 dark:text-amber-300/80">
-                            The Aristocrats of Water
-                        </span>
-                        <h2 className={`text-3xl font-serif mt-2 ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>
-                            Varietas Kehormatan Nishikigoi
+            {/* Varieties Section — Traditional Japanese Canvas Theme with Red Wave, Sakura, Seigaiha & Koi Silhouette */}
+            <section
+                id="varietas"
+                className="relative overflow-hidden py-28 transition-colors"
+                style={{ background: isDark ? '#0B0F17' : '#faf8f5' }}
+            >
+                {/* 5. Section Content */}
+                <div className="relative z-10 mx-auto max-w-7xl px-6 lg:px-8">
+                    {/* Header: The Aristocrats of Water + Varietas Kehormatan Nishikigoi */}
+                    <div className="mb-14 max-w-3xl">
+                        <div className="mb-3 inline-flex items-center gap-2">
+                            <span className="h-2 w-2 rounded-full bg-[#bf1e26]" />
+                            <span className="text-[11px] font-bold tracking-[0.22em] text-[#bf1e26] uppercase">The Aristocrats of Water</span>
+                        </div>
+                        <h2
+                            className={`font-serif text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-5xl ${isDark ? 'text-white' : 'text-[#1a1a1a]'}`}
+                        >
+                            Varietas Kehormatan <span className="font-serif font-bold text-[#bf1e26] italic">Nishikigoi</span>
                         </h2>
-                        <p className="mt-2 text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-light leading-relaxed">
+                        <p className={`mt-3 text-sm leading-relaxed sm:text-base ${isDark ? 'font-light text-slate-300' : 'text-slate-600'}`}>
                             Simbol ketenangan batin, estetika porselen, dan harmoni seni hidup dalam tradisi pemeliharaan koi Jepang.
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {varieties.map((v, i) => (
-                            <div
-                                key={i}
-                                className={`group relative rounded-2xl border overflow-hidden transition duration-300 ${
-                                    isDark
-                                        ? 'border-white/[0.06] bg-[#0F1420] hover:border-amber-500/30'
-                                        : 'border-slate-200 bg-white shadow-sm hover:shadow-md hover:border-amber-300'
-                                }`}
-                            >
-                                <div className="relative aspect-[16/10] overflow-hidden bg-slate-900">
-                                    <img
-                                        src={v.image}
-                                        alt={v.name}
-                                        className="h-full w-full object-cover opacity-90 transition duration-500 group-hover:scale-105"
-                                    />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                    {/* Varieties Card Grid with New Luxury Card Design */}
+                    <div className="grid grid-cols-1 gap-7 md:grid-cols-2 lg:grid-cols-3">
+                        {varieties.map((v, i) => {
+                            // Custom labels persis foto referensi
+                            const badgeConfig: Record<number, { tag: string; badge: string }> = {
+                                0: { tag: 'KOHAKU', badge: 'Predikat 👑' },
+                                1: { tag: 'TAISHO SANKE', badge: 'Populer ★' },
+                                2: { tag: 'SHOWA SANSHOKU', badge: 'Limited 🏆' },
+                                3: { tag: 'AKAI', badge: 'Terlaris 🔥' },
+                                4: { tag: 'Beni Kikokuryu', badge: 'Stok Terbatas ⏳' },
+                                5: { tag: 'Kigoi', badge: 'Rekomendasi 👍' },
+                            };
+                            const curConfig = badgeConfig[i] || { tag: v.name.toUpperCase(), badge: v.popular || 'Kurasi Pilihan' };
+                            const sizeCm = [48, 52, 50, 45, 54, 49][i % 6];
 
-                                    {/* Kanji Badge */}
-                                    <div className="absolute top-3 right-3 h-8 w-8 rounded-lg bg-black/60 backdrop-blur border border-white/10 text-amber-300 font-serif text-xs flex items-center justify-center">
-                                        {v.kanji}
+                            return (
+                                <div
+                                    key={i}
+                                    className={`group flex flex-col justify-between overflow-hidden rounded-2xl border transition duration-300 ${
+                                        isDark
+                                            ? 'border-white/10 bg-[#121824]/90 shadow-xl hover:border-[#bf1e26]/60'
+                                            : 'border-slate-200/90 bg-white shadow-lg hover:border-[#bf1e26]/50 hover:shadow-2xl'
+                                    }`}
+                                >
+                                    <div>
+                                        {/* Image wrapper with badges inside */}
+                                        <div className="relative aspect-[16/10] w-full overflow-hidden bg-slate-900">
+                                            <img
+                                    loading="lazy"
+                                    decoding="async"
+                                                src={v.image}
+                                                alt={v.name}
+                                                className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                                            />
+
+                                            {/* Top-Left Tag (e.g. KOHAKU) */}
+                                            <div className="absolute top-3 left-3">
+                                                <span className="rounded-md bg-[#bf1e26] px-3 py-1 text-[10px] font-bold tracking-wider text-white uppercase shadow-md">
+                                                    {curConfig.tag}
+                                                </span>
+                                            </div>
+
+                                            {/* Top-Right Tag (e.g. Predikat 👑 / Populer ★) */}
+                                            <div className="absolute top-3 right-3">
+                                                <span className="rounded-md border border-white/10 bg-black/60 px-2.5 py-1 text-[10px] font-medium text-white backdrop-blur-md">
+                                                    {curConfig.badge}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {/* Card Content */}
+                                        <div className="p-5">
+                                            <h3 className={`font-serif text-lg font-bold tracking-tight ${isDark ? 'text-white' : 'text-[#1a1a1a]'}`}>
+                                                {v.name}
+                                            </h3>
+                                            <p
+                                                className={`mt-2 line-clamp-3 text-xs leading-relaxed ${isDark ? 'font-light text-slate-400' : 'text-slate-600'}`}
+                                            >
+                                                {v.description}
+                                            </p>
+                                        </div>
                                     </div>
-                                </div>
 
-                                <div className="p-5">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <h3 className={`text-base font-semibold transition ${isDark ? 'text-slate-100 group-hover:text-amber-200' : 'text-slate-900 group-hover:text-amber-700'}`}>
-                                            {v.name}
-                                        </h3>
-                                        <span className={`text-[10px] px-2 py-0.5 rounded ${isDark ? 'text-slate-400 bg-white/[0.04]' : 'text-slate-600 bg-slate-100'}`}>
-                                            {v.popular}
-                                        </span>
-                                    </div>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-light">
-                                        {v.description}
-                                    </p>
+                                    {/* Footer: Size + Premium + Button Lihat Detail */}
+                                    <div
+                                        className={`flex items-center justify-between gap-2 border-t px-5 py-4 text-xs ${
+                                            isDark ? 'border-white/[0.06] bg-black/20' : 'border-slate-100 bg-[#faf9f7]'
+                                        }`}
+                                    >
+                                        <div className="flex items-center gap-3 text-[11px] text-slate-500 dark:text-slate-400">
+                                            <span className="font-semibold text-slate-700 dark:text-slate-300">📏 {sizeCm} cm</span>
+                                            <span className="flex items-center gap-1">
+                                                <ShieldCheck className="h-3.5 w-3.5 text-[#bf1e26]" />
+                                                <span>Kualitas Premium</span>
+                                            </span>
+                                        </div>
 
-                                    <div className={`mt-4 pt-3 border-t ${isDark ? 'border-white/[0.04]' : 'border-slate-100'}`}>
                                         <Link
                                             href={`/products?search=${encodeURIComponent(v.name)}`}
-                                            className="text-xs text-amber-600 dark:text-amber-300 hover:underline flex items-center gap-1 font-medium"
+                                            className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-[#bf1e26] px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-[#98151e] active:scale-95"
                                         >
-                                            <span>Eksplorasi {v.name}</span>
+                                            <span>Lihat Detail</span>
                                             <ChevronRight className="h-3 w-3" />
                                         </Link>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </div>
             </section>
 
-            {/* Direct Purchase Collection */}
-            <section id="koleksi" className={`py-24 border-t transition-colors ${isDark ? 'border-white/[0.06] bg-[#0D121B]' : 'border-slate-200 bg-slate-50'}`}>
-                <div className="mx-auto max-w-7xl px-6 lg:px-8">
-                    <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
+            {/* Direct Purchase Collection — Elegant Gallery Matching KOKI KOI Red Theme */}
+            <section
+                id="koleksi"
+                className={`relative overflow-hidden border-t py-28 transition-colors ${
+                    isDark ? 'border-white/[0.06] bg-[#0E1420]' : 'border-slate-200/80 bg-[#fbf9f6]'
+                }`}
+            >
+                {/* Subtle Japanese water motif in background corner */}
+                <div className="pointer-events-none absolute top-0 right-0 h-96 w-96 opacity-[0.03]">
+                    <svg viewBox="0 0 100 100" fill="none" className="h-full w-full text-[#bf1e26]">
+                        <circle cx="50" cy="50" r="45" stroke="currentColor" strokeWidth="1" strokeDasharray="3 3" />
+                        <circle cx="50" cy="50" r="30" stroke="currentColor" strokeWidth="1" />
+                    </svg>
+                </div>
+
+                <div className="relative z-10 mx-auto max-w-7xl px-6 lg:px-8">
+                    <div className="mb-14 flex flex-col justify-between gap-6 md:flex-row md:items-end">
                         <div>
-                            <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-amber-600 dark:text-amber-300/80 block mb-2">
-                                Available Gallery
-                            </span>
-                            <h2 className={`text-3xl font-serif ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>
-                                Koleksi Kurasi Siap Masuk Kolam
+                            <div className="mb-2.5 inline-flex items-center gap-2">
+                                <span className="h-2 w-2 rounded-full bg-[#bf1e26]" />
+                                <span className="text-[11px] font-bold tracking-[0.22em] text-[#bf1e26] uppercase">Available Gallery</span>
+                            </div>
+                            <h2
+                                className={`font-serif text-3xl font-extrabold tracking-tight sm:text-4xl ${isDark ? 'text-white' : 'text-[#1a1a1a]'}`}
+                            >
+                                Koleksi Kurasi <span className="font-serif text-[#bf1e26] italic">Siap Masuk Kolam</span>
                             </h2>
-                            <p className="mt-1 text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-light">
-                                Tanpa proses lelang. Telah lulus masa karantina dengan jaminan kesehatan prima.
+                            <p
+                                className={`mt-2.5 max-w-xl text-xs leading-relaxed font-light sm:text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}
+                            >
+                                Tanpa proses lelang. Telah lulus masa karantina bio-security 21 hari dengan jaminan kesehatan prima dan sertifikasi
+                                pedigree resmi.
                             </p>
                         </div>
 
                         <Link
                             href="/products"
-                            className={`inline-flex items-center gap-1.5 rounded-xl border px-4 py-2 text-xs font-medium transition ${
+                            className={`inline-flex shrink-0 items-center gap-2 rounded-xl border px-5 py-2.5 text-xs font-semibold tracking-wide shadow-sm transition active:scale-95 ${
                                 isDark
-                                    ? 'border-white/10 bg-[#121824] text-slate-300 hover:text-white'
-                                    : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-100 shadow-sm'
+                                    ? 'border-white/10 bg-[#161F2E] text-slate-200 hover:border-[#bf1e26]/50 hover:text-white'
+                                    : 'border-slate-300/80 bg-white text-slate-800 hover:border-[#bf1e26] hover:text-[#bf1e26]'
                             }`}
                         >
                             <span>Katalog Keseluruhan</span>
@@ -1416,80 +1619,88 @@ export default function LandingKoi({
                         </Link>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 gap-7 sm:grid-cols-2 lg:grid-cols-3">
                         {featuredKoi.map((koi) => (
                             <div
                                 key={koi.id}
-                                className={`group flex flex-col justify-between rounded-2xl border overflow-hidden transition duration-300 ${
+                                className={`group flex flex-col justify-between overflow-hidden rounded-2xl border shadow-md transition duration-300 hover:shadow-xl ${
                                     isDark
-                                        ? 'border-white/[0.06] bg-[#111724] hover:border-white/20'
-                                        : 'border-slate-200 bg-white shadow-sm hover:shadow-md hover:border-slate-300'
+                                        ? 'border-white/10 bg-[#121824] hover:border-[#bf1e26]/50'
+                                        : 'border-slate-200/90 bg-white hover:border-[#bf1e26]/40'
                                 }`}
                             >
                                 <div>
+                                    {/* Image with badges */}
                                     <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-900">
                                         <img
-                                            src={
-                                                koi.primary_image?.image_path ||
-                                                '/images/koi/kohaku.jpg'
-                                            }
+                                    loading="lazy"
+                                    decoding="async"
+                                            src={koi.primary_image?.image_path || '/images/koi/kohaku.jpg'}
                                             alt={koi.name}
-                                            className="h-full w-full object-cover opacity-90 transition duration-500 group-hover:scale-105"
+                                            className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                                         />
-                                        <div className="absolute top-3 left-3">
-                                            <span className="rounded-md bg-black/60 backdrop-blur px-2.5 py-1 text-[9px] font-medium tracking-wider text-slate-200 border border-white/10 uppercase">
+
+                                        {/* Status badge - Red / Black glass */}
+                                        <div className="absolute top-3 left-3 flex items-center gap-1.5">
+                                            <span className="flex items-center gap-1 rounded-md bg-[#bf1e26] px-2.5 py-1 text-[9px] font-bold tracking-wider text-white uppercase shadow-md">
+                                                <ShieldCheck className="h-3 w-3" />
                                                 Lolos Karantina
                                             </span>
                                         </div>
 
                                         {koi.origin && (
                                             <div className="absolute bottom-3 left-3">
-                                                <span className="rounded-md bg-black/60 backdrop-blur px-2 py-0.5 text-[10px] text-slate-300 font-light">
+                                                <span className="rounded-md border border-white/10 bg-black/70 px-2.5 py-1 text-[10px] font-medium text-white backdrop-blur-md">
                                                     {koi.origin}
                                                 </span>
                                             </div>
                                         )}
                                     </div>
 
+                                    {/* Text content */}
                                     <div className="p-5">
                                         {koi.store && (
-                                            <div className="flex items-center gap-1 text-[11px] text-slate-500 mb-1.5 font-light">
+                                            <div className="mb-2 flex items-center gap-1.5 text-[11px] font-medium text-slate-500 dark:text-slate-400">
                                                 <span>{koi.store.name}</span>
-                                                {koi.store.is_verified && (
-                                                    <CheckCircle2 className="h-3 w-3 text-amber-500" />
-                                                )}
+                                                {koi.store.is_verified && <CheckCircle2 className="h-3.5 w-3.5 text-[#bf1e26]" />}
                                             </div>
                                         )}
 
                                         <Link href={`/products/${koi.slug}`} className="block">
-                                            <h3 className={`line-clamp-2 text-sm font-semibold transition ${isDark ? 'text-slate-100 group-hover:text-amber-200' : 'text-slate-900 group-hover:text-amber-700'}`}>
+                                            <h3
+                                                className={`line-clamp-2 font-serif text-base font-bold tracking-tight transition ${
+                                                    isDark ? 'text-white group-hover:text-red-400' : 'text-[#1a1a1a] group-hover:text-[#bf1e26]'
+                                                }`}
+                                            >
                                                 {koi.name}
                                             </h3>
                                         </Link>
 
-                                        <p className="mt-2 text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed font-light">
+                                        <p className="mt-2 line-clamp-2 text-xs leading-relaxed font-light text-slate-500 dark:text-slate-400">
                                             {koi.description}
                                         </p>
                                     </div>
                                 </div>
 
-                                <div className={`border-t p-5 flex items-baseline justify-between ${isDark ? 'border-white/[0.06] bg-[#0A0D14]/40' : 'border-slate-100 bg-slate-50/60'}`}>
+                                {/* Footer: Price (Playfair Display Red) + Button Pesan Langsung */}
+                                <div
+                                    className={`flex items-center justify-between gap-3 border-t px-5 py-4 ${
+                                        isDark ? 'border-white/[0.06] bg-[#0A0D14]/50' : 'border-slate-100 bg-[#fbf9f6]'
+                                    }`}
+                                >
                                     <div>
-                                        <span className="text-[10px] text-slate-500 uppercase tracking-wider block">Mahar</span>
-                                        <span className="text-lg font-serif text-amber-600 dark:text-amber-200 font-bold">
+                                        <span className="block text-[10px] font-medium tracking-wider text-slate-400 uppercase">Mahar</span>
+                                        <span className="font-serif text-xl font-bold tracking-tight text-[#bf1e26] dark:text-red-400">
                                             Rp {Number(koi.price).toLocaleString('id-ID')}
                                         </span>
                                     </div>
 
                                     <Link
                                         href={`/products/${koi.slug}`}
-                                        className={`rounded-xl border px-3.5 py-2 text-xs font-medium transition ${
-                                            isDark
-                                                ? 'border-white/10 bg-[#141B28] text-slate-300 hover:text-white'
-                                                : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-100 shadow-sm'
-                                        }`}
+                                        className="inline-flex items-center gap-1.5 rounded-xl bg-[#bf1e26] px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-[#98151e] active:scale-95"
                                     >
-                                        Pesan Langsung
+                                        <span>Pesan Langsung</span>
+                                        <ChevronRight className="h-3.5 w-3.5" />
                                     </Link>
                                 </div>
                             </div>
@@ -1503,29 +1714,28 @@ export default function LandingKoi({
             {/* ========================================================= */}
             <section
                 id="iklan-banner"
-                className={`py-20 border-t transition-colors ${
-                    isDark ? 'border-white/[0.06] bg-[#0A0E17]' : 'border-slate-200 bg-slate-50'
-                }`}
+                className={`border-t py-20 transition-colors ${isDark ? 'border-white/[0.06] bg-[#0A0E17]' : 'border-slate-200 bg-slate-50'}`}
             >
                 <div className="mx-auto max-w-7xl px-6 lg:px-8">
                     {/* Header */}
-                    <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
+                    <div className="mb-12 flex flex-col justify-between gap-6 md:flex-row md:items-end">
                         <div>
-                            <div className="inline-flex items-center gap-2 text-[10px] font-semibold tracking-[0.25em] text-amber-600 dark:text-amber-300 uppercase mb-2">
-                                <Sparkles className="h-3.5 w-3.5 text-amber-500" />
+                            <div className="mb-2 inline-flex items-center gap-2 text-[10px] font-semibold tracking-[0.25em] text-[#bf1e26] uppercase dark:text-red-300">
+                                <Sparkles className="h-3.5 w-3.5 text-[#bf1e26]" />
                                 <span>Media Partner & Sponsored Showcase</span>
                             </div>
-                            <h2 className={`text-3xl font-serif tracking-tight ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>
+                            <h2 className={`font-serif text-3xl tracking-tight ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>
                                 Modul Banner Iklan & Dokumentasi Video
                             </h2>
-                            <p className="mt-2 text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-2xl font-light">
-                                Promosi produk pakan, probiotik kolam, liputan mudpond Jepang, dan media partner terverifikasi dengan tautan langsung (custom URL).
+                            <p className="mt-2 max-w-2xl text-xs font-light text-slate-500 sm:text-sm dark:text-slate-400">
+                                Promosi produk pakan, probiotik kolam, liputan mudpond Jepang, dan media partner terverifikasi dengan tautan langsung
+                                (custom URL).
                             </p>
                         </div>
                     </div>
 
                     {/* Banner Grid */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
                         {bannerAds.length > 0 ? (
                             bannerAds.map((ad) => {
                                 const isYoutube = ad.media_type === 'youtube' && ad.youtube_embed_url;
@@ -1533,20 +1743,20 @@ export default function LandingKoi({
                                 return (
                                     <div
                                         key={ad.id}
-                                        className={`group rounded-3xl border overflow-hidden transition-all duration-300 flex flex-col justify-between ${
+                                        className={`group flex flex-col justify-between overflow-hidden rounded-3xl border transition-all duration-300 ${
                                             isDark
-                                                ? 'bg-[#111724] border-white/[0.08] hover:border-amber-500/40 shadow-xl'
-                                                : 'bg-white border-slate-200 shadow-md hover:shadow-xl hover:border-amber-400'
+                                                ? 'border-white/[0.08] bg-[#111724] shadow-xl hover:border-[#bf1e26]/40'
+                                                : 'border-slate-200 bg-white shadow-md hover:border-[#bf1e26] hover:shadow-xl'
                                         }`}
                                     >
                                         <div>
                                             {/* Media Viewport */}
                                             {isYoutube ? (
-                                                <div className="relative aspect-video w-full bg-black overflow-hidden">
+                                                <div className="relative aspect-video w-full overflow-hidden bg-black">
                                                     <iframe
                                                         src={ad.youtube_embed_url!}
                                                         title={ad.title}
-                                                        className="w-full h-full border-0"
+                                                        className="h-full w-full border-0"
                                                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                                         allowFullScreen
                                                     />
@@ -1554,13 +1764,15 @@ export default function LandingKoi({
                                             ) : (
                                                 <div className="relative aspect-[16/9] w-full overflow-hidden bg-slate-900">
                                                     <img
+                                    loading="lazy"
+                                    decoding="async"
                                                         src={ad.banner_image || '/images/koi/koi_pond_group.jpg'}
                                                         alt={ad.title}
-                                                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                                        className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                                                     />
                                                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
                                                     <div className="absolute top-4 left-4">
-                                                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-500 text-stone-950 font-black text-[10px] tracking-wider uppercase shadow-md">
+                                                        <span className="inline-flex items-center gap-1 rounded-full bg-[#bf1e26] px-2.5 py-1 text-[10px] font-black tracking-wider text-white uppercase shadow-md">
                                                             {ad.badge_text || 'SPONSORED'}
                                                         </span>
                                                     </div>
@@ -1569,30 +1781,30 @@ export default function LandingKoi({
 
                                             {/* Content Body */}
                                             <div className="p-6">
-                                                <div className="flex items-center gap-2 mb-2">
+                                                <div className="mb-2 flex items-center gap-2">
                                                     {isYoutube ? (
-                                                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-red-500 uppercase tracking-wider">
-                                                            <Youtube className="w-3.5 h-3.5" /> Video YouTube
+                                                        <span className="inline-flex items-center gap-1 text-[10px] font-bold tracking-wider text-red-500 uppercase">
+                                                            <Youtube className="h-3.5 w-3.5" /> Video YouTube
                                                         </span>
                                                     ) : (
-                                                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-500 uppercase tracking-wider">
-                                                            <Sparkles className="w-3.5 h-3.5" /> Banner Display Ads
+                                                        <span className="inline-flex items-center gap-1 text-[10px] font-bold tracking-wider text-[#bf1e26] uppercase">
+                                                            <Sparkles className="h-3.5 w-3.5" /> Banner Display Ads
                                                         </span>
                                                     )}
                                                 </div>
 
-                                                <h3 className={`text-base font-bold tracking-tight mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                                                <h3 className={`mb-2 text-base font-bold tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
                                                     {ad.title}
                                                 </h3>
 
-                                                <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed font-light">
+                                                <p className="line-clamp-2 text-xs leading-relaxed font-light text-slate-500 dark:text-slate-400">
                                                     {ad.summary || ad.content}
                                                 </p>
                                             </div>
                                         </div>
 
                                         {/* Bottom Action Footer with Custom URL */}
-                                        <div className={`p-6 pt-0 flex items-center justify-between gap-4 mt-auto`}>
+                                        <div className={`mt-auto flex items-center justify-between gap-4 p-6 pt-0`}>
                                             <Link
                                                 href={`/articles/${ad.slug || ad.id}`}
                                                 className={`text-xs font-semibold hover:underline ${isDark ? 'text-slate-300' : 'text-slate-700'}`}
@@ -1605,10 +1817,10 @@ export default function LandingKoi({
                                                     href={ad.custom_url}
                                                     target={ad.target_type || '_blank'}
                                                     rel="noopener noreferrer"
-                                                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-95 text-stone-950 font-bold text-xs transition shadow-md"
+                                                    className="inline-flex items-center gap-1.5 rounded-xl bg-[#bf1e26] px-4 py-2 text-xs font-bold text-white shadow-md transition hover:bg-[#bf1e26] active:scale-95"
                                                 >
                                                     <span>Kunjungi Sponsor</span>
-                                                    <ExternalLink className="w-3.5 h-3.5" />
+                                                    <ExternalLink className="h-3.5 w-3.5" />
                                                 </a>
                                             ) : (
                                                 <span className="text-[11px] text-slate-400 italic">Partner Resmi</span>
@@ -1619,7 +1831,7 @@ export default function LandingKoi({
                             })
                         ) : (
                             /* Fallback Demo Sponsor Card */
-                            <div className="col-span-full rounded-2xl border border-dashed p-8 text-center text-slate-400 text-xs">
+                            <div className="col-span-full rounded-2xl border border-dashed p-8 text-center text-xs text-slate-400">
                                 Belum ada materi banner iklan yang dipasang. Kelola materi promosi di Dashboard Admin &bull; Tab Artikel & Banner.
                             </div>
                         )}
@@ -1632,30 +1844,29 @@ export default function LandingKoi({
             {/* ========================================================= */}
             <section
                 id="artikel-tips"
-                className={`py-24 border-t transition-colors ${
-                    isDark ? 'border-white/[0.06] bg-[#0E131E]' : 'border-slate-200 bg-white'
-                }`}
+                className={`border-t py-24 transition-colors ${isDark ? 'border-white/[0.06] bg-[#0E131E]' : 'border-slate-200 bg-white'}`}
             >
                 <div className="mx-auto max-w-7xl px-6 lg:px-8">
                     {/* Header */}
-                    <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
+                    <div className="mb-12 flex flex-col justify-between gap-6 md:flex-row md:items-end">
                         <div>
-                            <div className="inline-flex items-center gap-2 text-[10px] font-semibold tracking-[0.25em] text-amber-600 dark:text-amber-300 uppercase mb-2">
-                                <BookOpen className="h-3.5 w-3.5 text-amber-500" />
+                            <div className="mb-2 inline-flex items-center gap-2 text-[10px] font-semibold tracking-[0.25em] text-[#bf1e26] uppercase dark:text-red-300">
+                                <BookOpen className="h-3.5 w-3.5 text-[#bf1e26]" />
                                 <span>Koi Care & Knowledge Hub</span>
                             </div>
-                            <h2 className={`text-3xl font-serif tracking-tight ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>
+                            <h2 className={`font-serif text-3xl tracking-tight ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>
                                 Pojok Edukasi & Tips Pemeliharaan Koi
                             </h2>
-                            <p className="mt-2 text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-2xl font-light">
-                                Wawasan praktis seputar parameter air, manajemen filtrasi biologis, karantina steril 21 hari, serta panduan pakan bergizi tinggi untuk menjaga warna dan bentuk tubuh koi juara.
+                            <p className="mt-2 max-w-2xl text-xs font-light text-slate-500 sm:text-sm dark:text-slate-400">
+                                Wawasan praktis seputar parameter air, manajemen filtrasi biologis, karantina steril 21 hari, serta panduan pakan
+                                bergizi tinggi untuk menjaga warna dan bentuk tubuh koi juara.
                             </p>
                         </div>
 
                         {/* Category Filter Pills */}
                         <div
-                            className={`inline-flex p-1 rounded-2xl border self-start md:self-auto flex-wrap gap-1 ${
-                                isDark ? 'bg-[#090D14] border-white/[0.08]' : 'bg-slate-100 border-slate-200'
+                            className={`inline-flex flex-wrap gap-1 self-start rounded-2xl border p-1 md:self-auto ${
+                                isDark ? 'border-white/[0.08] bg-[#090D14]' : 'border-slate-200 bg-slate-100'
                             }`}
                         >
                             {[
@@ -1667,12 +1878,12 @@ export default function LandingKoi({
                                 <button
                                     key={tab.id}
                                     onClick={() => setArticleCategoryTab(tab.id as any)}
-                                    className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition ${
+                                    className={`rounded-xl px-3.5 py-1.5 text-xs font-semibold transition ${
                                         articleCategoryTab === tab.id
-                                            ? 'bg-amber-500 text-stone-950 shadow'
+                                            ? 'bg-[#bf1e26] text-white shadow'
                                             : isDark
-                                            ? 'text-slate-400 hover:text-white'
-                                            : 'text-slate-600 hover:text-slate-900'
+                                              ? 'text-slate-400 hover:text-white'
+                                              : 'text-slate-600 hover:text-slate-900'
                                     }`}
                                 >
                                     {tab.label}
@@ -1690,83 +1901,96 @@ export default function LandingKoi({
 
                         if (displayList.length === 0) {
                             return (
-                                <div className={`rounded-2xl border border-dashed p-12 text-center ${isDark ? 'border-white/10' : 'border-slate-300'}`}>
-                                    <Newspaper className="mx-auto h-10 w-10 text-slate-400 mb-3" />
+                                <div
+                                    className={`rounded-2xl border border-dashed p-12 text-center ${isDark ? 'border-white/10' : 'border-slate-300'}`}
+                                >
+                                    <Newspaper className="mx-auto mb-3 h-10 w-10 text-slate-400" />
                                     <h3 className="text-sm font-semibold">Belum Ada Artikel dalam Kategori Ini</h3>
-                                    <p className="text-xs text-slate-500 mt-1">Nantikan rilis artikel berkala dari tim kurator kami.</p>
+                                    <p className="mt-1 text-xs text-slate-500">Nantikan rilis artikel berkala dari tim kurator kami.</p>
                                 </div>
                             );
                         }
 
                         return (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7">
+                            <div className="grid grid-cols-1 gap-7 md:grid-cols-2 lg:grid-cols-3">
                                 {displayList.map((article) => {
                                     return (
                                         <Link
                                             key={article.id}
                                             href={`/articles/${article.slug || article.id}`}
-                                            className={`group rounded-3xl border overflow-hidden transition-all duration-300 flex flex-col justify-between cursor-pointer ${
+                                            className={`group flex cursor-pointer flex-col justify-between overflow-hidden rounded-3xl border transition-all duration-300 ${
                                                 isDark
-                                                    ? 'bg-[#111724]/90 border-white/[0.08] hover:border-amber-400/50 hover:bg-[#141C2B] shadow-md hover:shadow-xl'
-                                                    : 'bg-white border-slate-200 shadow-sm hover:shadow-xl hover:border-amber-400'
+                                                    ? 'border-white/[0.08] bg-[#111724]/90 shadow-md hover:border-[#bf1e26]/50 hover:bg-[#141C2B] hover:shadow-xl'
+                                                    : 'border-slate-200 bg-white shadow-sm hover:border-[#bf1e26] hover:shadow-xl'
                                             }`}
                                         >
                                             <div>
                                                 {/* Cover Image */}
                                                 <div className="relative aspect-[16/10] w-full overflow-hidden bg-slate-900">
                                                     <img
-                                                        src={
-                                                            article.banner_image ||
-                                                            '/images/koi/koi_pond_group.jpg'
-                                                        }
+                                    loading="lazy"
+                                    decoding="async"
+                                                        src={article.banner_image || '/images/koi/koi_pond_group.jpg'}
                                                         alt={article.title}
-                                                        className="w-full h-full object-cover transition duration-700 group-hover:scale-105"
+                                                        className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
                                                     />
                                                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
                                                     {/* Badge */}
                                                     <div className="absolute top-3.5 left-3.5 flex items-center gap-2">
-                                                        <span className="rounded-lg bg-black/60 backdrop-blur px-2.5 py-1 text-[10px] font-bold text-amber-300 border border-amber-500/30 uppercase">
-                                                            {article.badge_text || article.category_label || (article.category === 'tips_care' ? 'Tips Pemeliharaan' : 'Event')}
+                                                        <span className="rounded-lg border border-[#bf1e26]/30 bg-black/60 px-2.5 py-1 text-[10px] font-bold text-red-300 uppercase backdrop-blur">
+                                                            {article.badge_text ||
+                                                                article.category_label ||
+                                                                (article.category === 'tips_care' ? 'Tips Pemeliharaan' : 'Event')}
                                                         </span>
                                                     </div>
 
                                                     {/* Video badge if youtube */}
                                                     {article.media_type === 'youtube' && (
-                                                        <div className="absolute top-3.5 right-3.5 flex items-center justify-center w-8 h-8 rounded-full bg-red-600/90 text-white shadow-md">
-                                                            <Play className="w-4 h-4 fill-white ml-0.5" />
+                                                        <div className="absolute top-3.5 right-3.5 flex h-8 w-8 items-center justify-center rounded-full bg-red-600/90 text-white shadow-md">
+                                                            <Play className="ml-0.5 h-4 w-4 fill-white" />
                                                         </div>
                                                     )}
                                                 </div>
 
                                                 {/* Content */}
                                                 <div className="p-6">
-                                                    <div className="flex items-center gap-3 text-[11px] text-slate-400 mb-2 font-light">
+                                                    <div className="mb-2 flex items-center gap-3 text-[11px] font-light text-slate-400">
                                                         <span className="flex items-center gap-1">
-                                                            <Calendar className="w-3 h-3 text-slate-500" />
-                                                            {article.published_at ? new Date(article.published_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Terbaru'}
+                                                            <Calendar className="h-3 w-3 text-slate-500" />
+                                                            {article.published_at
+                                                                ? new Date(article.published_at).toLocaleDateString('id-ID', {
+                                                                      day: 'numeric',
+                                                                      month: 'short',
+                                                                      year: 'numeric',
+                                                                  })
+                                                                : 'Terbaru'}
                                                         </span>
                                                         <span>&bull;</span>
                                                         <span className="flex items-center gap-1">
-                                                            <Eye className="w-3 h-3 text-slate-500" />
+                                                            <Eye className="h-3 w-3 text-slate-500" />
                                                             {article.views_count || 120} pembaca
                                                         </span>
                                                     </div>
 
-                                                    <h3 className={`text-base font-bold line-clamp-2 leading-snug transition group-hover:text-amber-500 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                                                    <h3
+                                                        className={`line-clamp-2 text-base leading-snug font-bold transition group-hover:text-[#bf1e26] ${isDark ? 'text-white' : 'text-slate-900'}`}
+                                                    >
                                                         {article.title}
                                                     </h3>
 
-                                                    <p className="mt-2 text-xs text-slate-500 dark:text-slate-400 line-clamp-3 leading-relaxed font-light">
+                                                    <p className="mt-2 line-clamp-3 text-xs leading-relaxed font-light text-slate-500 dark:text-slate-400">
                                                         {article.summary || article.content}
                                                     </p>
                                                 </div>
                                             </div>
 
                                             {/* Action Link Footer */}
-                                            <div className={`p-6 pt-0 border-t ${isDark ? 'border-white/[0.04]' : 'border-slate-100'} mt-auto flex items-center justify-between`}>
-                                                <span className="text-[11px] font-semibold text-amber-600 dark:text-amber-400 group-hover:underline flex items-center gap-1">
-                                                    Baca Selengkapnya <ChevronRight className="w-3 h-3" />
+                                            <div
+                                                className={`border-t p-6 pt-0 ${isDark ? 'border-white/[0.04]' : 'border-slate-100'} mt-auto flex items-center justify-between`}
+                                            >
+                                                <span className="flex items-center gap-1 text-[11px] font-semibold text-[#bf1e26] group-hover:underline dark:text-[#d52a30]">
+                                                    Baca Selengkapnya <ChevronRight className="h-3 w-3" />
                                                 </span>
                                             </div>
                                         </Link>
@@ -1779,46 +2003,57 @@ export default function LandingKoi({
             </section>
 
             {/* Quality Standard */}
-            <section id="keunggulan" className={`py-24 border-t transition-colors ${isDark ? 'border-white/[0.06] bg-[#0B0F17]' : 'border-slate-200 bg-white'}`}>
+            <section
+                id="keunggulan"
+                className={`border-t py-24 transition-colors ${isDark ? 'border-white/[0.06] bg-[#0B0F17]' : 'border-slate-200 bg-white'}`}
+            >
                 <div className="mx-auto max-w-7xl px-6 lg:px-8">
-                    <div className="text-center max-w-2xl mx-auto mb-16">
-                        <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-amber-600 dark:text-amber-300/80">
+                    <div className="mx-auto mb-16 max-w-2xl text-center">
+                        <span className="text-[10px] font-semibold tracking-[0.25em] text-[#bf1e26] uppercase dark:text-red-300/80">
                             Integrity & Standards
                         </span>
-                        <h2 className={`text-3xl font-serif mt-2 ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>
+                        <h2 className={`mt-2 font-serif text-3xl ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>
                             Empat Pilar Penanganan KOKI KOI
                         </h2>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <div className={`rounded-2xl border p-6 transition hover:border-amber-500/30 ${isDark ? 'border-white/[0.06] bg-[#0E131E]' : 'border-slate-200 bg-slate-50/70'}`}>
-                            <ShieldCheck className="h-7 w-7 text-amber-600 dark:text-amber-400 mb-4" strokeWidth={1.5} />
-                            <h3 className={`text-sm font-semibold mb-1.5 ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>Karantina Bio-Steril</h3>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-light">
+                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                        <div
+                            className={`rounded-2xl border p-6 transition hover:border-[#bf1e26]/30 ${isDark ? 'border-white/[0.06] bg-[#0E131E]' : 'border-slate-200 bg-slate-50/70'}`}
+                        >
+                            <ShieldCheck className="mb-4 h-7 w-7 text-[#bf1e26] dark:text-[#d52a30]" strokeWidth={1.5} />
+                            <h3 className={`mb-1.5 text-sm font-semibold ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>Karantina Bio-Steril</h3>
+                            <p className="text-xs leading-relaxed font-light text-slate-500 dark:text-slate-400">
                                 Uji mikroskop parasit teratur serta verifikasi bebas KHV sebelum pengiriman.
                             </p>
                         </div>
 
-                        <div className={`rounded-2xl border p-6 transition hover:border-amber-500/30 ${isDark ? 'border-white/[0.06] bg-[#0E131E]' : 'border-slate-200 bg-slate-50/70'}`}>
-                            <PackageCheck className="h-7 w-7 text-amber-600 dark:text-amber-400 mb-4" strokeWidth={1.5} />
-                            <h3 className={`text-sm font-semibold mb-1.5 ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>Dual-Layer Packing</h3>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-light">
+                        <div
+                            className={`rounded-2xl border p-6 transition hover:border-[#bf1e26]/30 ${isDark ? 'border-white/[0.06] bg-[#0E131E]' : 'border-slate-200 bg-slate-50/70'}`}
+                        >
+                            <PackageCheck className="mb-4 h-7 w-7 text-[#bf1e26] dark:text-[#d52a30]" strokeWidth={1.5} />
+                            <h3 className={`mb-1.5 text-sm font-semibold ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>Dual-Layer Packing</h3>
+                            <p className="text-xs leading-relaxed font-light text-slate-500 dark:text-slate-400">
                                 Kantong berlapis dengan 100% oksigen murni, obat anti-stres, dan ice gel pelindung suhu.
                             </p>
                         </div>
 
-                        <div className={`rounded-2xl border p-6 transition hover:border-amber-500/30 ${isDark ? 'border-white/[0.06] bg-[#0E131E]' : 'border-slate-200 bg-slate-50/70'}`}>
-                            <Truck className="h-7 w-7 text-amber-600 dark:text-amber-400 mb-4" strokeWidth={1.5} />
-                            <h3 className={`text-sm font-semibold mb-1.5 ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>Garansi Tiba Sehat</h3>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-light">
+                        <div
+                            className={`rounded-2xl border p-6 transition hover:border-[#bf1e26]/30 ${isDark ? 'border-white/[0.06] bg-[#0E131E]' : 'border-slate-200 bg-slate-50/70'}`}
+                        >
+                            <Truck className="mb-4 h-7 w-7 text-[#bf1e26] dark:text-[#d52a30]" strokeWidth={1.5} />
+                            <h3 className={`mb-1.5 text-sm font-semibold ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>Garansi Tiba Sehat</h3>
+                            <p className="text-xs leading-relaxed font-light text-slate-500 dark:text-slate-400">
                                 Jaminan 100% Death on Arrival (DOA) untuk perlindungan menyeluruh kepemilikan Anda.
                             </p>
                         </div>
 
-                        <div className={`rounded-2xl border p-6 transition hover:border-amber-500/30 ${isDark ? 'border-white/[0.06] bg-[#0E131E]' : 'border-slate-200 bg-slate-50/70'}`}>
-                            <Award className="h-7 w-7 text-amber-600 dark:text-amber-400 mb-4" strokeWidth={1.5} />
-                            <h3 className={`text-sm font-semibold mb-1.5 ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>Autentikasi Silsilah</h3>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-light">
+                        <div
+                            className={`rounded-2xl border p-6 transition hover:border-[#bf1e26]/30 ${isDark ? 'border-white/[0.06] bg-[#0E131E]' : 'border-slate-200 bg-slate-50/70'}`}
+                        >
+                            <Award className="mb-4 h-7 w-7 text-[#bf1e26] dark:text-[#d52a30]" strokeWidth={1.5} />
+                            <h3 className={`mb-1.5 text-sm font-semibold ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>Autentikasi Silsilah</h3>
+                            <p className="text-xs leading-relaxed font-light text-slate-500 dark:text-slate-400">
                                 Dokumen sertifikat resmi farm Jepang dan silsilah indukan yang jelas dan teruji.
                             </p>
                         </div>
@@ -1827,60 +2062,72 @@ export default function LandingKoi({
             </section>
 
             {/* Testimonials */}
-            <section id="testimoni" className={`py-24 border-t transition-colors ${isDark ? 'border-white/[0.06] bg-[#0D121B]' : 'border-slate-200 bg-slate-50'}`}>
+            <section
+                id="testimoni"
+                className={`border-t py-24 transition-colors ${isDark ? 'border-white/[0.06] bg-[#0D121B]' : 'border-slate-200 bg-slate-50'}`}
+            >
                 <div className="mx-auto max-w-7xl px-6 lg:px-8">
-                    <div className="text-center max-w-2xl mx-auto mb-16">
-                        <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-amber-600 dark:text-amber-300/80">
+                    <div className="mx-auto mb-16 max-w-2xl text-center">
+                        <span className="text-[10px] font-semibold tracking-[0.25em] text-[#bf1e26] uppercase dark:text-red-300/80">
                             Collector Experiences
                         </span>
-                        <h2 className={`text-3xl font-serif mt-2 ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>
+                        <h2 className={`mt-2 font-serif text-3xl ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>
                             Catatan Penghobi & Pemenang Lelang
                         </h2>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div className={`rounded-2xl border p-6 ${isDark ? 'border-white/[0.06] bg-[#111724]' : 'border-slate-200 bg-white shadow-sm'}`}>
-                            <div className="flex items-center gap-1 text-amber-500 mb-3">
+                    <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+                        <div
+                            className={`rounded-2xl border p-6 ${isDark ? 'border-white/[0.06] bg-[#111724]' : 'border-slate-200 bg-white shadow-sm'}`}
+                        >
+                            <div className="mb-3 flex items-center gap-1 text-[#bf1e26]">
                                 {[...Array(5)].map((_, i) => (
                                     <Star key={i} className="h-3.5 w-3.5 fill-amber-500" />
                                 ))}
                             </div>
-                            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-light italic">
-                                "Showa Isa 55cm yang saya menangkan tiba di Surabaya dalam kondisi prima dan bugar. Pola Menware aslinya sangat berkarakter. Integritas lelangnya sangat transparan."
+                            <p className="text-xs leading-relaxed font-light text-slate-600 italic dark:text-slate-300">
+                                "Showa Isa 55cm yang saya menangkan tiba di Surabaya dalam kondisi prima dan bugar. Pola Menware aslinya sangat
+                                berkarakter. Integritas lelangnya sangat transparan."
                             </p>
-                            <div className={`mt-5 pt-3 border-t ${isDark ? 'border-white/[0.04]' : 'border-slate-100'}`}>
+                            <div className={`mt-5 border-t pt-3 ${isDark ? 'border-white/[0.04]' : 'border-slate-100'}`}>
                                 <div className={`text-xs font-medium ${isDark ? 'text-slate-200' : 'text-slate-900'}`}>Hendro Setiawan</div>
-                                <div className="text-[10px] text-slate-500 font-light">Surabaya</div>
+                                <div className="text-[10px] font-light text-slate-500">Surabaya</div>
                             </div>
                         </div>
 
-                        <div className={`rounded-2xl border p-6 ${isDark ? 'border-white/[0.06] bg-[#111724]' : 'border-slate-200 bg-white shadow-sm'}`}>
-                            <div className="flex items-center gap-1 text-amber-500 mb-3">
+                        <div
+                            className={`rounded-2xl border p-6 ${isDark ? 'border-white/[0.06] bg-[#111724]' : 'border-slate-200 bg-white shadow-sm'}`}
+                        >
+                            <div className="mb-3 flex items-center gap-1 text-[#bf1e26]">
                                 {[...Array(5)].map((_, i) => (
                                     <Star key={i} className="h-3.5 w-3.5 fill-amber-500" />
                                 ))}
                             </div>
-                            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-light italic">
-                                "Fitur lelang favorit mempermudah saya mengamati dinamika penawaran Sanke Sakai. Dokumentasi video renang yang dikirimkan kurator sangat representatif."
+                            <p className="text-xs leading-relaxed font-light text-slate-600 italic dark:text-slate-300">
+                                "Fitur lelang favorit mempermudah saya mengamati dinamika penawaran Sanke Sakai. Dokumentasi video renang yang
+                                dikirimkan kurator sangat representatif."
                             </p>
-                            <div className={`mt-5 pt-3 border-t ${isDark ? 'border-white/[0.04]' : 'border-slate-100'}`}>
+                            <div className={`mt-5 border-t pt-3 ${isDark ? 'border-white/[0.04]' : 'border-slate-100'}`}>
                                 <div className={`text-xs font-medium ${isDark ? 'text-slate-200' : 'text-slate-900'}`}>dr. Agus Pratama</div>
-                                <div className="text-[10px] text-slate-500 font-light">Bandung</div>
+                                <div className="text-[10px] font-light text-slate-500">Bandung</div>
                             </div>
                         </div>
 
-                        <div className={`rounded-2xl border p-6 ${isDark ? 'border-white/[0.06] bg-[#111724]' : 'border-slate-200 bg-white shadow-sm'}`}>
-                            <div className="flex items-center gap-1 text-amber-500 mb-3">
+                        <div
+                            className={`rounded-2xl border p-6 ${isDark ? 'border-white/[0.06] bg-[#111724]' : 'border-slate-200 bg-white shadow-sm'}`}
+                        >
+                            <div className="mb-3 flex items-center gap-1 text-[#bf1e26]">
                                 {[...Array(5)].map((_, i) => (
                                     <Star key={i} className="h-3.5 w-3.5 fill-amber-500" />
                                 ))}
                             </div>
-                            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-light italic">
-                                "Koleksi Kohaku Dainichi kini menjadi fokus utama di kolam kami. Kemasan pengiriman sangat aman dan kondisi air di dalam boks tetap sejuk terjaga."
+                            <p className="text-xs leading-relaxed font-light text-slate-600 italic dark:text-slate-300">
+                                "Koleksi Kohaku Dainichi kini menjadi fokus utama di kolam kami. Kemasan pengiriman sangat aman dan kondisi air di
+                                dalam boks tetap sejuk terjaga."
                             </p>
-                            <div className={`mt-5 pt-3 border-t ${isDark ? 'border-white/[0.04]' : 'border-slate-100'}`}>
+                            <div className={`mt-5 border-t pt-3 ${isDark ? 'border-white/[0.04]' : 'border-slate-100'}`}>
                                 <div className={`text-xs font-medium ${isDark ? 'text-slate-200' : 'text-slate-900'}`}>Rian Nugraha</div>
-                                <div className="text-[10px] text-slate-500 font-light">Tangerang</div>
+                                <div className="text-[10px] font-light text-slate-500">Tangerang</div>
                             </div>
                         </div>
                     </div>
@@ -1888,42 +2135,37 @@ export default function LandingKoi({
             </section>
 
             {/* FAQ */}
-            <section id="faq" className={`py-24 border-t transition-colors ${isDark ? 'border-white/[0.06] bg-[#0B0F17]' : 'border-slate-200 bg-white'}`}>
+            <section
+                id="faq"
+                className={`border-t py-24 transition-colors ${isDark ? 'border-white/[0.06] bg-[#0B0F17]' : 'border-slate-200 bg-white'}`}
+            >
                 <div className="mx-auto max-w-3xl px-6 lg:px-8">
-                    <div className="text-center mb-12">
-                        <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-amber-600 dark:text-amber-300/80">
-                            Information
-                        </span>
-                        <h2 className={`text-3xl font-serif mt-2 ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>
-                            Pertanyaan Lazim
-                        </h2>
+                    <div className="mb-12 text-center">
+                        <span className="text-[10px] font-semibold tracking-[0.25em] text-[#bf1e26] uppercase dark:text-red-300/80">Information</span>
+                        <h2 className={`mt-2 font-serif text-3xl ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>Pertanyaan Lazim</h2>
                     </div>
 
                     <div className="space-y-3">
                         {faqs.map((faq, index) => (
                             <div
                                 key={index}
-                                className={`rounded-xl border overflow-hidden ${
-                                    isDark
-                                        ? 'border-white/[0.06] bg-[#0F1420]'
-                                        : 'border-slate-200 bg-slate-50/70'
+                                className={`overflow-hidden rounded-xl border ${
+                                    isDark ? 'border-white/[0.06] bg-[#0F1420]' : 'border-slate-200 bg-slate-50/70'
                                 }`}
                             >
                                 <button
                                     onClick={() => toggleFaq(index)}
                                     className={`flex w-full items-center justify-between p-4 text-left text-xs font-medium transition ${
-                                        isDark
-                                            ? 'text-slate-200 hover:text-amber-200'
-                                            : 'text-slate-800 hover:text-amber-700'
+                                        isDark ? 'text-slate-200 hover:text-red-200' : 'text-slate-800 hover:text-[#98151e]'
                                     }`}
                                 >
                                     <span>{faq.q}</span>
-                                    <span className={`ml-4 text-slate-500 transition-transform ${faqOpen === index ? 'rotate-180' : ''}`}>
-                                        ▾
-                                    </span>
+                                    <span className={`ml-4 text-slate-500 transition-transform ${faqOpen === index ? 'rotate-180' : ''}`}>▾</span>
                                 </button>
                                 {faqOpen === index && (
-                                    <div className={`p-4 pt-0 text-xs text-slate-500 dark:text-slate-400 font-light leading-relaxed border-t ${isDark ? 'border-white/[0.04]' : 'border-slate-200'}`}>
+                                    <div
+                                        className={`border-t p-4 pt-0 text-xs leading-relaxed font-light text-slate-500 dark:text-slate-400 ${isDark ? 'border-white/[0.04]' : 'border-slate-200'}`}
+                                    >
                                         {faq.a}
                                     </div>
                                 )}
@@ -1934,65 +2176,124 @@ export default function LandingKoi({
             </section>
 
             {/* Footer */}
-            <footer className={`border-t py-14 text-xs transition-colors ${isDark ? 'border-white/[0.06] bg-[#080B11] text-slate-400' : 'border-slate-200 bg-slate-100 text-slate-500'}`}>
+            <footer
+                className={`border-t py-14 text-xs transition-colors ${isDark ? 'border-white/[0.06] bg-[#080B11] text-slate-400' : 'border-slate-200 bg-slate-100 text-slate-500'}`}
+            >
                 <div className="mx-auto max-w-7xl px-6 lg:px-8">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 mb-12">
+                    <div className="mb-12 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-5">
                         <div className="space-y-3 sm:col-span-2 lg:col-span-1">
                             <div className="flex items-center gap-2">
-                                <span className={`font-serif text-sm font-bold tracking-widest ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>KOKI KOI</span>
+                                <span className={`font-serif text-sm font-bold tracking-widest ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>
+                                    KOKI KOI
+                                </span>
                             </div>
-                            <p className="font-light text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
-                                Rumah kurasi dan lelang resmi Nishikigoi berkualitas show grade dan F1 bersertifikat, dengan dedikasi karantina dan keselamatan pengiriman menyeluruh.
+                            <p className="text-[11px] leading-relaxed font-light text-slate-500 dark:text-slate-400">
+                                Rumah kurasi dan lelang resmi Nishikigoi berkualitas show grade dan F1 bersertifikat, dengan dedikasi karantina dan
+                                keselamatan pengiriman menyeluruh.
                             </p>
                         </div>
 
                         <div>
-                            <h4 className={`font-medium mb-3 text-[11px] uppercase tracking-wider ${isDark ? 'text-slate-200' : 'text-slate-900'}`}>Ruang Lelang</h4>
+                            <h4 className={`mb-3 text-[11px] font-medium tracking-wider uppercase ${isDark ? 'text-slate-200' : 'text-slate-900'}`}>
+                                Ruang Lelang
+                            </h4>
                             <ul className="space-y-2 text-[11px] font-light">
-                                <li><button onClick={() => setAuctionTab('highest')} className="hover:text-amber-600 dark:hover:text-amber-300">Lelang Tertinggi</button></li>
-                                <li><button onClick={() => setAuctionTab('favorite')} className="hover:text-amber-600 dark:hover:text-amber-300">Lelang Favorit</button></li>
-                                <li><a href="#lelang" className="hover:text-amber-600 dark:hover:text-amber-300">Jadwal Sesi</a></li>
-                                <li><a href="#faq" className="hover:text-amber-600 dark:hover:text-amber-300">Prosedur Bidding</a></li>
+                                <li>
+                                    <button onClick={() => setAuctionTab('highest')} className="hover:text-[#bf1e26] dark:hover:text-red-300">
+                                        Lelang Tertinggi
+                                    </button>
+                                </li>
+                                <li>
+                                    <button onClick={() => setAuctionTab('favorite')} className="hover:text-[#bf1e26] dark:hover:text-red-300">
+                                        Lelang Favorit
+                                    </button>
+                                </li>
+                                <li>
+                                    <a href="#lelang" className="hover:text-[#bf1e26] dark:hover:text-red-300">
+                                        Jadwal Sesi
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#faq" className="hover:text-[#bf1e26] dark:hover:text-red-300">
+                                        Prosedur Bidding
+                                    </a>
+                                </li>
                             </ul>
                         </div>
 
                         <div>
-                            <h4 className={`font-medium mb-3 text-[11px] uppercase tracking-wider ${isDark ? 'text-slate-200' : 'text-slate-900'}`}>Varietas</h4>
+                            <h4 className={`mb-3 text-[11px] font-medium tracking-wider uppercase ${isDark ? 'text-slate-200' : 'text-slate-900'}`}>
+                                Varietas
+                            </h4>
                             <ul className="space-y-2 text-[11px] font-light">
-                                <li><Link href="/products?search=Kohaku" className="hover:text-amber-600 dark:hover:text-amber-300">Kohaku (紅白)</Link></li>
-                                <li><Link href="/products?search=Sanke" className="hover:text-amber-600 dark:hover:text-amber-300">Taisho Sanke (大正三色)</Link></li>
-                                <li><Link href="/products?search=Showa" className="hover:text-amber-600 dark:hover:text-amber-300">Showa Sanshoku (昭和三色)</Link></li>
-                                <li><Link href="/products?search=Tancho" className="hover:text-amber-600 dark:hover:text-amber-300">Tancho (丹頂)</Link></li>
+                                <li>
+                                    <Link href="/products?search=Kohaku" className="hover:text-[#bf1e26] dark:hover:text-red-300">
+                                        Kohaku (紅白)
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link href="/products?search=Sanke" className="hover:text-[#bf1e26] dark:hover:text-red-300">
+                                        Taisho Sanke (大正三色)
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link href="/products?search=Showa" className="hover:text-[#bf1e26] dark:hover:text-red-300">
+                                        Showa Sanshoku (昭和三色)
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link href="/products?search=Tancho" className="hover:text-[#bf1e26] dark:hover:text-red-300">
+                                        Tancho (丹頂)
+                                    </Link>
+                                </li>
                             </ul>
                         </div>
 
                         <div>
-                            <h4 className={`font-medium mb-3 text-[11px] uppercase tracking-wider ${isDark ? 'text-slate-200' : 'text-slate-900'}`}>Akun & Lapak</h4>
+                            <h4 className={`mb-3 text-[11px] font-medium tracking-wider uppercase ${isDark ? 'text-slate-200' : 'text-slate-900'}`}>
+                                Akun & Lapak
+                            </h4>
                             <ul className="space-y-2 text-[11px] font-light">
                                 {auth?.user ? (
                                     <>
                                         <li>
-                                            <Link href={auth.user.role === 'seller' ? '/seller/dashboard' : '/dashboard'} className="hover:text-amber-600 dark:hover:text-amber-300">
+                                            <Link
+                                                href={auth.user.role === 'seller' ? '/seller/dashboard' : '/dashboard'}
+                                                className="hover:text-[#bf1e26] dark:hover:text-red-300"
+                                            >
                                                 {auth.user.role === 'seller' ? 'Dashboard Toko Saya' : 'Profil & Pesanan Saya'}
                                             </Link>
                                         </li>
                                         <li>
-                                            <Link href="/logout" method="post" as="button" className="hover:text-rose-500 text-left">
+                                            <Link href="/logout" method="post" as="button" className="text-left hover:text-rose-500">
                                                 Keluar (Logout)
                                             </Link>
                                         </li>
                                     </>
                                 ) : (
                                     <>
-                                        <li><Link href="/login" className="hover:text-amber-600 dark:hover:text-amber-300 font-medium text-amber-600 dark:text-amber-400">Masuk Akun (Role Access)</Link></li>
+                                        <li>
+                                            <Link
+                                                href="/login"
+                                                className="font-medium text-[#bf1e26] hover:text-[#bf1e26] dark:text-[#d52a30] dark:hover:text-red-300"
+                                            >
+                                                Masuk Akun (Role Access)
+                                            </Link>
+                                        </li>
                                     </>
                                 )}
-                                <li><Link href="/cart" className="hover:text-amber-600 dark:hover:text-amber-300">Keranjang Koleksi</Link></li>
+                                <li>
+                                    <Link href="/cart" className="hover:text-[#bf1e26] dark:hover:text-red-300">
+                                        Keranjang Koleksi
+                                    </Link>
+                                </li>
                             </ul>
                         </div>
 
                         <div>
-                            <h4 className={`font-medium mb-3 text-[11px] uppercase tracking-wider ${isDark ? 'text-slate-200' : 'text-slate-900'}`}>Fasilitas Farm</h4>
+                            <h4 className={`mb-3 text-[11px] font-medium tracking-wider uppercase ${isDark ? 'text-slate-200' : 'text-slate-900'}`}>
+                                Fasilitas Farm
+                            </h4>
                             <div className="space-y-2 text-[11px] font-light text-slate-500 dark:text-slate-400">
                                 <div className="flex items-center gap-2">
                                     <MapPin className="h-3.5 w-3.5 text-slate-400" />
@@ -2004,7 +2305,7 @@ export default function LandingKoi({
                                         href={whatsappCs.chat_url}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="hover:text-emerald-500 transition"
+                                        className="transition hover:text-emerald-500"
                                     >
                                         WhatsApp Concierge: {whatsappCs.phone}
                                     </a>
@@ -2013,7 +2314,9 @@ export default function LandingKoi({
                         </div>
                     </div>
 
-                    <div className={`pt-8 border-t flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] font-light ${isDark ? 'border-white/[0.04] text-slate-500' : 'border-slate-200 text-slate-500'}`}>
+                    <div
+                        className={`flex flex-col items-center justify-between gap-4 border-t pt-8 text-[11px] font-light sm:flex-row ${isDark ? 'border-white/[0.04] text-slate-500' : 'border-slate-200 text-slate-500'}`}
+                    >
                         <p>© {new Date().getFullYear()} KOKI KOI Nishikigoi. Seluruh Hak Cipta Dilindungi.</p>
                         <p>Didedikasikan untuk komunitas apresiasi seni Nishikigoi Indonesia.</p>
                     </div>
@@ -2025,58 +2328,70 @@ export default function LandingKoi({
                 href={whatsappCs.chat_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="fixed bottom-6 right-6 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white shadow-xl hover:shadow-emerald-600/30 transition-all cursor-pointer group"
+                className="group fixed right-6 bottom-6 z-40 flex h-12 w-12 cursor-pointer items-center justify-center rounded-full bg-emerald-600 text-white shadow-xl transition-all hover:bg-emerald-500 hover:shadow-emerald-600/30 active:scale-95"
                 title="Chat Langsung WhatsApp CS & Concierge"
                 aria-label="Konsultasi WhatsApp CS"
             >
-                <MessageCircle className="w-5 h-5 fill-current" />
+                <MessageCircle className="h-5 w-5 fill-current" />
             </a>
             {/* ========================================================= */}
             {/* ARTICLE MODAL READER DIALOG                              */}
             {/* ========================================================= */}
             {selectedArticle && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto">
+                <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/80 p-4 backdrop-blur-sm duration-200">
                     <div
-                        className={`relative w-full max-w-2xl rounded-3xl border shadow-2xl overflow-hidden my-8 max-h-[90vh] flex flex-col ${
-                            isDark ? 'bg-[#111724] border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-900'
+                        className={`relative my-8 flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border shadow-2xl ${
+                            isDark ? 'border-slate-800 bg-[#111724] text-white' : 'border-slate-200 bg-white text-slate-900'
                         }`}
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Modal Header Bar */}
-                        <div className="sticky top-0 z-20 px-6 py-4 border-b border-slate-200 dark:border-slate-800 bg-inherit flex items-center justify-between">
+                        <div className="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-inherit px-6 py-4 dark:border-slate-800">
                             <div className="flex items-center gap-2">
-                                <span className="px-2.5 py-0.5 rounded-full bg-amber-500 text-stone-950 font-black text-[10px] uppercase">
+                                <span className="rounded-full bg-[#bf1e26] px-2.5 py-0.5 text-[10px] font-black text-white uppercase">
                                     {selectedArticle.badge_text || selectedArticle.category_label || selectedArticle.category}
                                 </span>
                                 <span className="text-xs text-slate-400">
-                                    {selectedArticle.published_at ? new Date(selectedArticle.published_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : 'KOKI KOI Media'}
+                                    {selectedArticle.published_at
+                                        ? new Date(selectedArticle.published_at).toLocaleDateString('id-ID', {
+                                              day: 'numeric',
+                                              month: 'long',
+                                              year: 'numeric',
+                                          })
+                                        : 'KOKI KOI Media'}
                                 </span>
                             </div>
                             <button
                                 onClick={() => setSelectedArticle(null)}
-                                className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center transition"
+                                className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 transition hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700"
                             >
-                                <X className="w-4 h-4 text-slate-500 dark:text-slate-300" />
+                                <X className="h-4 w-4 text-slate-500 dark:text-slate-300" />
                             </button>
                         </div>
 
                         {/* Modal Body Scroll */}
-                        <div className="p-6 overflow-y-auto space-y-4">
+                        <div className="space-y-4 overflow-y-auto p-6">
                             {/* Media (YouTube or Image) */}
                             {selectedArticle.media_type === 'youtube' && (selectedArticle.youtube_embed_url || selectedArticle.youtube_url) ? (
                                 <div className="space-y-2">
-                                    <div className="aspect-video w-full rounded-2xl overflow-hidden bg-black shadow-lg relative ring-1 ring-white/10">
+                                    <div className="relative aspect-video w-full overflow-hidden rounded-2xl bg-black shadow-lg ring-1 ring-white/10">
                                         {(() => {
                                             const rawUrl = selectedArticle.youtube_url || selectedArticle.youtube_embed_url || '';
-                                            const match = rawUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
-                                            const vid = match ? match[1] : (rawUrl.includes('/embed/') ? rawUrl.split('/embed/')[1]?.split('?')[0] : 'Hc0E5B0vLfg');
+                                            const match = rawUrl.match(
+                                                /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/,
+                                            );
+                                            const vid = match
+                                                ? match[1]
+                                                : rawUrl.includes('/embed/')
+                                                  ? rawUrl.split('/embed/')[1]?.split('?')[0]
+                                                  : 'Hc0E5B0vLfg';
                                             const embedSrc = `https://www.youtube.com/embed/${vid}?rel=0&playsinline=1`;
 
                                             return (
                                                 <iframe
                                                     src={embedSrc}
                                                     title={selectedArticle.title}
-                                                    className="w-full h-full border-0"
+                                                    className="h-full w-full border-0"
                                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                                                     referrerPolicy="strict-origin-when-cross-origin"
                                                     allowFullScreen
@@ -2084,21 +2399,23 @@ export default function LandingKoi({
                                             );
                                         })()}
                                     </div>
-                                    <div className="flex items-center justify-between text-xs text-slate-400 gap-2">
+                                    <div className="flex items-center justify-between gap-2 text-xs text-slate-400">
                                         <a
                                             href={`https://www.youtube.com/watch?v=${(() => {
                                                 const rawUrl = selectedArticle.youtube_url || selectedArticle.youtube_embed_url || '';
-                                                const match = rawUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+                                                const match = rawUrl.match(
+                                                    /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/,
+                                                );
                                                 return match ? match[1] : 'Hc0E5B0vLfg';
                                             })()}`}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-sm transition active:scale-95"
+                                            className="inline-flex items-center gap-1.5 rounded-full bg-red-600 px-3 py-1.5 text-xs font-bold text-white shadow-sm transition hover:bg-red-700 active:scale-95"
                                         >
-                                            <Play className="w-3 h-3 fill-white" />
+                                            <Play className="h-3 w-3 fill-white" />
                                             <span>Buka di YouTube (Bebas Login) ↗</span>
                                         </a>
-                                        <span className="text-emerald-500 font-medium">✓ Akses publik tanpa perlu login</span>
+                                        <span className="font-medium text-emerald-500">✓ Akses publik tanpa perlu login</span>
                                     </div>
                                 </div>
                             ) : selectedArticle.banner_image ? (
@@ -2108,56 +2425,52 @@ export default function LandingKoi({
                                             window.open(selectedArticle.custom_url, selectedArticle.target_type || '_blank');
                                         }
                                     }}
-                                    className={`rounded-2xl overflow-hidden aspect-[16/9] w-full bg-slate-900 shadow relative ${
-                                        selectedArticle.custom_url ? 'cursor-pointer group' : ''
+                                    className={`relative aspect-[16/9] w-full overflow-hidden rounded-2xl bg-slate-900 shadow ${
+                                        selectedArticle.custom_url ? 'group cursor-pointer' : ''
                                     }`}
                                 >
-                                    <img
-                                        src={selectedArticle.banner_image}
-                                        alt={selectedArticle.title}
-                                        className="w-full h-full object-cover"
-                                    />
+                                    <img loading="lazy" decoding="async" src={selectedArticle.banner_image} alt={selectedArticle.title} className="h-full w-full object-cover" />
                                     {selectedArticle.custom_url && (
-                                        <div className="absolute bottom-3 right-3 px-3 py-1 rounded-full bg-black/75 backdrop-blur-xs text-white text-xs font-semibold flex items-center gap-1.5 shadow-md border border-white/20">
-                                            <ExternalLink className="w-3.5 h-3.5 text-amber-400" />
+                                        <div className="absolute right-3 bottom-3 flex items-center gap-1.5 rounded-full border border-white/20 bg-black/75 px-3 py-1 text-xs font-semibold text-white shadow-md backdrop-blur-xs">
+                                            <ExternalLink className="h-3.5 w-3.5 text-[#d52a30]" />
                                             <span>Buka Link Gambar</span>
                                         </div>
                                     )}
                                 </div>
                             ) : null}
 
-                            <h2 className="text-xl sm:text-2xl font-bold font-serif leading-tight">
-                                {selectedArticle.title}
-                            </h2>
+                            <h2 className="font-serif text-xl leading-tight font-bold sm:text-2xl">{selectedArticle.title}</h2>
 
                             {selectedArticle.summary && (
-                                <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs sm:text-sm text-amber-800 dark:text-amber-200 font-medium leading-relaxed">
+                                <div className="rounded-xl border border-[#bf1e26]/20 bg-[#bf1e26]/10 p-4 text-xs leading-relaxed font-medium text-[#98151e] sm:text-sm dark:text-red-200">
                                     {selectedArticle.summary}
                                 </div>
                             )}
 
-                            <div className="text-xs sm:text-sm leading-relaxed whitespace-pre-line text-slate-700 dark:text-slate-300 font-light space-y-3">
+                            <div className="space-y-3 text-xs leading-relaxed font-light whitespace-pre-line text-slate-700 sm:text-sm dark:text-slate-300">
                                 {selectedArticle.content || selectedArticle.summary}
                             </div>
                         </div>
 
                         {/* Modal Footer with Custom URL link */}
-                        <div className="sticky bottom-0 px-6 py-4 border-t border-slate-200 dark:border-slate-800 bg-inherit flex items-center justify-between gap-4">
+                        <div className="sticky bottom-0 flex items-center justify-between gap-4 border-t border-slate-200 bg-inherit px-6 py-4 dark:border-slate-800">
                             {selectedArticle.custom_url ? (
                                 <a
                                     href={selectedArticle.custom_url}
                                     target={selectedArticle.target_type || '_blank'}
                                     rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-xs transition shadow-md"
+                                    className="inline-flex items-center gap-1.5 rounded-full bg-[#bf1e26] px-5 py-2.5 text-xs font-bold text-white shadow-md transition hover:bg-[#bf1e26]"
                                 >
                                     <span>Buka Link Gambar</span>
-                                    <ExternalLink className="w-3.5 h-3.5" />
+                                    <ExternalLink className="h-3.5 w-3.5" />
                                 </a>
-                            ) : <div />}
+                            ) : (
+                                <div />
+                            )}
 
                             <button
                                 onClick={() => setSelectedArticle(null)}
-                                className="px-5 py-2.5 rounded-full border border-slate-300 dark:border-slate-700 text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                                className="rounded-full border border-slate-300 px-5 py-2.5 text-xs font-semibold transition hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
                             >
                                 Tutup
                             </button>

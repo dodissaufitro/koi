@@ -38,37 +38,37 @@ export default function MarketplaceShow({ product, relatedProducts }: Props) {
     const conditionText = conditionMap[product.condition] || { label: 'Koi Kualitas Kolektor', desc: 'Kondisi sehat prima lolos karantina ketat.' };
 
     return (
-        <div className="min-h-screen bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100">
-            <Head title={`${product.name} - KOI PREMIUM Gallery`} />
+        <div className="min-h-screen bg-[#faf8f5] text-slate-800 dark:bg-slate-950 dark:text-slate-100">
+            <Head title={`${product.name} - KOKI KOI Curated Japanese Heritage`} />
 
             {/* Top Navigation */}
-            <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur dark:border-slate-800 dark:bg-slate-900/95">
-                <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
-                    <Link href="/products" className="flex items-center gap-2 text-xs font-semibold text-slate-600 hover:text-red-600 dark:text-slate-300 dark:hover:text-red-400">
+            <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/95 backdrop-blur dark:border-slate-800 dark:bg-slate-900/95">
+                <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3.5 sm:px-6">
+                    <Link href="/products" className="flex items-center gap-2 text-xs font-semibold text-slate-600 hover:text-[#bf1e26] dark:text-slate-300 dark:hover:text-red-400 transition">
                         <ArrowLeft className="h-4 w-4" />
                         <span>Kembali ke Galeri Koi</span>
                     </Link>
 
-                    <Link href="/cart" className="relative flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 text-slate-700 hover:bg-slate-100 dark:border-slate-800 dark:text-slate-300">
+                    <Link href="/cart" className="relative flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 text-slate-700 hover:border-[#bf1e26] hover:text-[#bf1e26] dark:border-slate-800 dark:text-slate-300 transition">
                         <ShoppingCart className="h-4 w-4" />
                     </Link>
                 </div>
             </header>
 
             {/* Breadcrumb */}
-            <nav className="mx-auto max-w-7xl px-4 pt-4 sm:px-6">
+            <nav className="mx-auto max-w-7xl px-4 pt-5 sm:px-6">
                 <div className="flex items-center gap-1.5 text-xs text-slate-400">
-                    <Link href="/" className="hover:text-slate-600 dark:hover:text-slate-200">Katalog</Link>
+                    <Link href="/" className="hover:text-[#bf1e26] dark:hover:text-slate-200">Katalog</Link>
                     <ChevronRight className="h-3 w-3" />
                     {product.category && (
                         <>
-                            <Link href={`/products?category=${product.category.slug}`} className="hover:text-slate-600 dark:hover:text-slate-200">
+                            <Link href={`/products?category=${product.category.slug}`} className="hover:text-[#bf1e26] dark:hover:text-slate-200">
                                 {product.category.name}
                             </Link>
                             <ChevronRight className="h-3 w-3" />
                         </>
                     )}
-                    <span className="truncate text-slate-600 dark:text-slate-300 font-medium">{product.name}</span>
+                    <span className="truncate text-slate-700 dark:text-slate-300 font-semibold">{product.name}</span>
                 </div>
             </nav>
 
@@ -77,15 +77,18 @@ export default function MarketplaceShow({ product, relatedProducts }: Props) {
                 <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
                     {/* Left: Product Images */}
                     <div className="lg:col-span-6">
-                        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
-                            <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-100 dark:bg-slate-800">
+                        <div className="overflow-hidden rounded-3xl border border-slate-200/90 bg-white shadow-md dark:border-slate-800 dark:bg-slate-900">
+                            <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-900">
                                 <img
+                                    loading="lazy"
+                                    decoding="async"
                                     src={selectedImage}
                                     alt={product.name}
                                     className="h-full w-full object-cover"
                                 />
                                 <div className="absolute top-4 left-4">
-                                    <span className="rounded-full bg-sky-600/90 px-3 py-1 text-xs font-semibold text-white backdrop-blur shadow-sm">
+                                    <span className="rounded-full bg-[#bf1e26] px-3.5 py-1 text-xs font-bold text-white shadow-md flex items-center gap-1.5">
+                                        <ShieldCheck className="h-3.5 w-3.5" />
                                         {conditionText.label}
                                     </span>
                                 </div>
@@ -93,48 +96,48 @@ export default function MarketplaceShow({ product, relatedProducts }: Props) {
 
                             {/* Gallery Thumbnails */}
                             {product.images && product.images.length > 1 && (
-                                <div className="flex gap-2 p-3 overflow-x-auto border-t border-slate-100 dark:border-slate-800">
+                                <div className="flex gap-2.5 p-3.5 overflow-x-auto border-t border-slate-100 bg-[#faf8f5]/50 dark:border-slate-800 dark:bg-transparent">
                                     {product.images.map((img) => (
                                         <button
                                             key={img.id}
                                             onClick={() => setSelectedImage(img.image_path)}
                                             className={`relative h-16 w-16 shrink-0 overflow-hidden rounded-xl border-2 transition ${
-                                                selectedImage === img.image_path ? 'border-sky-500' : 'border-transparent opacity-70 hover:opacity-100'
+                                                selectedImage === img.image_path ? 'border-[#bf1e26] scale-105 shadow-sm' : 'border-transparent opacity-70 hover:opacity-100'
                                             }`}
                                         >
-                                            <img src={img.image_path} alt="" className="h-full w-full object-cover" />
+                                            <img loading="lazy" decoding="async" src={img.image_path} alt="" className="h-full w-full object-cover" />
                                         </button>
                                     ))}
                                 </div>
                             )}
                         </div>
 
-                        {/* Store / Fisherman Info */}
+                        {/* Store / Breeder Info */}
                         {product.store && (
-                            <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                            <div className="mt-6 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
-                                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300">
+                                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-red-50 text-[#bf1e26] dark:bg-red-950/40 dark:text-red-300">
                                             <StoreIcon className="h-6 w-6" />
                                         </div>
                                         <div>
                                             <div className="flex items-center gap-1.5">
                                                 <h4 className="font-bold text-slate-900 dark:text-slate-100">{product.store.name}</h4>
                                                 {product.store.is_verified && (
-                                                    <span title="Lapak Terverifikasi">
-                                                        <CheckCircle2 className="h-4 w-4 text-sky-500" />
+                                                    <span title="Diler Resmi Terverifikasi">
+                                                        <CheckCircle2 className="h-4 w-4 text-[#bf1e26]" />
                                                     </span>
                                                 )}
                                             </div>
                                             <div className="flex items-center gap-1 text-xs text-slate-400 mt-0.5">
-                                                <MapPin className="h-3 w-3" />
+                                                <MapPin className="h-3 w-3 text-slate-400" />
                                                 <span>{product.store.city}</span>
                                             </div>
                                         </div>
                                     </div>
                                     <Link
                                         href={`/stores/${product.store.slug}`}
-                                        className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 dark:border-slate-800 dark:text-slate-300"
+                                        className="rounded-lg border border-slate-200 px-3.5 py-1.5 text-xs font-semibold text-slate-700 hover:border-[#bf1e26] hover:text-[#bf1e26] dark:border-slate-800 dark:text-slate-300 transition"
                                     >
                                         Profil Diler
                                     </Link>
@@ -150,64 +153,64 @@ export default function MarketplaceShow({ product, relatedProducts }: Props) {
 
                     {/* Right: Product Details & Order Form */}
                     <div className="lg:col-span-6 flex flex-col justify-between">
-                        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                        <div className="rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-7 shadow-md dark:border-slate-800 dark:bg-slate-900">
                             {/* Badges */}
                             <div className="flex flex-wrap items-center gap-2 mb-3">
                                 {product.category && (
-                                    <span className="rounded-md bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                                    <span className="rounded-md bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-700 dark:bg-slate-800 dark:text-slate-300">
                                         {product.category.name}
                                     </span>
                                 )}
                                 {product.origin && (
-                                    <span className="rounded-md bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700 dark:bg-red-950 dark:text-red-300 border border-red-200 dark:border-red-900">
+                                    <span className="rounded-md bg-red-50 px-2.5 py-1 text-xs font-bold text-[#bf1e26] dark:bg-red-950 dark:text-red-300 border border-red-200/80 dark:border-red-900">
                                         {product.origin.toLowerCase().includes('jepang') || product.origin.toLowerCase().includes('niigata') ? '🇯🇵 Import Jepang' : '🇮🇩 Breeder Lokal Juara'}
                                     </span>
                                 )}
                             </div>
 
-                            {/* Title */}
-                            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-slate-50">
+                            {/* Title - Serif Playfair */}
+                            <h1 className="text-2xl sm:text-3xl font-serif font-extrabold text-slate-950 dark:text-slate-50 tracking-tight leading-snug">
                                 {product.name}
                             </h1>
 
                             {/* Origin & Rating */}
-                            <div className="mt-2 flex flex-wrap items-center gap-4 text-xs text-slate-500">
+                            <div className="mt-2.5 flex flex-wrap items-center gap-4 text-xs text-slate-500">
                                 {product.origin && (
                                     <div className="flex items-center gap-1">
                                         <MapPin className="h-3.5 w-3.5 text-slate-400" />
-                                        <span>Asal / Farm: <strong>{product.origin}</strong></span>
+                                        <span>Asal / Farm: <strong className="text-slate-700 dark:text-slate-300">{product.origin}</strong></span>
                                     </div>
                                 )}
-                                <div className="flex items-center gap-1 text-amber-500">
-                                    <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-                                    <span className="font-bold text-slate-700 dark:text-slate-300">
+                                <div className="flex items-center gap-1">
+                                    <Star className="h-3.5 w-3.5 fill-[#bf1e26] text-[#bf1e26]" />
+                                    <span className="font-bold text-slate-800 dark:text-slate-200">
                                         {product.average_rating || 5.0}
                                     </span>
                                     <span className="text-slate-400">({product.reviews?.length || 1} ulasan)</span>
                                 </div>
                             </div>
 
-                            {/* Price */}
-                            <div className="mt-6 rounded-2xl bg-sky-50/80 p-4 border border-sky-100 dark:bg-sky-950/40 dark:border-sky-900/50">
-                                <span className="text-xs font-semibold uppercase tracking-wider text-sky-800 dark:text-sky-300">Harga Satuan</span>
+                            {/* Price Block - Luxury Red Playfair */}
+                            <div className="mt-6 rounded-2xl bg-[#faf8f5] p-5 border border-red-100/80 dark:bg-slate-800/40 dark:border-red-900/30">
+                                <span className="text-[11px] font-bold uppercase tracking-wider text-[#bf1e26]">Harga Satuan</span>
                                 <div className="flex items-baseline gap-2 mt-1">
-                                    <span className="text-3xl font-black text-sky-700 dark:text-sky-300">
+                                    <span className="text-3xl sm:text-4xl font-serif font-extrabold text-[#bf1e26] dark:text-red-400 tracking-tight">
                                         Rp {Number(product.price).toLocaleString('id-ID')}
                                     </span>
-                                    <span className="text-sm font-semibold text-slate-500">/ {product.unit}</span>
+                                    <span className="text-xs font-semibold text-slate-500">/ {product.unit}</span>
                                 </div>
-                                <p className="text-xs text-sky-700/80 dark:text-sky-400 mt-1">
-                                    Tersedia stok {Number(product.stock)} {product.unit} (Estimasi bobot: ±{product.weight_gram} gram per {product.unit})
+                                <p className="text-xs text-slate-600 dark:text-slate-400 mt-1.5 font-medium">
+                                    Tersedia stok <strong className="text-slate-900 dark:text-white">{Number(product.stock)} {product.unit}</strong> (Estimasi bobot: ±{product.weight_gram} gram per {product.unit})
                                 </p>
                             </div>
 
                             {/* Quality Guarantee Box */}
-                            <div className="mt-5 rounded-xl border border-dashed border-teal-300 bg-teal-50/50 p-3.5 text-xs text-teal-800 dark:border-teal-900 dark:bg-teal-950/30 dark:text-teal-200">
-                                <div className="flex items-start gap-2">
-                                    <ShieldCheck className="h-4 w-4 shrink-0 text-teal-600 dark:text-teal-400 mt-0.5" />
+                            <div className="mt-5 rounded-xl border border-dashed border-[#bf1e26]/30 bg-red-50/40 p-4 text-xs text-[#98151e] dark:border-red-900 dark:bg-red-950/20 dark:text-red-200">
+                                <div className="flex items-start gap-2.5">
+                                    <ShieldCheck className="h-4.5 w-4.5 shrink-0 text-[#bf1e26] mt-0.5" />
                                     <div>
-                                        <p className="font-semibold">{conditionText.label}</p>
-                                        <p className="text-[11px] opacity-80 mt-0.5">{conditionText.desc}</p>
+                                        <p className="font-bold">{conditionText.label}</p>
+                                        <p className="text-[11px] opacity-80 mt-0.5 leading-relaxed">{conditionText.desc}</p>
                                     </div>
                                 </div>
                             </div>
@@ -215,7 +218,7 @@ export default function MarketplaceShow({ product, relatedProducts }: Props) {
                             {/* Description */}
                             <div className="mt-6 border-t border-slate-100 pt-5 dark:border-slate-800">
                                 <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Deskripsi Produk</h3>
-                                <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-line dark:text-slate-300">
+                                <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-line dark:text-slate-300 font-light">
                                     {product.description}
                                 </p>
                             </div>
@@ -225,7 +228,7 @@ export default function MarketplaceShow({ product, relatedProducts }: Props) {
                                 <div className="space-y-4">
                                     {/* Quantity */}
                                     <div>
-                                        <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                                             Jumlah Pesanan ({product.unit}):
                                         </label>
                                         <div className="flex items-center gap-3">
@@ -253,15 +256,15 @@ export default function MarketplaceShow({ product, relatedProducts }: Props) {
                                                     +
                                                 </button>
                                             </div>
-                                            <span className="text-xs text-slate-400">
-                                                Subtotal: <strong className="text-slate-700 dark:text-slate-200">Rp {(data.quantity * Number(product.price)).toLocaleString('id-ID')}</strong>
+                                            <span className="text-xs text-slate-500">
+                                                Subtotal: <strong className="text-xl font-serif text-[#bf1e26] dark:text-red-400 font-bold ml-1">Rp {(data.quantity * Number(product.price)).toLocaleString('id-ID')}</strong>
                                             </span>
                                         </div>
                                     </div>
 
                                     {/* Request Catatan Pengiriman */}
                                     <div>
-                                        <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                                             Catatan Karantina / Packing Khusus:
                                         </label>
                                         <input
@@ -269,7 +272,7 @@ export default function MarketplaceShow({ product, relatedProducts }: Props) {
                                             value={data.notes}
                                             onChange={(e) => setData('notes', e.target.value)}
                                             placeholder="Contoh: Tambah packing box styrofoam ganda, kirim via ekspedisi khusus ikan hidup"
-                                            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs transition focus:border-red-500 focus:bg-white focus:outline-none dark:border-slate-800 dark:bg-slate-800 dark:focus:bg-slate-900"
+                                            className="w-full rounded-xl border border-slate-200 bg-[#faf8f5] px-3.5 py-2.5 text-xs transition focus:border-[#bf1e26] focus:bg-white focus:outline-none dark:border-slate-800 dark:bg-slate-800 dark:focus:bg-slate-900"
                                         />
                                         <span className="text-[11px] text-slate-400 mt-1 block">
                                             *Diler/Breeder memastikan ikan dipuasakan & dikarantina ketat sebelum dikirim dalam kantong oksigen medis.
@@ -281,7 +284,7 @@ export default function MarketplaceShow({ product, relatedProducts }: Props) {
                                         <button
                                             type="submit"
                                             disabled={processing || Number(product.stock) <= 0}
-                                            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-red-600 to-amber-600 py-3.5 text-sm font-bold text-white shadow-lg shadow-red-500/25 transition hover:from-red-500 hover:to-amber-500 disabled:opacity-50"
+                                            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#bf1e26] hover:bg-[#98151e] py-3.5 text-sm font-bold text-white shadow-lg shadow-red-900/20 transition active:scale-[0.98] disabled:opacity-50 cursor-pointer"
                                         >
                                             <ShoppingCart className="h-4 w-4" />
                                             <span>{processing ? 'Menambahkan...' : 'Pesan Koi Sekarang'}</span>
@@ -309,7 +312,7 @@ export default function MarketplaceShow({ product, relatedProducts }: Props) {
                                             </div>
                                             <span className="text-xs font-bold text-slate-800 dark:text-slate-200">{rev.user?.name || 'Pembeli Terverifikasi'}</span>
                                         </div>
-                                        <div className="flex items-center text-amber-400">
+                                        <div className="flex items-center text-[#d52a30]">
                                             {Array.from({ length: rev.rating }).map((_, i) => (
                                                 <Star key={i} className="h-3.5 w-3.5 fill-amber-400" />
                                             ))}
@@ -345,6 +348,8 @@ export default function MarketplaceShow({ product, relatedProducts }: Props) {
                                 >
                                     <div className="aspect-[4/3] w-full overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-800 mb-3">
                                         <img
+                                    loading="lazy"
+                                    decoding="async"
                                             src={rel.primary_image?.image_path || '/images/koi/kohaku.jpg'}
                                             alt={rel.name}
                                             className="h-full w-full object-cover transition group-hover:scale-105"

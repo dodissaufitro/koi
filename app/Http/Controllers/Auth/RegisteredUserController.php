@@ -69,14 +69,14 @@ class RegisteredUserController extends Controller
             $request->session()->forget('url.intended');
             $path = parse_url($intendedUrl, PHP_URL_PATH) ?? '';
             if (!str_contains($path, '/login') && !str_contains($path, '/register') && !str_contains($path, '/logout')) {
-                return redirect()->to($intendedUrl);
+                return redirect()->to($intendedUrl)->with('success', 'Akun berhasil dibuat. Selamat datang, ' . $user->name . '!');
             }
         }
 
         if (app()->runningUnitTests()) {
-            return redirect()->intended(route('dashboard', absolute: false));
+            return redirect()->intended(route('dashboard', absolute: false))->with('success', 'Akun berhasil dibuat. Selamat datang, ' . $user->name . '!');
         }
 
-        return redirect()->route('home');
+        return redirect()->route('home')->with('success', 'Akun berhasil dibuat. Selamat datang, ' . $user->name . '!');
     }
 }

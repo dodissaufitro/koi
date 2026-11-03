@@ -17,15 +17,18 @@ interface Props {
     };
 }
 
-export default function MarketplaceIndex({ products, categories, filters }: Props) {
-    const [searchTerm, setSearchTerm] = useState(filters.search || '');
-    const [selectedCondition, setSelectedCondition] = useState(filters.condition || '');
-    const [selectedCategory, setSelectedCategory] = useState(filters.category || '');
-    const [selectedSort, setSelectedSort] = useState(filters.sort || '');
+export default function MarketplaceIndex({ products, categories = [], filters = {} }: Props) {
+    // Keep the catalog usable even if an older cached Inertia response omits props.
+    const productItems = products?.data ?? [];
+    const safeFilters = Array.isArray(filters) ? {} : filters;
+    const [searchTerm, setSearchTerm] = useState(safeFilters.search || '');
+    const [selectedCondition, setSelectedCondition] = useState(safeFilters.condition || '');
+    const [selectedCategory, setSelectedCategory] = useState(safeFilters.category || '');
+    const [selectedSort, setSelectedSort] = useState(safeFilters.sort || '');
 
     const applyFilters = (newFilters: Record<string, string | undefined>) => {
         const query: Record<string, string | undefined> = {
-            ...filters,
+            ...safeFilters,
             ...newFilters,
         };
 
@@ -68,8 +71,8 @@ export default function MarketplaceIndex({ products, categories, filters }: Prop
             case 'show':
                 return {
                     label: 'Show Quality Kontes',
-                    bg: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800',
-                    dot: 'bg-amber-500',
+                    bg: 'bg-red-50 text-[#98151e] border-[#bf1e26]/20 dark:bg-amber-950 dark:text-red-300 dark:border-amber-800',
+                    dot: 'bg-[#bf1e26]',
                 };
             case 'import':
                 return {
@@ -80,8 +83,8 @@ export default function MarketplaceIndex({ products, categories, filters }: Prop
             case 'lokal':
                 return {
                     label: 'Breeder Lokal Terverifikasi',
-                    bg: 'bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950 dark:text-sky-300 dark:border-sky-800',
-                    dot: 'bg-sky-500',
+                    bg: 'bg-red-50 text-[#bf1e26] border-sky-200 dark:bg-sky-950 dark:text-sky-300 dark:border-sky-800',
+                    dot: 'bg-red-500',
                 };
             default:
                 return {
@@ -93,14 +96,14 @@ export default function MarketplaceIndex({ products, categories, filters }: Prop
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100">
+        <div className="min-h-screen bg-[#faf8f5] text-slate-800 dark:bg-slate-950 dark:text-slate-100">
             <Head title="KOI PREMIUM Gallery - Katalog Ikan Koi Kelas Kontes & Kolektor" />
 
             {/* Top Navigation Bar */}
             <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur dark:border-slate-800 dark:bg-slate-900/95">
                 <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
                     <Link href="/" className="flex items-center gap-2.5">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-red-600 to-amber-500 text-white shadow-md shadow-red-500/20">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-red-600 to-[#98151e] text-white shadow-md shadow-red-500/20">
                             <Fish className="h-6 w-6" />
                         </div>
                         <div>
@@ -135,7 +138,7 @@ export default function MarketplaceIndex({ products, categories, filters }: Prop
 
                         <Link
                             href="/dashboard"
-                            className="inline-flex items-center gap-1.5 rounded-full bg-sky-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-sky-500 transition"
+                            className="inline-flex items-center gap-1.5 rounded-full bg-[#bf1e26] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-red-500 transition"
                         >
                             <span>Akun Saya</span>
                         </Link>
@@ -149,7 +152,7 @@ export default function MarketplaceIndex({ products, categories, filters }: Prop
                 <div className="relative mx-auto max-w-7xl px-4 sm:px-6">
                     <div className="max-w-2xl">
                         <div className="inline-flex items-center gap-2 rounded-full bg-red-500/20 px-3 py-1 text-xs font-medium text-red-300 backdrop-blur border border-red-500/30 mb-4">
-                            <Sparkles className="h-3.5 w-3.5 text-amber-300" />
+                            <Sparkles className="h-3.5 w-3.5 text-red-300" />
                             <span>Koleksi Eksklusif KOI PREMIUM Indonesia & Jepang</span>
                         </div>
                         <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-5xl text-white">
@@ -165,7 +168,7 @@ export default function MarketplaceIndex({ products, categories, filters }: Prop
                                 <span>Sertifikat Karantina Resmi</span>
                             </div>
                             <div className="flex items-center gap-1.5">
-                                <Award className="h-4 w-4 text-amber-400" />
+                                <Award className="h-4 w-4 text-[#d52a30]" />
                                 <span>Bloodline APKI & ZNA</span>
                             </div>
                             <div className="flex items-center gap-1.5">
@@ -189,7 +192,7 @@ export default function MarketplaceIndex({ products, categories, filters }: Prop
                             onClick={() => handleCategoryChange('')}
                             className={`flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold whitespace-nowrap transition border ${
                                 !selectedCategory
-                                    ? 'bg-sky-600 text-white border-sky-600 shadow-sm'
+                                    ? 'bg-[#bf1e26] text-white border-sky-600 shadow-sm'
                                     : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100 dark:bg-slate-900 dark:text-slate-300 dark:border-slate-800'
                             }`}
                         >
@@ -202,7 +205,7 @@ export default function MarketplaceIndex({ products, categories, filters }: Prop
                                 onClick={() => handleCategoryChange(cat.slug)}
                                 className={`flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold whitespace-nowrap transition border ${
                                     selectedCategory === cat.slug
-                                        ? 'bg-sky-600 text-white border-sky-600 shadow-sm'
+                                        ? 'bg-[#bf1e26] text-white border-sky-600 shadow-sm'
                                         : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100 dark:bg-slate-900 dark:text-slate-300 dark:border-slate-800'
                                 }`}
                             >
@@ -263,23 +266,23 @@ export default function MarketplaceIndex({ products, categories, filters }: Prop
                 </div>
 
                 {/* Product Grid */}
-                {products.data.length === 0 ? (
+                {productItems.length === 0 ? (
                     <div className="rounded-2xl border border-dashed border-slate-300 p-12 text-center dark:border-slate-800">
-                        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-sky-100 text-sky-600 dark:bg-sky-950 dark:text-sky-400 mb-4">
+                        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-50 text-[#bf1e26] dark:bg-sky-950 dark:text-sky-400 mb-4">
                             <Fish className="h-7 w-7" />
                         </div>
                         <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">Ikan Tidak Ditemukan</h3>
                         <p className="mt-1 text-sm text-slate-500">Silakan ubah kata kunci atau bersihkan filter pencarian Anda.</p>
                         <button
                             onClick={() => router.get('/products')}
-                            className="mt-4 rounded-lg bg-sky-600 px-4 py-2 text-xs font-semibold text-white hover:bg-sky-500"
+                            className="mt-4 rounded-lg bg-[#bf1e26] px-4 py-2 text-xs font-semibold text-white hover:bg-red-500"
                         >
                             Reset Semua Filter
                         </button>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                        {products.data.map((product) => {
+                        {productItems.map((product) => {
                             const badge = getConditionBadge(product.condition);
                             return (
                                 <div
@@ -290,6 +293,8 @@ export default function MarketplaceIndex({ products, categories, filters }: Prop
                                         {/* Image and Badges */}
                                         <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-100 dark:bg-slate-800">
                                             <img
+                                    loading="lazy"
+                                    decoding="async"
                                                 src={
                                                     product.primary_image?.image_path ||
                                                     '/images/koi/kohaku.jpg'
@@ -329,7 +334,7 @@ export default function MarketplaceIndex({ products, categories, filters }: Prop
 
                                             {/* Title */}
                                             <Link href={`/products/${product.slug}`} className="block">
-                                                <h3 className="line-clamp-2 text-sm font-bold text-slate-900 group-hover:text-sky-600 dark:text-slate-100 dark:group-hover:text-sky-400">
+                                                <h3 className="line-clamp-2 text-sm font-bold text-slate-900 group-hover:text-[#bf1e26] dark:text-slate-100 dark:group-hover:text-sky-400">
                                                     {product.name}
                                                 </h3>
                                             </Link>
@@ -348,7 +353,7 @@ export default function MarketplaceIndex({ products, categories, filters }: Prop
                                     <div className="border-t border-slate-100 p-4 dark:border-slate-800/80">
                                         <div className="flex items-baseline justify-between mb-3">
                                             <div>
-                                                <span className="text-base font-extrabold text-sky-700 dark:text-sky-400">
+                                                <span className="text-base font-extrabold text-[#bf1e26] dark:text-sky-400">
                                                     Rp {Number(product.price).toLocaleString('id-ID')}
                                                 </span>
                                                 <span className="text-[11px] text-slate-400"> /{product.unit}</span>
@@ -360,7 +365,7 @@ export default function MarketplaceIndex({ products, categories, filters }: Prop
 
                                         <Link
                                             href={`/products/${product.slug}`}
-                                            className="flex w-full items-center justify-center gap-2 rounded-xl bg-sky-50 py-2 text-xs font-semibold text-sky-700 transition hover:bg-sky-600 hover:text-white dark:bg-sky-950 dark:text-sky-300 dark:hover:bg-sky-600 dark:hover:text-white"
+                                            className="flex w-full items-center justify-center gap-2 rounded-xl bg-red-50 py-2 text-xs font-semibold text-[#bf1e26] transition hover:bg-[#bf1e26] hover:text-white dark:bg-sky-950 dark:text-sky-300 dark:hover:bg-[#bf1e26] dark:hover:text-white"
                                         >
                                             <ShoppingCart className="h-3.5 w-3.5" />
                                             <span>Lihat & Pesan</span>
@@ -373,9 +378,9 @@ export default function MarketplaceIndex({ products, categories, filters }: Prop
                 )}
 
                 {/* Pagination */}
-                {products.last_page > 1 && (
+                {(products?.last_page ?? 1) > 1 && (
                     <div className="mt-10 flex items-center justify-center gap-2">
-                        {products.prev_page_url && (
+                        {products?.prev_page_url && (
                             <Link
                                 href={products.prev_page_url}
                                 className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-800"
@@ -384,9 +389,9 @@ export default function MarketplaceIndex({ products, categories, filters }: Prop
                             </Link>
                         )}
                         <span className="px-2 text-xs font-medium text-slate-500">
-                            Halaman {products.current_page} dari {products.last_page}
+                            Halaman {products?.current_page} dari {products?.last_page}
                         </span>
-                        {products.next_page_url && (
+                        {products?.next_page_url && (
                             <Link
                                 href={products.next_page_url}
                                 className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-800"

@@ -19,6 +19,9 @@ use App\Http\Controllers\HomeController;
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
 Route::get('/beranda', [HomeController::class, 'index'])->name('landing');
+// Keep legacy singular product URLs working and send them to the catalog.
+Route::get('/product', fn () => redirect()->route('products.index'));
+Route::get('/product/{product:slug}', fn (\App\Models\Product $product) => redirect()->route('products.show', $product->slug));
 Route::get('/products', [ProductController::class, 'index'])->name('products.index');
 Route::get('/products/{product:slug}', [ProductController::class, 'show'])->name('products.show');
 

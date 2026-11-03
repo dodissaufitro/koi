@@ -1,5 +1,6 @@
 import { Auction, formatAgeInYears } from '@/types/fish';
 import { SharedData } from '@/types';
+import BidConfirmationDialog, { getBidFailureMessage, type BidDialogStatus } from '@/components/BidConfirmationDialog';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import {
     ArrowLeft,
@@ -36,12 +37,10 @@ export default function AuctionShow({ auction, isFavorited = false }: Props) {
     const user = auth?.user;
 
     // Theme state (sinkron dengan preferensi landing page)
-    const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+    const [theme, setTheme] = useState<'dark' | 'light'>('light');
     useEffect(() => {
         const savedTheme = localStorage.getItem('koki_theme') as 'dark' | 'light' | null;
-        if (savedTheme) {
-            setTheme(savedTheme);
-        }
+        setTheme(savedTheme === 'dark' ? 'dark' : 'light');
     }, []);
 
     const toggleTheme = () => {
@@ -74,7 +73,9 @@ export default function AuctionShow({ auction, isFavorited = false }: Props) {
 
     const [customBidAmount, setCustomBidAmount] = useState<number>(minNextBid);
     const [isSubmittingBid, setIsSubmittingBid] = useState(false);
-    const [bidSuccessMessage, setBidSuccessMessage] = useState<string | null>(null);
+    const [pendingBidAmount, setPendingBidAmount] = useState<number | null>(null);
+    const [bidDialogStatus, setBidDialogStatus] = useState<BidDialogStatus>('confirm');
+    const [bidDialogErrorMessage, setBidDialogErrorMessage] = useState<string>();
     const [bidErrorMessage, setBidErrorMessage] = useState<string | null>(null);
 
     // Update custom bid default when current bid changes
@@ -120,19 +121,29 @@ export default function AuctionShow({ auction, isFavorited = false }: Props) {
         }
 
         if (isCurrentHighestBidder) {
-            setBidErrorMessage('Anda saat ini masih memegang penawaran tertinggi. Anda tidak dapat menawar lagi kecuali penawaran Anda sudah ditimpa oleh orang lain.');
+            setPendingBidAmount(amount);
+            setBidDialogErrorMessage(getBidFailureMessage('Anda masih memegang penawaran tertinggi.'));
+            setBidDialogStatus('error');
             return;
         }
 
         if (amount < minNextBid) {
-            setBidErrorMessage(`Tawaran minimal adalah Rp ${minNextBid.toLocaleString('id-ID')}`);
+            setPendingBidAmount(amount);
+            setBidDialogErrorMessage(`Nominal tawaran minimal adalah Rp ${minNextBid.toLocaleString('id-ID')}.`);
+            setBidDialogStatus('error');
             return;
         }
 
-        const confirmBid = window.confirm(
-            `Konfirmasi Penawaran Resmi: Ajukan bid sebesar Rp ${amount.toLocaleString('id-ID')} untuk ${product?.name || 'Ikan Lelang'}?`
-        );
-        if (!confirmBid) return;
+        setBidDialogStatus('confirm');
+        setBidDialogErrorMessage(undefined);
+        setPendingBidAmount(amount);
+    };
+
+    const confirmPlaceBid = () => {
+        if (pendingBidAmount === null) return;
+
+        const amount = pendingBidAmount;
+        setBidDialogStatus('submitting');
 
         setIsSubmittingBid(true);
         setBidErrorMessage(null);
@@ -144,12 +155,13 @@ export default function AuctionShow({ auction, isFavorited = false }: Props) {
                 preserveScroll: true,
                 onSuccess: () => {
                     setIsSubmittingBid(false);
-                    setBidSuccessMessage(`🎉 Selamat! Tawaran Anda sebesar Rp ${amount.toLocaleString('id-ID')} berhasil dicatat sebagai penawaran tertinggi.`);
-                    setTimeout(() => setBidSuccessMessage(null), 6000);
+                    setBidDialogErrorMessage(undefined);
+                    setBidDialogStatus('success');
                 },
                 onError: (errors: any) => {
                     setIsSubmittingBid(false);
-                    setBidErrorMessage(errors.amount || errors.message || 'Gagal mengajukan tawaran. Silakan coba lagi.');
+                    setBidDialogErrorMessage(getBidFailureMessage(errors.amount || errors.message));
+                    setBidDialogStatus('error');
                 },
             }
         );
@@ -207,6 +219,19 @@ export default function AuctionShow({ auction, isFavorited = false }: Props) {
         <div className={`min-h-screen transition-colors duration-200 ${isDark ? 'bg-[#080B11] text-slate-100' : 'bg-slate-50 text-slate-900'}`}>
             <Head title={`${product?.name || 'Lelang Ikan Koi'} - Bursa Lelang Resmi KOKI KOI`} />
 
+            <BidConfirmationDialog
+                open={pendingBidAmount !== null}
+                auctionName={product?.name || 'Ikan lelang'}
+                amount={pendingBidAmount || 0}
+                status={bidDialogStatus}
+                errorMessage={bidDialogErrorMessage}
+                isDark={isDark}
+                onOpenChange={(open) => {
+                    if (!open && bidDialogStatus !== 'submitting') setPendingBidAmount(null);
+                }}
+                onConfirm={confirmPlaceBid}
+            />
+
             {/* Top Navigation Bar */}
             <header className={`sticky top-0 z-40 border-b backdrop-blur-md transition ${isDark ? 'bg-[#0A0E17]/90 border-white/[0.08]' : 'bg-white/95 border-slate-200 shadow-xs'}`}>
                 <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
@@ -225,7 +250,7 @@ export default function AuctionShow({ auction, isFavorited = false }: Props) {
 
                         <div className="hidden sm:flex items-center gap-2">
                             <span className="h-4 w-px bg-slate-200 dark:bg-white/10" />
-                            <div className="flex items-center gap-1.5 text-xs font-semibold text-amber-500">
+                            <div className="flex items-center gap-1.5 text-xs font-semibold text-[#bf1e26]">
                                 <Gavel className="h-3.5 w-3.5" />
                                 <span>Ruang Lelang Live</span>
                             </div>
@@ -238,7 +263,7 @@ export default function AuctionShow({ auction, isFavorited = false }: Props) {
                             onClick={toggleTheme}
                             className={`flex h-9 w-9 items-center justify-center rounded-xl border transition ${
                                 isDark
-                                    ? 'border-white/10 bg-[#121824] text-amber-300 hover:border-amber-400/40'
+                                    ? 'border-white/10 bg-[#121824] text-red-300 hover:border-[#bf1e26]/40'
                                     : 'border-slate-200 bg-white text-slate-600 hover:text-slate-900 shadow-xs'
                             }`}
                             title={isDark ? 'Ganti Tema Terang' : 'Ganti Tema Gelap'}
@@ -284,7 +309,7 @@ export default function AuctionShow({ auction, isFavorited = false }: Props) {
                         ) : (
                             <Link
                                 href={`/login?redirect=${encodeURIComponent(window.location.pathname)}`}
-                                className="inline-flex items-center gap-1.5 rounded-xl bg-amber-600 hover:bg-amber-500 px-3.5 py-1.5 text-xs font-semibold text-white shadow-xs transition"
+                                className="inline-flex items-center gap-1.5 rounded-xl bg-[#bf1e26] hover:bg-[#bf1e26] px-3.5 py-1.5 text-xs font-semibold text-white shadow-xs transition"
                             >
                                 <LogIn className="h-3.5 w-3.5" />
                                 <span>Masuk</span>
@@ -297,16 +322,6 @@ export default function AuctionShow({ auction, isFavorited = false }: Props) {
             {/* Main Container */}
             <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
                 {/* Alert Messages */}
-                {bidSuccessMessage && (
-                    <div className="mb-6 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm text-emerald-400 flex items-center justify-between">
-                        <div className="flex items-center gap-2.5">
-                            <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-500" />
-                            <span>{bidSuccessMessage}</span>
-                        </div>
-                        <button onClick={() => setBidSuccessMessage(null)} className="text-emerald-400 hover:text-emerald-200 text-xs font-bold">Tutup</button>
-                    </div>
-                )}
-
                 {bidErrorMessage && (
                     <div className="mb-6 rounded-2xl border border-rose-500/30 bg-rose-500/10 p-4 text-sm text-rose-400 flex items-center justify-between">
                         <div className="flex items-center gap-2.5">
@@ -326,9 +341,11 @@ export default function AuctionShow({ auction, isFavorited = false }: Props) {
                         {/* Main Image Frame with Live Status */}
                         <div className={`relative aspect-[16/11] w-full overflow-hidden rounded-3xl border bg-slate-950 shadow-md ${isDark ? 'border-white/10' : 'border-slate-200'}`}>
                             <img
+                                    loading="lazy"
+                                    decoding="async"
                                 src={activeImage}
                                 alt={product?.name || 'Ikan Lelang'}
-                                className="h-full w-full object-cover transition-all duration-300"
+                                className="h-full w-full object-contain transition-all duration-300"
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
 
@@ -339,7 +356,7 @@ export default function AuctionShow({ auction, isFavorited = false }: Props) {
                                     <span>LIVE BIDDING</span>
                                 </span>
 
-                                <span className="rounded-full bg-black/60 backdrop-blur px-3 py-1 text-[11px] font-semibold text-amber-300 border border-amber-500/30">
+                                <span className="rounded-full bg-black/60 backdrop-blur px-3 py-1 text-[11px] font-semibold text-red-300 border border-[#bf1e26]/30">
                                     Show Quality
                                 </span>
                             </div>
@@ -347,12 +364,12 @@ export default function AuctionShow({ auction, isFavorited = false }: Props) {
                             {/* Timer Badge on Media */}
                             <div className="absolute top-4 right-4">
                                 <div className="inline-flex items-center gap-1.5 rounded-full bg-black/70 backdrop-blur px-3.5 py-1 text-xs font-bold text-white border border-white/15">
-                                    <Clock className="h-3.5 w-3.5 text-amber-400" />
+                                    <Clock className="h-3.5 w-3.5 text-[#d52a30]" />
                                     {timeLeft.isEnded ? (
                                         <span className="text-rose-400">Lelang Selesai</span>
                                     ) : (
                                         <span>
-                                            Sisa Waktu: <span className="text-amber-300 font-mono font-black">{timeLeft.hours}j {timeLeft.minutes}m {timeLeft.seconds}d</span>
+                                            Sisa Waktu: <span className="text-red-300 font-mono font-black">{timeLeft.hours}j {timeLeft.minutes}m {timeLeft.seconds}d</span>
                                         </span>
                                     )}
                                 </div>
@@ -360,7 +377,7 @@ export default function AuctionShow({ auction, isFavorited = false }: Props) {
 
                             {/* Bottom Title on Media */}
                             <div className="absolute bottom-4 left-4 right-4 text-white">
-                                <span className="text-[11px] uppercase tracking-wider text-amber-300 font-semibold">
+                                <span className="text-[11px] uppercase tracking-wider text-red-300 font-semibold">
                                     {product?.origin || 'Import Jepang Resmi'}
                                 </span>
                                 <h1 className="text-xl sm:text-2xl font-serif font-bold text-white leading-tight mt-0.5">
@@ -371,20 +388,20 @@ export default function AuctionShow({ auction, isFavorited = false }: Props) {
 
                         {/* Thumbnails Gallery Carousel */}
                         {images.length > 1 && (
-                            <div className="flex gap-3 overflow-x-auto pb-1 no-scrollbar">
+                            <div className="flex gap-3 overflow-x-auto overflow-y-hidden px-1 py-2 no-scrollbar">
                                 {images.map((img, idx) => (
                                     <button
                                         key={idx}
                                         onClick={() => setActiveImage(img)}
-                                        className={`relative h-20 w-24 shrink-0 overflow-hidden rounded-2xl border transition-all ${
+                                        className={`relative h-20 w-24 shrink-0 overflow-hidden rounded-2xl border bg-slate-950 transition-all ${
                                             activeImage === img
-                                                ? 'border-amber-400 ring-2 ring-amber-400/50 scale-105'
+                                                ? 'border-[#bf1e26] ring-2 ring-[#bf1e26]/50'
                                                 : isDark
                                                 ? 'border-white/10 opacity-70 hover:opacity-100'
                                                 : 'border-slate-200 opacity-80 hover:opacity-100 shadow-2xs'
                                         }`}
                                     >
-                                        <img src={img} alt={`Thumbnail ${idx + 1}`} className="h-full w-full object-cover" />
+                                        <img loading="lazy" decoding="async" src={img} alt={`Thumbnail ${idx + 1}`} className="h-full w-full object-contain" />
                                     </button>
                                 ))}
                             </div>
@@ -392,7 +409,7 @@ export default function AuctionShow({ auction, isFavorited = false }: Props) {
 
                         {/* Fish Specifications Grid */}
                         <div className={`rounded-3xl border p-6 transition ${isDark ? 'border-white/[0.08] bg-[#0E1420]/80' : 'border-slate-200 bg-white shadow-xs'}`}>
-                            <div className="flex items-center gap-2 mb-4 text-amber-500 text-xs font-bold uppercase tracking-wider">
+                            <div className="flex items-center gap-2 mb-4 text-[#bf1e26] text-xs font-bold uppercase tracking-wider">
                                 <Award className="h-4 w-4" />
                                 <span>Spesifikasi & Kualitas Fisik</span>
                             </div>
@@ -407,7 +424,7 @@ export default function AuctionShow({ auction, isFavorited = false }: Props) {
 
                                 <div className={`p-3.5 rounded-2xl border ${isDark ? 'border-white/5 bg-[#141C2B]/50' : 'border-slate-100 bg-slate-50'}`}>
                                     <span className="text-[10px] text-slate-500 uppercase font-semibold block">Ukuran (Size)</span>
-                                    <span className="text-sm font-bold text-amber-600 dark:text-amber-300 mt-0.5 block">
+                                    <span className="text-sm font-bold text-[#bf1e26] dark:text-red-300 mt-0.5 block">
                                         {displaySize}
                                     </span>
                                 </div>
@@ -438,7 +455,7 @@ export default function AuctionShow({ auction, isFavorited = false }: Props) {
                             {/* Breeder & Farm Guarantee */}
                             <div className="mt-5 pt-5 border-t border-slate-200/60 dark:border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                 <div className="flex items-center gap-3">
-                                    <div className="h-10 w-10 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-500">
+                                    <div className="h-10 w-10 rounded-2xl bg-[#bf1e26]/15 border border-[#bf1e26]/30 flex items-center justify-center text-[#bf1e26]">
                                         <ShieldCheck className="h-5 w-5" />
                                     </div>
                                     <div>
@@ -479,43 +496,43 @@ export default function AuctionShow({ auction, isFavorited = false }: Props) {
                     <div className="lg:col-span-5 space-y-6">
                         
                         {/* Live Bidding Box */}
-                        <div className={`rounded-3xl border p-6 transition shadow-sm ${isDark ? 'border-amber-500/30 bg-[#0E1420] ring-1 ring-amber-500/20' : 'border-amber-300 bg-white ring-1 ring-amber-200 shadow-md'}`}>
+                        <div className={`rounded-3xl border p-6 transition shadow-sm ${isDark ? 'border-[#bf1e26]/30 bg-[#0E1420] ring-1 ring-[#bf1e26]/20' : 'border-[#bf1e26]/30 bg-white ring-1 ring-red-200 shadow-md'}`}>
                             
                             {/* Current Bid Header */}
-                            <div className="flex items-start justify-between pb-4 border-b border-slate-200/60 dark:border-white/10">
-                                <div>
-                                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">Tawaran Tertinggi Saat Ini</span>
-                                    <div className="text-3xl font-serif font-extrabold text-amber-600 dark:text-amber-300 mt-1">
-                                        Rp {currentBid.toLocaleString('id-ID')}
-                                    </div>
-                                    <div className="flex items-center gap-2 mt-1">
-                                        <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-300">
-                                            <strong className="text-slate-900 dark:text-white font-bold">OB (Open Bid):</strong> Rp {Number(auction.start_price).toLocaleString('id-ID')}
-                                        </span>
+                            <div className="pb-4 border-b border-slate-200 dark:border-white/10">
+                                <div className="flex items-start justify-between gap-3">
+                                    <span className="text-xs font-bold uppercase tracking-wide text-slate-700 dark:text-slate-300">Tawaran Tertinggi Saat Ini</span>
+                                    <div className="shrink-0 text-right space-y-1.5">
+                                    <span className="rounded-full bg-red-50 text-red-800 dark:bg-red-950/50 dark:text-red-200 border border-red-300 dark:border-red-800 px-2.5 py-1 text-xs font-bold uppercase tracking-wide inline-block">
+                                        KB: +Rp {bidIncrement.toLocaleString('id-ID')}
+                                    </span>
+                                    <span className="flex items-center justify-end gap-1 px-2.5 py-1 rounded-full bg-blue-50 text-blue-800 dark:bg-blue-950/50 dark:text-blue-200 border border-blue-300 dark:border-blue-800 text-xs font-bold">
+                                        <Gavel aria-hidden="true" className="w-3.5 h-3.5" />
+                                        {auction.bids_count}x Total Tawaran
+                                    </span>
                                     </div>
                                 </div>
 
-                                <div className="text-right space-y-1.5">
-                                    <span className="rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-300 border border-amber-500/30 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider inline-block">
-                                        KB: +Rp {bidIncrement.toLocaleString('id-ID')}
-                                    </span>
-                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-300 border border-blue-500/20 text-[10px] font-bold block">
-                                        <Gavel className="w-3 h-3" />
-                                        {auction.bids_count}x Total Tawaran
-                                    </span>
+                                <div className="mt-3 min-w-0" aria-live="polite" aria-atomic="true">
+                                    <div className="break-words font-serif font-extrabold leading-tight tracking-tight text-[clamp(1.5rem,3vw,1.875rem)] text-[#a3161d] dark:text-red-300">
+                                        Rp <span>{currentBid.toLocaleString('id-ID')}</span>
+                                    </div>
+                                    <div className="mt-1 text-sm font-medium text-slate-700 dark:text-slate-300">
+                                        <strong className="font-bold text-slate-900 dark:text-white">OB (Open Bid):</strong> Rp {Number(auction.start_price).toLocaleString('id-ID')}
+                                    </div>
                                 </div>
                             </div>
 
                             {/* Leading Bidder Indicator */}
-                            <div className={`my-4 p-3 rounded-2xl border flex items-center justify-between ${isDark ? 'border-white/5 bg-[#141C2B]/60' : 'border-slate-100 bg-slate-50'}`}>
-                                <div className="flex items-center gap-2 text-xs">
-                                    <UserCheck className="h-4 w-4 text-emerald-500" />
-                                    <span className="text-slate-500">Pemimpin Lelang:</span>
+                            <div className={`my-4 p-3 rounded-2xl border flex flex-wrap items-center justify-between gap-2 ${isDark ? 'border-white/10 bg-[#141C2B]' : 'border-slate-200 bg-slate-50'}`}>
+                                <div className="flex items-center gap-2 text-sm">
+                                    <UserCheck aria-hidden="true" className="h-5 w-5 text-emerald-700 dark:text-emerald-400" />
+                                    <span className="text-slate-700 dark:text-slate-300">Pemimpin Lelang:</span>
                                     <strong className="text-slate-900 dark:text-slate-100 font-semibold">
                                         {auction.highest_bidder?.name || 'Kolektor Koi'}
                                     </strong>
                                 </div>
-                                <span className="text-[10px] font-bold text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                                <span className="text-xs font-bold text-emerald-800 dark:text-emerald-200 bg-emerald-50 dark:bg-emerald-950/50 px-2.5 py-1 rounded-full border border-emerald-300 dark:border-emerald-800">
                                     Tertinggi
                                 </span>
                             </div>
@@ -578,24 +595,25 @@ export default function AuctionShow({ auction, isFavorited = false }: Props) {
                             ) : (
                                 <div className="space-y-4">
                                     {isCurrentHighestBidder ? (
-                                        <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-500 space-y-3">
+                                        <div id="leading-bid-status" role="status" aria-live="polite" className="p-4 rounded-2xl bg-red-50 dark:bg-red-950/30 border border-red-300 dark:border-red-800 text-red-950 dark:text-red-100 space-y-3">
                                             <div className="flex items-center gap-2">
-                                                <Award className="h-5 w-5 text-amber-500 shrink-0" />
+                                                <Award aria-hidden="true" className="h-5 w-5 text-red-800 dark:text-red-300 shrink-0" />
                                                 <div>
-                                                    <p className="text-xs font-bold text-amber-400">Anda Memegang Penawaran Tertinggi</p>
-                                                    <p className="text-[11px] text-slate-400">Tawaran Anda sebesar Rp {currentBid.toLocaleString('id-ID')} sedang memimpin lelang ini.</p>
+                                                    <p className="text-sm font-bold text-red-900 dark:text-red-200">Anda Memegang Penawaran Tertinggi</p>
+                                                    <p className="text-sm text-slate-700 dark:text-slate-200">Tawaran Anda sebesar Rp {currentBid.toLocaleString('id-ID')} sedang memimpin lelang ini.</p>
                                                 </div>
                                             </div>
-                                            <p className="text-[11px] text-slate-400 leading-relaxed bg-black/20 p-2.5 rounded-xl border border-white/5">
-                                                🔒 Anda tidak dapat menawar lagi saat ini. Anda baru dapat memasang tawaran kembali apabila ada peserta lain yang menimpa penawaran Anda.
+                                            <p className="text-sm text-slate-800 dark:text-slate-200 leading-relaxed bg-white dark:bg-slate-900 p-3 rounded-xl border border-red-200 dark:border-white/10">
+                                                <span aria-hidden="true">🔒 </span>Anda tidak dapat menawar lagi saat ini. Anda baru dapat memasang tawaran kembali apabila ada peserta lain yang menimpa penawaran Anda.
                                             </p>
                                             <button
                                                 type="button"
                                                 disabled
-                                                className="w-full py-3 px-4 rounded-xl font-bold text-xs bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center gap-2 cursor-not-allowed"
+                                                aria-describedby="leading-bid-status"
+                                                className="w-full py-3 px-4 rounded-xl font-bold text-sm bg-red-100 dark:bg-red-950/60 text-red-900 dark:text-red-200 border border-red-400 dark:border-red-800 flex items-center justify-center gap-2 cursor-not-allowed"
                                             >
-                                                <Award className="h-4 w-4" />
-                                                <span>👑 Sedang Memimpin (Menunggu Penawar Lain)</span>
+                                                <Award aria-hidden="true" className="h-4 w-4" />
+                                                <span>Sedang memimpin · Menunggu penawar lain</span>
                                             </button>
                                         </div>
                                     ) : (
@@ -609,13 +627,14 @@ export default function AuctionShow({ auction, isFavorited = false }: Props) {
                                                 <button
                                                     type="button"
                                                     onClick={() => setCustomBidAmount(currentBid + bidIncrement)}
+                                                    aria-pressed={customBidAmount === currentBid + bidIncrement}
                                                     className={`py-2.5 px-2 rounded-xl text-xs font-bold border transition ${
                                                         customBidAmount === currentBid + bidIncrement
-                                                            ? 'border-amber-500 bg-amber-500/20 text-amber-500 dark:text-amber-300'
+                                                            ? 'border-[#a3161d] bg-red-50 text-[#861218] dark:border-red-400 dark:bg-red-950/50 dark:text-red-200'
                                                             : isDark
                                                             ? 'border-white/10 bg-white/5 hover:bg-white/10 text-slate-300'
                                                             : 'border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700'
-                                                    }`}
+                                                    } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#a3161d] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#0E1420]`}
                                                 >
                                                     +{(bidIncrement / 1000).toLocaleString('id-ID')} rb
                                                 </button>
@@ -623,13 +642,14 @@ export default function AuctionShow({ auction, isFavorited = false }: Props) {
                                                 <button
                                                     type="button"
                                                     onClick={() => setCustomBidAmount(currentBid + 1000000)}
+                                                    aria-pressed={customBidAmount === currentBid + 1000000}
                                                     className={`py-2.5 px-2 rounded-xl text-xs font-bold border transition ${
                                                         customBidAmount === currentBid + 1000000
-                                                            ? 'border-amber-500 bg-amber-500/20 text-amber-500 dark:text-amber-300'
+                                                            ? 'border-[#a3161d] bg-red-50 text-[#861218] dark:border-red-400 dark:bg-red-950/50 dark:text-red-200'
                                                             : isDark
                                                             ? 'border-white/10 bg-white/5 hover:bg-white/10 text-slate-300'
                                                             : 'border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700'
-                                                    }`}
+                                                    } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#a3161d] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#0E1420]`}
                                                 >
                                                     +1.000 rb
                                                 </button>
@@ -637,13 +657,14 @@ export default function AuctionShow({ auction, isFavorited = false }: Props) {
                                                 <button
                                                     type="button"
                                                     onClick={() => setCustomBidAmount(currentBid + 2000000)}
+                                                    aria-pressed={customBidAmount === currentBid + 2000000}
                                                     className={`py-2.5 px-2 rounded-xl text-xs font-bold border transition ${
                                                         customBidAmount === currentBid + 2000000
-                                                            ? 'border-amber-500 bg-amber-500/20 text-amber-500 dark:text-amber-300'
+                                                            ? 'border-[#a3161d] bg-red-50 text-[#861218] dark:border-red-400 dark:bg-red-950/50 dark:text-red-200'
                                                             : isDark
                                                             ? 'border-white/10 bg-white/5 hover:bg-white/10 text-slate-300'
                                                             : 'border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700'
-                                                    }`}
+                                                    } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#a3161d] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#0E1420]`}
                                                 >
                                                     +2.000 rb
                                                 </button>
@@ -651,27 +672,29 @@ export default function AuctionShow({ auction, isFavorited = false }: Props) {
 
                                             {/* Custom Bid Input */}
                                             <div>
-                                                <label className="text-[11px] font-semibold text-slate-500 block mb-1">
+                                                <label htmlFor="auction-bid-amount" className="text-sm font-semibold text-slate-700 dark:text-slate-200 block mb-1">
                                                     Nominal Tawaran Anda (Rp):
                                                 </label>
                                                 <div className="relative">
-                                                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400">
+                                                    <span aria-hidden="true" className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-600 dark:text-slate-300">
                                                         Rp
                                                     </span>
                                                     <input
+                                                        id="auction-bid-amount"
                                                         type="number"
                                                         min={minNextBid}
                                                         step={bidIncrement}
                                                         value={customBidAmount}
                                                         onChange={(e) => setCustomBidAmount(Number(e.target.value))}
-                                                        className={`w-full pl-11 pr-4 py-2.5 rounded-xl border text-base font-bold transition focus:outline-none focus:ring-2 focus:ring-amber-500 ${
+                                                        aria-describedby="auction-bid-minimum"
+                                                        className={`w-full pl-11 pr-4 py-2.5 rounded-xl border text-base font-bold transition focus:outline-none focus:ring-2 focus:ring-[#a3161d] ${
                                                             isDark
                                                                 ? 'bg-[#141C2B] border-white/10 text-white'
                                                                 : 'bg-white border-slate-300 text-slate-900'
                                                         }`}
                                                     />
                                                 </div>
-                                                <span className="text-[10px] text-slate-500 mt-1 block">
+                                                <span id="auction-bid-minimum" className="text-xs text-slate-700 dark:text-slate-300 mt-1 block">
                                                     Minimal penawaran berikutnya: Rp {minNextBid.toLocaleString('id-ID')}
                                                 </span>
                                             </div>
@@ -683,8 +706,8 @@ export default function AuctionShow({ auction, isFavorited = false }: Props) {
                                                 onClick={() => handlePlaceBid(customBidAmount)}
                                                 className={`w-full py-3 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-md transition active:scale-98 ${
                                                     isSubmittingBid
-                                                        ? 'bg-amber-600/50 cursor-not-allowed text-white'
-                                                        : 'bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 hover:from-amber-500 hover:to-amber-500 text-white shadow-amber-600/20'
+                                                        ? 'bg-[#bf1e26]/50 cursor-not-allowed text-white'
+                                                        : 'bg-gradient-to-r from-[#bf1e26] via-[#d52a30] to-[#98151e] hover:from-[#bf1e26] hover:to-[#98151e] text-white shadow-red-600/20'
                                                 }`}
                                             >
                                                 <Gavel className="h-4 w-4" />
@@ -702,13 +725,13 @@ export default function AuctionShow({ auction, isFavorited = false }: Props) {
                             )}
 
                             {/* Auction Rules Strip */}
-                            <div className="mt-4 pt-4 border-t border-slate-200/60 dark:border-white/5 text-[11px] text-slate-500 space-y-1">
+                            <div className="mt-4 pt-4 border-t border-slate-200 dark:border-white/10 text-sm text-slate-700 dark:text-slate-300 space-y-2">
                                 <div className="flex items-center gap-1.5">
-                                    <CheckCircle2 className="h-3 w-3 text-emerald-500 shrink-0" />
+                                    <CheckCircle2 aria-hidden="true" className="h-4 w-4 text-emerald-700 dark:text-emerald-400 shrink-0" />
                                     <span>Anti-sniper otomatis aktif jika ada bid di 5 menit terakhir</span>
                                 </div>
                                 <div className="flex items-center gap-1.5">
-                                    <CheckCircle2 className="h-3 w-3 text-emerald-500 shrink-0" />
+                                    <CheckCircle2 aria-hidden="true" className="h-4 w-4 text-emerald-700 dark:text-emerald-400 shrink-0" />
                                     <span>Pemenang berhak menyelesaikan invoice dalam 24 jam</span>
                                 </div>
                             </div>
@@ -718,7 +741,7 @@ export default function AuctionShow({ auction, isFavorited = false }: Props) {
                         <div className={`rounded-3xl border p-6 transition ${isDark ? 'border-white/[0.08] bg-[#0E1420]/80' : 'border-slate-200 bg-white shadow-xs'}`}>
                             <div className="flex items-center justify-between mb-4">
                                 <div className="flex items-center gap-2">
-                                    <Users className="h-4 w-4 text-amber-500" />
+                                    <Users className="h-4 w-4 text-[#bf1e26]" />
                                     <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Riwayat Penawaran</h3>
                                 </div>
                                 <span className="text-[11px] text-slate-500 font-mono">
@@ -740,8 +763,8 @@ export default function AuctionShow({ auction, isFavorited = false }: Props) {
                                                 className={`p-3 rounded-2xl border flex items-center justify-between transition ${
                                                     isHighest
                                                         ? isDark
-                                                            ? 'bg-amber-500/10 border-amber-500/30'
-                                                            : 'bg-amber-50/80 border-amber-200'
+                                                            ? 'bg-[#bf1e26]/10 border-[#bf1e26]/30'
+                                                            : 'bg-red-50/80 border-[#bf1e26]/20'
                                                         : isDark
                                                         ? 'bg-[#141C2B]/40 border-white/5'
                                                         : 'bg-slate-50 border-slate-100'
@@ -750,7 +773,7 @@ export default function AuctionShow({ auction, isFavorited = false }: Props) {
                                                 <div className="flex items-center gap-2.5 min-w-0">
                                                     <div className={`w-7 h-7 rounded-xl flex items-center justify-center text-xs font-bold shrink-0 ${
                                                         isHighest
-                                                            ? 'bg-amber-500 text-slate-950 shadow-xs'
+                                                            ? 'bg-[#bf1e26] text-white shadow-xs'
                                                             : isDark
                                                             ? 'bg-white/10 text-slate-400'
                                                             : 'bg-slate-200 text-slate-700'
@@ -769,12 +792,12 @@ export default function AuctionShow({ auction, isFavorited = false }: Props) {
 
                                                 <div className="text-right shrink-0">
                                                     <div className={`text-xs sm:text-sm font-bold font-mono ${
-                                                        isHighest ? 'text-amber-600 dark:text-amber-300' : 'text-slate-700 dark:text-slate-300'
+                                                        isHighest ? 'text-[#bf1e26] dark:text-red-300' : 'text-slate-700 dark:text-slate-300'
                                                     }`}>
                                                         Rp {Number(b.amount).toLocaleString('id-ID')}
                                                     </div>
                                                     {isHighest && (
-                                                        <span className="text-[9px] font-extrabold text-amber-500 uppercase tracking-wider block">
+                                                        <span className="text-[9px] font-extrabold text-[#bf1e26] uppercase tracking-wider block">
                                                             Tertinggi Saat Ini
                                                         </span>
                                                     )}

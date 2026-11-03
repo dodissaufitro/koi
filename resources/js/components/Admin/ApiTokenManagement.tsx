@@ -339,7 +339,7 @@ export default function ApiTokenManagement({
                                                     {/* Status */}
                                                     <td className="px-5 py-4">
                                                         {isExpired ? (
-                                                            <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-2.5 py-0.5 text-[11px] font-bold text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                                                            <span className="inline-flex items-center gap-1 rounded-full bg-[#bf1e26]/10 px-2.5 py-0.5 text-[11px] font-bold text-[#bf1e26] dark:text-[#d52a30] border border-[#bf1e26]/20">
                                                                 <Clock className="h-3 w-3" />
                                                                 Expired
                                                             </span>
@@ -381,7 +381,7 @@ export default function ApiTokenManagement({
                                                                 onClick={() => handleToggle(item.id)}
                                                                 className={`px-2.5 py-1 rounded-xl text-[11px] font-semibold transition ${
                                                                     item.is_active
-                                                                        ? 'text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/30'
+                                                                        ? 'text-[#bf1e26] hover:bg-red-50 dark:hover:bg-amber-950/30'
                                                                         : 'text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/30'
                                                                 }`}
                                                             >
@@ -509,7 +509,7 @@ struct KoiApiClient {
                         }`}
                     >
                         <h3 className="text-base font-bold flex items-center gap-2 mb-4">
-                            <Terminal className="h-4 w-4 text-amber-500" />
+                            <Terminal className="h-4 w-4 text-[#bf1e26]" />
                             <span>Daftar Lengkap Endpoint RESTful API</span>
                         </h3>
 

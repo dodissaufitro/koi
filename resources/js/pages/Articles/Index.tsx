@@ -14,7 +14,7 @@ import {
     Sparkles,
     User,
 } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 interface Props {
     articles: {
@@ -31,8 +31,13 @@ interface Props {
 }
 
 export default function ArticlesIndex({ articles, filters = {} }: Props) {
+    const [isDarkTheme, setIsDarkTheme] = useState(false);
     const [selectedTab, setSelectedTab] = useState(filters.category || 'all');
     const [searchTerm, setSearchTerm] = useState(filters.search || '');
+
+    useEffect(() => {
+        setIsDarkTheme(localStorage.getItem('koki_theme') === 'dark');
+    }, []);
 
     const handleFilterChange = (tab: string) => {
         setSelectedTab(tab);
@@ -60,12 +65,12 @@ export default function ArticlesIndex({ articles, filters = {} }: Props) {
     ];
 
     return (
-        <div className="min-h-screen bg-[#0B0F17] text-slate-100 antialiased font-sans selection:bg-amber-400 selection:text-slate-950">
+        <div data-koi-theme={isDarkTheme ? 'dark' : 'light'} className="min-h-screen bg-[#0B0F17] text-slate-100 antialiased font-sans selection:bg-[#bf1e26] selection:text-white">
             <Head title="Pusat Artikel & Edukasi Nishikigoi - KOKI KOI" />
 
             {/* Ambient Background Glows */}
             <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-amber-500/10 rounded-full blur-[140px]" />
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-[#bf1e26]/10 rounded-full blur-[140px]" />
                 <div className="absolute top-[50%] right-[-100px] w-[500px] h-[500px] bg-red-600/5 rounded-full blur-[160px]" />
             </div>
 
@@ -74,7 +79,7 @@ export default function ArticlesIndex({ articles, filters = {} }: Props) {
                 <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3.5 sm:px-6">
                     <Link
                         href="/"
-                        className="group flex items-center gap-2 text-xs font-semibold text-slate-400 transition hover:text-amber-400"
+                        className="group flex items-center gap-2 text-xs font-semibold text-slate-400 transition hover:text-[#d52a30]"
                     >
                         <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
                         <span>Kembali ke Beranda</span>
@@ -92,7 +97,7 @@ export default function ArticlesIndex({ articles, filters = {} }: Props) {
                     <div className="flex items-center gap-2">
                         <Link
                             href="/auctions"
-                            className="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-xs transition active:scale-95 shadow"
+                            className="px-3.5 py-1.5 rounded-xl bg-[#bf1e26] hover:bg-[#bf1e26] text-white font-bold text-xs transition active:scale-95 shadow"
                         >
                             Lelang Koi
                         </Link>
@@ -101,23 +106,41 @@ export default function ArticlesIndex({ articles, filters = {} }: Props) {
             </header>
 
             {/* Hero Banner Section */}
-            <section className="relative z-10 border-b border-white/[0.06] bg-gradient-to-b from-[#111724]/60 to-transparent py-12 sm:py-16">
-                <div className="mx-auto max-w-5xl px-4 sm:px-6 text-center">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold uppercase tracking-wider mb-4">
-                        <Sparkles className="w-3.5 h-3.5" />
-                        <span>Pusat Wawasan & Literasi Koi</span>
+            <section className="relative z-10 border-b border-slate-200 bg-white py-10 sm:py-14">
+                <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-7 px-4 sm:px-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(480px,0.9fr)] lg:gap-10">
+                    <div>
+                        <div className="mb-4 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.24em] text-[#bf1e26]">
+                            <Sparkles className="w-3.5 h-3.5" />
+                            <span>Koi Care & Knowledge Hub</span>
+                        </div>
+
+                        <h1 className="text-3xl font-serif font-semibold leading-tight tracking-tight text-slate-900 sm:text-4xl md:text-5xl">
+                            Pojok Edukasi & Tips Pemeliharaan Koi
+                        </h1>
+
+                        <p className="mt-3 max-w-3xl text-sm font-normal leading-relaxed text-slate-500 sm:text-base">
+                            Wawasan praktis seputar parameter air, manajemen filtrasi biologis, karantina steril 21 hari, serta panduan pakan bergizi tinggi untuk menjaga warna dan bentuk tubuh koi juara.
+                        </p>
                     </div>
 
-                    <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-tight">
-                        Artikel, Edukasi & Kabar Nishikigoi Terkini
-                    </h1>
-
-                    <p className="mt-3 text-sm sm:text-base text-slate-400 max-w-2xl mx-auto font-light leading-relaxed">
-                        Panduan lengkap pemeliharaan kolam, parameter air, nutrisi pakan berkualitas kontes, hingga pengumuman jadwal lelang akbar nasional.
-                    </p>
+                    <div className="grid w-full grid-cols-2 gap-1.5 rounded-2xl border border-slate-200 bg-slate-100/80 p-1.5 shadow-sm sm:grid-cols-4">
+                        {categoryTabs.map((tab) => (
+                            <button
+                                key={tab.id}
+                                onClick={() => handleFilterChange(tab.id)}
+                                className={`whitespace-nowrap rounded-xl px-3 py-2.5 text-center text-xs font-semibold transition sm:px-4 sm:text-sm ${
+                                    selectedTab === tab.id
+                                        ? 'bg-[#bf1e26] text-white shadow-sm'
+                                        : 'text-slate-600 hover:bg-white hover:text-slate-900'
+                                }`}
+                            >
+                                {tab.label}
+                            </button>
+                        ))}
+                    </div>
 
                     {/* Search Form */}
-                    <form onSubmit={handleSearchSubmit} className="mt-8 max-w-lg mx-auto flex items-center gap-2">
+                    <form onSubmit={handleSearchSubmit} className="col-span-1 flex w-full max-w-lg items-center gap-2 lg:col-span-2">
                         <div className="relative flex-1">
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                             <input
@@ -125,33 +148,17 @@ export default function ArticlesIndex({ articles, filters = {} }: Props) {
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 placeholder="Cari topik artikel, tips air kolam, event..."
-                                className="w-full pl-11 pr-4 py-2.5 rounded-xl bg-white/[0.06] border border-white/[0.1] text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 transition"
+                                className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-11 pr-4 text-sm text-slate-800 placeholder-slate-400 transition focus:border-[#bf1e26] focus:outline-none"
                             />
                         </div>
                         <button
                             type="submit"
-                            className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-95 text-stone-950 font-bold text-xs transition shadow"
+                            className="px-5 py-2.5 rounded-xl bg-[#bf1e26] hover:bg-[#bf1e26] active:scale-95 text-white font-bold text-xs transition shadow"
                         >
                             Cari
                         </button>
                     </form>
 
-                    {/* Category Filter Tabs */}
-                    <div className="mt-8 flex flex-wrap items-center justify-center gap-2">
-                        {categoryTabs.map((tab) => (
-                            <button
-                                key={tab.id}
-                                onClick={() => handleFilterChange(tab.id)}
-                                className={`px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer active:scale-95 ${
-                                    selectedTab === tab.id
-                                        ? 'bg-amber-500 text-stone-950 shadow-md font-bold'
-                                        : 'bg-white/[0.04] text-slate-400 hover:text-white hover:bg-white/[0.08] border border-white/[0.06]'
-                                }`}
-                            >
-                                {tab.label}
-                            </button>
-                        ))}
-                    </div>
                 </div>
             </section>
 
@@ -167,7 +174,7 @@ export default function ArticlesIndex({ articles, filters = {} }: Props) {
                                 setSearchTerm('');
                                 handleFilterChange('all');
                             }}
-                            className="mt-4 px-4 py-2 bg-amber-500 text-stone-950 rounded-xl text-xs font-bold"
+                            className="mt-4 px-4 py-2 bg-[#bf1e26] text-white rounded-xl text-xs font-bold"
                         >
                             Reset Filter
                         </button>
@@ -178,12 +185,14 @@ export default function ArticlesIndex({ articles, filters = {} }: Props) {
                             <Link
                                 key={art.id}
                                 href={`/articles/${art.slug || art.id}`}
-                                className="group rounded-3xl border border-white/[0.08] bg-[#111724]/90 hover:border-amber-400/50 hover:bg-[#141C2B] overflow-hidden transition-all duration-300 flex flex-col justify-between shadow-md hover:shadow-2xl cursor-pointer"
+                                className="group rounded-3xl border border-white/[0.08] bg-[#111724]/90 hover:border-[#bf1e26]/50 hover:bg-[#141C2B] overflow-hidden transition-all duration-300 flex flex-col justify-between shadow-md hover:shadow-2xl cursor-pointer"
                             >
                                 <div>
                                     {/* Cover Image */}
                                     <div className="relative aspect-[16/10] w-full overflow-hidden bg-slate-900">
                                         <img
+                                    loading="lazy"
+                                    decoding="async"
                                             src={art.banner_image || '/images/koi/koi_pond_group.jpg'}
                                             alt={art.title}
                                             className="w-full h-full object-cover transition duration-700 group-hover:scale-105"
@@ -192,11 +201,10 @@ export default function ArticlesIndex({ articles, filters = {} }: Props) {
 
                                         {/* Category Badge */}
                                         <div className="absolute top-3.5 left-3.5">
-                                            <span className="rounded-lg bg-black/60 backdrop-blur px-2.5 py-1 text-[10px] font-bold text-amber-300 border border-amber-500/30 uppercase">
+                                            <span className="rounded-lg bg-black/60 backdrop-blur px-2.5 py-1 text-[10px] font-bold text-red-300 border border-[#bf1e26]/30 uppercase">
                                                 {art.badge_text || art.category_label || (art.category === 'tips_care' ? 'Tips Pemeliharaan' : 'Event')}
                                             </span>
-                                        </div>
-
+                </div>
                                         {/* Video indicator */}
                                         {art.media_type === 'youtube' && (
                                             <div className="absolute top-3.5 right-3.5 flex items-center justify-center w-8 h-8 rounded-full bg-red-600 text-white shadow-md">
@@ -219,7 +227,7 @@ export default function ArticlesIndex({ articles, filters = {} }: Props) {
                                             </span>
                                         </div>
 
-                                        <h3 className="text-base font-bold text-white line-clamp-2 leading-snug transition group-hover:text-amber-400">
+                                        <h3 className="text-base font-bold text-white line-clamp-2 leading-snug transition group-hover:text-[#d52a30]">
                                             {art.title}
                                         </h3>
 
@@ -230,7 +238,7 @@ export default function ArticlesIndex({ articles, filters = {} }: Props) {
                                 </div>
 
                                 <div className="p-6 pt-0 border-t border-white/[0.04] mt-auto flex items-center justify-between text-[11px]">
-                                    <span className="font-semibold text-amber-400 group-hover:underline flex items-center gap-1">
+                                    <span className="font-semibold text-[#d52a30] group-hover:underline flex items-center gap-1">
                                         Baca Artikel Lengkap <ChevronRight className="w-3 h-3" />
                                     </span>
                                 </div>
@@ -248,7 +256,7 @@ export default function ArticlesIndex({ articles, filters = {} }: Props) {
                                 href={link.url || '#'}
                                 className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition ${
                                     link.active
-                                        ? 'bg-amber-500 text-stone-950 font-bold'
+                                        ? 'bg-[#bf1e26] text-white font-bold'
                                         : link.url
                                         ? 'bg-white/[0.04] text-slate-400 hover:text-white border border-white/[0.06]'
                                         : 'text-slate-600 pointer-events-none'
@@ -281,11 +289,11 @@ export default function ArticlesIndex({ articles, filters = {} }: Props) {
 
                     <Link
                         href="/articles"
-                        className="flex flex-col items-center justify-center flex-1 py-1 transition-transform active:scale-90 text-amber-400"
+                        className="flex flex-col items-center justify-center flex-1 py-1 transition-transform active:scale-90 text-[#d52a30]"
                     >
                         <div className="relative">
                             <Newspaper className="w-5 h-5 stroke-[2.4]" />
-                            <span className="absolute -top-1 -right-1.5 h-2 w-2 rounded-full bg-amber-400 ring-2 ring-[#0E131E]" />
+                            <span className="absolute -top-1 -right-1.5 h-2 w-2 rounded-full bg-[#bf1e26] ring-2 ring-[#0E131E]" />
                         </div>
                         <span className="text-[10px] sm:text-[11px] mt-0.5 leading-tight font-black">Artikel</span>
                     </Link>
